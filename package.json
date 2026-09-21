@@ -1,0 +1,14 @@
+{
+  "name": "worksheet-workshop",
+  "version": "1.0.0",
+  "description": "Personalised printable kids worksheet generator with licence-key activation",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test test/*.test.js",
+    "keys": "node bin/keys.js"
+  }
+}

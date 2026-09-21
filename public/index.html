@@ -1,0 +1,1133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Make personalised, print-ready worksheets for your child in seconds.">
+<meta name="theme-color" content="#FFF6E9">
+<style>
+  html,body{height:100%}
+  body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+  :root{padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
+</style>
+<title>Worksheet Workshop</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Andika:wght@400;700&display=swap">
+<style>
+  :root{
+    --sun:#FFC43D; --berry:#FF5D8F; --sky:#2FB6E6; --mint:#35C48F; --grape:#8B6BE8;
+    --ink:#241F4D; --ink-soft:#615C8C; --ink-faint:#9490B8;
+    --cream:#FFF6E9; --cream-2:#FFEBD2; --paper:#FFFFFF;
+    --line:#DCDEEE; --rule:#C7CCE4;
+    --shadow-sm:0 2px 0 rgba(36,31,77,.14);
+    --shadow-md:0 6px 0 rgba(36,31,77,.12), 0 14px 28px rgba(36,31,77,.10);
+    --r-lg:26px; --r-md:18px; --r-sm:12px;
+    --ease:cubic-bezier(.34,1.56,.64,1);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--cream); color:var(--ink);
+    font-family:"Nunito",ui-rounded,"Segoe UI",system-ui,sans-serif;
+    font-size:15px; -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(255,196,61,.30), transparent 42%),
+      radial-gradient(circle at 88% 4%, rgba(255,93,143,.22), transparent 40%),
+      radial-gradient(circle at 78% 92%, rgba(47,182,230,.22), transparent 44%),
+      radial-gradient(circle at 6% 88%, rgba(53,196,143,.20), transparent 40%);
+  }
+  h1,h2,h3,.display{font-family:"Baloo 2",ui-rounded,system-ui,sans-serif; font-weight:800; letter-spacing:.2px}
+  button{font-family:inherit; color:inherit}
+  :focus-visible{outline:3px solid var(--grape); outline-offset:3px; border-radius:8px}
+
+  /* ---------- shell ---------- */
+  .app{position:relative; z-index:1; display:flex; flex-direction:column; height:100%}
+  .topbar{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding:12px 20px; padding-top:calc(12px + env(safe-area-inset-top,0px));
+    background:rgba(255,255,255,.72); backdrop-filter:blur(12px);
+    border-bottom:3px solid rgba(36,31,77,.08);
+  }
+  .brand{display:flex; align-items:center; gap:11px; margin-right:auto}
+  .brand-mark{
+    width:44px; height:44px; border-radius:15px; display:grid; place-items:center;
+    background:linear-gradient(145deg,var(--sun),var(--berry)); box-shadow:var(--shadow-sm); flex:none;
+  }
+  .brand-name{font-size:21px; line-height:1}
+  .brand-sub{font-size:11.5px; color:var(--ink-soft); font-weight:700; letter-spacing:.8px; text-transform:uppercase}
+
+  .pill{
+    display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border-radius:999px;
+    font-weight:800; font-size:12.5px; border:2px solid transparent; background:#fff; color:var(--ink-soft);
+    box-shadow:var(--shadow-sm);
+  }
+  .pill.demo{background:#FFF0D4; color:#9A6B00; border-color:#FFD98A}
+  .pill.full{background:#DCF7EC; color:#146F51; border-color:#8FE3C4}
+  .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+
+  .btn{
+    border:none; cursor:pointer; font-weight:800; border-radius:var(--r-md);
+    padding:11px 18px; font-size:14.5px; background:#fff; color:var(--ink);
+    box-shadow:var(--shadow-sm); transition:transform .16s var(--ease), box-shadow .16s ease, background .16s ease;
+  }
+  .btn:hover{transform:translateY(-2px); box-shadow:0 5px 0 rgba(36,31,77,.16)}
+  .btn:active{transform:translateY(1px); box-shadow:0 1px 0 rgba(36,31,77,.16)}
+  .btn-primary{background:linear-gradient(140deg,var(--berry),#FF8AB0); color:#fff; box-shadow:0 4px 0 #D63A6E}
+  .btn-primary:hover{box-shadow:0 6px 0 #D63A6E}
+  .btn-primary:active{box-shadow:0 1px 0 #D63A6E}
+  .btn-go{background:linear-gradient(140deg,var(--mint),#5FE0AE); color:#0B4B37; box-shadow:0 4px 0 #1E9B70}
+  .btn-go:hover{box-shadow:0 6px 0 #1E9B70}
+  .btn-go:active{box-shadow:0 1px 0 #1E9B70}
+  .btn-ghost{background:rgba(255,255,255,.6)}
+
+  .layout{
+    flex:1; min-height:0; display:grid; grid-template-columns:352px minmax(0,1fr); gap:20px;
+    padding:20px; padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));
+  }
+
+  /* ---------- control deck ---------- */
+  .deck{display:flex; flex-direction:column; gap:16px; min-height:0; overflow:auto; padding-right:4px; padding-bottom:8px}
+  .deck::-webkit-scrollbar{width:10px}
+  .deck::-webkit-scrollbar-thumb{background:rgba(36,31,77,.16); border-radius:999px}
+  .card{
+    background:#fff; border-radius:var(--r-lg); padding:18px; box-shadow:var(--shadow-md);
+    border:3px solid rgba(36,31,77,.06);
+  }
+  .card-title{
+    display:flex; align-items:center; gap:9px; font-family:"Baloo 2",system-ui,sans-serif;
+    font-weight:800; font-size:16px; margin:0 0 14px;
+  }
+  .card-title .num{
+    width:26px; height:26px; border-radius:9px; display:grid; place-items:center; flex:none;
+    font-size:13.5px; color:#fff; background:var(--grape);
+  }
+  .card-title .num.c2{background:var(--sky)} .card-title .num.c3{background:var(--sun); color:#6B4A00}
+
+  label.fld{display:block; margin-bottom:14px}
+  label.fld:last-child{margin-bottom:0}
+  .fld-label{display:block; font-size:12px; font-weight:800; letter-spacing:.7px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:7px}
+  .input{
+    width:100%; border:3px solid var(--line); border-radius:var(--r-md); padding:12px 14px;
+    font-family:"Baloo 2",system-ui,sans-serif; font-size:17px; font-weight:700; color:var(--ink);
+    background:var(--cream); transition:border-color .16s ease, background .16s ease;
+  }
+  .input:focus{outline:none; border-color:var(--grape); background:#fff}
+
+  .stepper{display:flex; align-items:center; gap:10px}
+  .stepper button{
+    width:40px; height:40px; flex:none; border:none; cursor:pointer; border-radius:13px; background:var(--cream-2);
+    font-family:"Baloo 2",system-ui,sans-serif; font-size:22px; line-height:1; font-weight:800; color:var(--ink);
+    transition:transform .16s var(--ease), background .16s ease;
+  }
+  .stepper button:hover{background:var(--sun); transform:scale(1.08)}
+  .stepper button:active{transform:scale(.94)}
+  .stepper .val{
+    flex:1; text-align:center; font-family:"Baloo 2",system-ui,sans-serif; font-size:19px; font-weight:800;
+    background:var(--cream); border-radius:13px; padding:9px 4px; border:3px solid var(--line);
+  }
+  .seg{display:flex; flex-wrap:wrap; gap:7px}
+  .seg button{
+    border:3px solid var(--line); background:#fff; cursor:pointer; border-radius:13px; padding:9px 13px;
+    font-weight:800; font-size:13.5px; transition:transform .16s var(--ease), background .16s ease, border-color .16s ease, color .16s ease;
+  }
+  .seg button:hover{transform:translateY(-2px)}
+  .seg button[aria-pressed="true"]{background:var(--grape); border-color:var(--grape); color:#fff}
+
+  .acts{display:grid; grid-template-columns:repeat(3,1fr); gap:9px}
+  .act{
+    border:3px solid var(--line); background:#fff; cursor:pointer; border-radius:var(--r-md);
+    padding:11px 6px 9px; display:flex; flex-direction:column; align-items:center; gap:7px;
+    transition:transform .18s var(--ease), border-color .16s ease, box-shadow .16s ease;
+  }
+  .act:hover{transform:translateY(-3px) rotate(-1.2deg); box-shadow:0 6px 0 rgba(36,31,77,.10)}
+  .act .ico{width:38px; height:38px; border-radius:13px; display:grid; place-items:center; flex:none; transition:transform .25s var(--ease)}
+  .act:hover .ico{transform:scale(1.12) rotate(6deg)}
+  .act .nm{font-size:10.8px; font-weight:800; line-height:1.2; text-align:center; color:var(--ink-soft)}
+  .act[aria-pressed="true"]{border-color:var(--ink); box-shadow:0 5px 0 rgba(36,31,77,.16)}
+  .act[aria-pressed="true"] .nm{color:var(--ink)}
+  .cat-head{font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--ink-faint); margin:14px 0 8px}
+  .cat-head:first-of-type{margin-top:0}
+
+  /* ---------- stage ---------- */
+  .stage{display:flex; flex-direction:column; min-height:0; gap:14px}
+  .stage-bar{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .stage-title{font-size:18px; margin:0 auto 0 0; display:flex; align-items:center; gap:10px}
+  .badge{
+    font-family:"Nunito",sans-serif; font-size:11.5px; font-weight:800; letter-spacing:.6px; text-transform:uppercase;
+    background:#fff; color:var(--ink-soft); padding:5px 11px; border-radius:999px; box-shadow:var(--shadow-sm);
+  }
+  .scroller{flex:1; min-height:0; overflow:auto; border-radius:var(--r-lg); padding:6px 0 24px}
+  .scroller::-webkit-scrollbar{width:10px}
+  .scroller::-webkit-scrollbar-thumb{background:rgba(36,31,77,.16); border-radius:999px}
+  .sheet-wrap{display:flex; flex-direction:column; align-items:center; gap:22px}
+  .sheet-fit{position:relative}
+  .sheet{
+    width:190mm; height:277mm; background:var(--paper); color:#12102B;
+    box-shadow:0 10px 34px rgba(36,31,77,.18); border-radius:5px;
+    padding:11mm 12mm 9mm; display:flex; flex-direction:column;
+    transform-origin:top left;
+  }
+  .sheet-head{display:flex; align-items:flex-end; gap:8mm; border-bottom:1.2mm solid #12102B; padding-bottom:3mm; margin-bottom:6mm}
+  .sheet-head h2{font-size:9mm; margin:0; line-height:1; letter-spacing:-.2px}
+  .sheet-head .sub{font-family:"Nunito",sans-serif; font-size:3.1mm; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:#6A6693; margin-top:1.6mm}
+  .sheet-meta{margin-left:auto; text-align:right; font-family:"Nunito",sans-serif; font-size:3.4mm; font-weight:700; color:#3B3766; white-space:nowrap}
+  .sheet-meta span{display:inline-block; border-bottom:.5mm dotted #8D89B4; min-width:34mm; margin-left:2mm}
+  .sheet-body{flex:1; min-height:0}
+  .sheet-foot{
+    display:flex; align-items:center; gap:4mm; padding-top:3mm; margin-top:4mm; border-top:.5mm solid #D6D3E8;
+    font-family:"Nunito",sans-serif; font-size:2.9mm; font-weight:700; color:#8D89B4;
+  }
+  .sheet-foot .stars{margin-left:auto; display:flex; gap:2mm}
+  .instr{
+    font-family:"Nunito",sans-serif; font-size:3.7mm; font-weight:700; color:#3B3766;
+    background:#F3F1FB; border-left:1.6mm solid #8B6BE8; border-radius:2mm; padding:2.6mm 3.4mm; margin-bottom:5mm;
+  }
+  .page-tag{
+    position:absolute; top:10px; left:-42px; writing-mode:vertical-rl; transform:rotate(180deg);
+    font-weight:800; font-size:11.5px; letter-spacing:1.4px; text-transform:uppercase; color:var(--ink-faint);
+  }
+
+  /* worksheet interior helpers */
+  .grid-probs{display:grid; gap:4mm}
+  .prob{
+    border:.6mm solid #D6D3E8; border-radius:3mm; padding:3.4mm 3mm; text-align:center;
+    font-family:"Andika","Nunito",sans-serif; font-weight:700;
+  }
+  .prob .q{font-size:7mm; letter-spacing:.6mm; white-space:nowrap}
+  .prob .ans{display:block; margin:2.4mm auto 0; width:60%; border-bottom:.7mm solid #8D89B4; height:8mm}
+  .prob .idx{font-family:"Nunito",sans-serif; font-size:2.8mm; color:#A7A3C6; font-weight:800}
+  .stack{display:flex; flex-direction:column; align-items:flex-end; font-size:7mm; line-height:1.35; padding-right:4mm}
+  .stack .op{border-bottom:.7mm solid #12102B; padding-bottom:1mm; min-width:22mm; text-align:right}
+  .seq{display:flex; align-items:center; gap:2.5mm; flex-wrap:wrap; font-family:"Andika",sans-serif; font-size:6.2mm; font-weight:700; padding:3mm 0; border-bottom:.5mm dashed #D6D3E8}
+  .seq .blank{display:inline-block; width:14mm; height:9mm; border:.7mm dashed #8B6BE8; border-radius:2mm}
+  .legend{display:flex; gap:4mm; flex-wrap:wrap; margin-bottom:4mm}
+  .legend .sw{display:flex; align-items:center; gap:2mm; font-family:"Nunito",sans-serif; font-weight:800; font-size:3.6mm}
+  .legend .chip{width:7mm; height:7mm; border-radius:2mm; border:.6mm solid #12102B; display:grid; place-items:center; font-size:3.4mm}
+  .wordlist{display:flex; flex-wrap:wrap; gap:2.5mm 5mm; margin-top:5mm; font-family:"Andika",sans-serif; font-weight:700; font-size:4.6mm; letter-spacing:.4mm}
+  .wordlist span{padding:1mm 2.5mm; border:.6mm solid #D6D3E8; border-radius:2mm}
+
+  .empty{padding:60px 20px; text-align:center; color:var(--ink-soft); font-weight:700}
+
+  /* ---------- modal ---------- */
+  .scrim{position:fixed; inset:0; z-index:40; background:rgba(36,31,77,.45); backdrop-filter:blur(3px); display:grid; place-items:center; padding:20px}
+  .modal{
+    background:#fff; border-radius:var(--r-lg); padding:26px; width:min(420px,100%);
+    box-shadow:0 24px 60px rgba(36,31,77,.34); border:3px solid rgba(36,31,77,.08);
+    animation:pop .28s var(--ease);
+  }
+  @keyframes pop{from{transform:scale(.9) translateY(10px); opacity:0} to{transform:none; opacity:1}}
+  .modal h3{margin:0 0 6px; font-size:22px}
+  .modal p{margin:0 0 16px; color:var(--ink-soft); font-weight:600; line-height:1.55}
+  .modal .hint{font-size:12.5px; background:var(--cream); border-radius:var(--r-sm); padding:10px 12px; margin-top:14px; color:var(--ink-soft); font-weight:700}
+  .err{color:#C62B5C; font-weight:800; font-size:13px; margin-top:10px; min-height:18px}
+
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr; overflow:auto}
+    .deck{overflow:visible; max-height:none}
+    .scroller{overflow:visible}
+    .page-tag{display:none}
+    .stage{min-height:auto}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+
+  /* ---------- print ---------- */
+  @page{size:A4; margin:10mm}
+  @media print{
+    body{background:#fff}
+    body::before,.topbar,.deck,.stage-bar,.page-tag,.scrim{display:none!important}
+    .app,.layout,.stage,.scroller{display:block!important; height:auto!important; overflow:visible!important; padding:0!important; margin:0!important}
+    .sheet-wrap{display:block!important; gap:0!important}
+    .sheet-fit{height:auto!important; margin:0!important}
+    .sheet{
+      transform:none!important; width:190mm!important; height:277mm!important;
+      box-shadow:none!important; border-radius:0!important; break-after:page; page-break-after:always;
+    }
+    .sheet-fit:last-child .sheet{break-after:auto; page-break-after:auto}
+  }
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 18.5 16.2 6.3l3 3L7 21.5l-4 .8.9-3.8Z" fill="#fff"/>
+          <path d="M17.6 4.9 19 3.5l3 3-1.4 1.4-3-3Z" fill="#241F4D"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name display">Worksheet Workshop</div>
+        <div class="brand-sub">Print-ready practice, made in seconds</div>
+      </div>
+    </div>
+    <span class="pill demo" id="statusPill"><span class="dot"></span><span id="statusText">Demo mode</span></span>
+    <button class="btn btn-ghost" id="unlockBtn">Unlock</button>
+    <button class="btn btn-primary" id="printBtn">Print / Save PDF</button>
+  </header>
+
+  <div class="layout">
+    <aside class="deck">
+      <section class="card">
+        <h3 class="card-title"><span class="num">1</span> Who is this for?</h3>
+        <label class="fld">
+          <span class="fld-label">Child's name</span>
+          <input class="input" id="kidName" type="text" value="Emma" maxlength="14" autocomplete="off" spellcheck="false">
+        </label>
+        <div class="fld">
+          <span class="fld-label">Age</span>
+          <div class="stepper">
+            <button type="button" id="ageDown" aria-label="Younger">−</button>
+            <div class="val" id="ageVal">5</div>
+            <button type="button" id="ageUp" aria-label="Older">+</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3 class="card-title"><span class="num c2">2</span> Pick an activity</h3>
+        <div id="actPicker"></div>
+      </section>
+
+      <section class="card">
+        <h3 class="card-title"><span class="num c3">3</span> Fine-tune it</h3>
+        <div id="optPanel"></div>
+        <div class="fld" style="margin-top:14px">
+          <span class="fld-label">How many pages</span>
+          <div class="stepper">
+            <button type="button" id="pgDown" aria-label="Fewer pages">−</button>
+            <div class="val" id="pgVal">1</div>
+            <button type="button" id="pgUp" aria-label="More pages">+</button>
+          </div>
+        </div>
+        <button class="btn btn-go" id="shuffleBtn" style="width:100%; margin-top:14px; font-size:16px; padding:14px">Make new sheets</button>
+      </section>
+    </aside>
+
+    <main class="stage">
+      <div class="stage-bar">
+        <h2 class="stage-title display" id="stageTitle">Name Tracing</h2>
+        <span class="badge" id="pageBadge">1 page</span>
+        <span class="badge" id="ageBadge">Ages 4–6</span>
+      </div>
+      <div class="scroller" id="scroller">
+        <div class="sheet-wrap" id="sheetWrap"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <h3 id="mTitle" class="display">Enter your licence key</h3>
+    <p>Your key came with your purchase receipt. Unlocking removes the page limit and the footer credit.</p>
+    <input class="input" id="keyInput" type="text" placeholder="WW-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false">
+    <div class="err" id="keyErr"></div>
+    <div style="display:flex; gap:10px; margin-top:6px">
+      <button class="btn btn-primary" id="keyGo" style="flex:1">Unlock</button>
+      <button class="btn btn-ghost" id="keyCancel">Not now</button>
+    </div>
+    <div class="hint">Your key looks like <strong>WW-XXXX-XXXX-XXXX</strong> and is in the message attached to your order.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============ tiny helpers ============ */
+  var NS = "http://www.w3.org/2000/svg";
+  function h(tag, attrs){
+    var e = document.createElement(tag), i, k;
+    if(attrs) for(k in attrs){ if(k==="text") e.textContent = attrs[k]; else if(k==="html") e.innerHTML = attrs[k]; else e.setAttribute(k, attrs[k]); }
+    for(i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; e.appendChild(typeof c==="string"?document.createTextNode(c):c); }
+    return e;
+  }
+  function sv(tag, attrs){
+    var e = document.createElementNS(NS, tag), i, k;
+    if(attrs) for(k in attrs){ if(k==="text") e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]); }
+    for(i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; e.appendChild(typeof c==="string"?document.createTextNode(c):c); }
+    return e;
+  }
+  function $(id){ return document.getElementById(id); }
+  function ri(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+  function titleCase(s){ return s.replace(/\S+/g, function(w){ return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase(); }); }
+
+  var INK = "#12102B", SOFT = "#8D89B4", FAINT = "#D6D3E8", TRACE = "#B9BDD6";
+  var PAL = { r:"#FF5D8F", y:"#FFC43D", b:"#2FB6E6", g:"#35C48F", p:"#8B6BE8" };
+
+  /* ============ icons ============ */
+  function icon(name, fill){
+    var s = sv("svg", {viewBox:"0 0 24 24", width:"22", height:"22", fill:"none", "aria-hidden":"true"});
+    var P = {
+      pencil:["M4 18.4 15.9 6.5l3 3L7 21.4l-4 .9.9-3.9Z","M17.3 5.1 18.7 3.7l3 3-1.4 1.4-3-3Z"],
+      alpha:["M4 20 9.5 5h2.2L17 20h-2.4l-1.2-3.6H7.6L6.4 20H4Zm4.3-5.7h4.2L10.6 8 8.3 14.3Z","M18 20h2v-6h-2v6Z"],
+      digits:["M7 5h3v14H7V5Z","M13 5h4a3 3 0 0 1 0 6h-2v2h4v2h-6V9h4a1 1 0 0 0 0-2h-4V5Z"],
+      plus:["M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7V4Z"],
+      count:["M5 6h14v3H5V6Z","M5 11h14v3H5v-3Z","M5 16h9v3H5v-3Z"],
+      seq:["M3 11h5v2H3v-2Z","M10 11h4v2h-4v-2Z","M16 9l5 3-5 3V9Z"],
+      clock:["M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 2a7 7 0 1 1 0 14 7 7 0 0 1 0-14Z","M11 7h2v5.4l3.3 2-1 1.7-4.3-2.6V7Z"],
+      search:["M11 3a8 8 0 1 0 4.9 14.3l4.4 4.4 1.4-1.4-4.4-4.4A8 8 0 0 0 11 3Zm0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12Z"],
+      maze:["M3 3h18v18H3V3Zm2 2v14h14V5H5Z","M8 8h8v2H10v4h6v2H8V8Z"],
+      sudoku:["M3 3h18v18H3V3Zm2 2v4h4V5H5Zm6 0v4h2V5h-2Zm4 0v4h4V5h-4ZM5 11v2h4v-2H5Zm6 0v2h2v-2h-2Zm4 0v2h4v-2h-4ZM5 15v4h4v-4H5Zm6 0v4h2v-4h-2Zm4 0v4h4v-4h-4Z"],
+      paint:["M12 2c5 0 9 3.6 9 8 0 2.8-2.2 4-4 4h-1.5a1.5 1.5 0 0 0-1 2.6c.6.6.5 1.8-.4 2.5-.6.5-1.4.9-2.1.9-5 0-9-4-9-9s4-9 9-9Z"],
+      dots:["M6 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z","M18 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z","M6 15a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z","M18 15a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z","M12 10a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z"],
+      shapes:["M12 3 3 19h18L12 3Z"],
+      cut:["M9 3h6v8h5l-8 10-8-10h5V3Z"]
+    };
+    var d = P[name] || P.pencil, i;
+    for(i=0;i<d.length;i++) s.appendChild(sv("path", {d:d[i], fill:fill||INK}));
+    return s;
+  }
+
+  /* ============ shared sheet bits ============ */
+  function instruction(text){ return h("div",{"class":"instr", text:text}); }
+
+  function traceRow(word, mode, sizeMM){
+    // mode: "solid" | "dotted"
+    var W = 700, H = 118;
+    var g = sv("svg", {viewBox:"0 0 "+W+" "+H, width:"100%", height:(sizeMM||17)+"mm", "preserveAspectRatio":"none"});
+    g.setAttribute("preserveAspectRatio","xMidYMid meet");
+    var top=14, mid=58, base=98;
+    g.appendChild(sv("line",{x1:0,y1:top,x2:W,y2:top,stroke:FAINT,"stroke-width":1.6}));
+    g.appendChild(sv("line",{x1:0,y1:mid,x2:W,y2:mid,stroke:FAINT,"stroke-width":1.4,"stroke-dasharray":"7 9"}));
+    g.appendChild(sv("line",{x1:0,y1:base,x2:W,y2:base,stroke:INK,"stroke-width":2.2}));
+    var reps = Math.max(1, Math.floor(W / Math.max(70, word.length*40 + 30)));
+    var unit = W / reps, i;
+    for(i=0;i<reps;i++){
+      var t = sv("text", {
+        x: unit*i + unit/2, y: base, "text-anchor":"middle",
+        "font-family":"Andika, Nunito, sans-serif", "font-size":"74", "font-weight":"400", "letter-spacing":"3"
+      });
+      t.textContent = word;
+      if(mode==="solid"){ t.setAttribute("fill", "#CFD3E6"); }
+      else { t.setAttribute("fill","none"); t.setAttribute("stroke", TRACE); t.setAttribute("stroke-width","2.2"); t.setAttribute("stroke-dasharray","6 7"); t.setAttribute("stroke-linecap","round"); }
+      g.appendChild(t);
+    }
+    return g;
+  }
+
+  function shapeGlyph(kind, size, fill){
+    var s = sv("svg",{viewBox:"0 0 40 40", width:size, height:size});
+    var f = fill || PAL.b;
+    if(kind==="Stars") s.appendChild(sv("path",{d:"M20 3l5.1 10.9L37 15.6l-8.6 8.2 2.1 11.8L20 30l-10.5 5.6 2.1-11.8L3 15.6l11.9-1.7L20 3Z", fill:f, stroke:INK, "stroke-width":"1.6","stroke-linejoin":"round"}));
+    else if(kind==="Apples"){ s.appendChild(sv("path",{d:"M20 11c3-4 10-4 12 1 2 5-1 14-5 19-2 2.5-4 2.5-7 1-3 1.5-5 1.5-7-1-4-5-7-14-5-19 2-5 9-5 12-1Z", fill:f, stroke:INK,"stroke-width":"1.6"})); s.appendChild(sv("path",{d:"M20 11c0-3 1-5 3-6", stroke:"#3E7A4E","stroke-width":"2.4", fill:"none","stroke-linecap":"round"})); }
+    else if(kind==="Balls"){ s.appendChild(sv("circle",{cx:20,cy:20,r:15, fill:f, stroke:INK,"stroke-width":"1.6"})); s.appendChild(sv("path",{d:"M5 20h30M20 5c6 6 6 24 0 30M20 5c-6 6-6 24 0 30", stroke:INK,"stroke-width":"1.2", fill:"none", opacity:".55"})); }
+    else if(kind==="Fish"){ s.appendChild(sv("path",{d:"M4 20c6-9 16-11 24-6l6-5v22l-6-5c-8 5-18 3-24-6Z", fill:f, stroke:INK,"stroke-width":"1.6","stroke-linejoin":"round"})); s.appendChild(sv("circle",{cx:12,cy:18,r:1.8, fill:INK})); }
+    else s.appendChild(sv("circle",{cx:20,cy:20,r:15, fill:f, stroke:INK,"stroke-width":"1.6"}));
+    return s;
+  }
+
+  /* ============ geometry for creative sheets ============ */
+  function polyStar(points, inner){
+    var pts = [], i, n = points*2;
+    for(i=0;i<n;i++){
+      var ang = -Math.PI/2 + i*Math.PI/points;
+      var r = (i%2===0) ? 1 : inner;
+      pts.push([Math.cos(ang)*r, Math.sin(ang)*r]);
+    }
+    return pts;
+  }
+  function polySample(fn, n){
+    var pts = [], i;
+    for(i=0;i<n;i++){ pts.push(fn(i/n*Math.PI*2)); }
+    return pts;
+  }
+  var SHAPES = {
+    Star:  function(){ return polyStar(5, .43); },
+    Heart: function(){ return polySample(function(t){
+              var x = 16*Math.pow(Math.sin(t),3);
+              var y = -(13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t));
+              return [x/17, y/15];
+            }, 90); },
+    Flower:function(){ return polySample(function(t){
+              var r = .58 + .42*Math.cos(6*t);
+              return [Math.cos(t)*r, Math.sin(t)*r];
+            }, 144); },
+    Sun:   function(){ return polyStar(12, .62); },
+    Fish:  function(){ return polySample(function(t){
+              var r = .55 + .35*Math.cos(t) + .18*Math.cos(2*t);
+              return [Math.cos(t)*r*1.35, Math.sin(t)*r*.85];
+            }, 110); }
+  };
+  function inPoly(pt, poly, scale){
+    var x = pt[0]/scale, y = pt[1]/scale, inside = false, i, j;
+    for(i=0, j=poly.length-1; i<poly.length; j=i++){
+      var xi=poly[i][0], yi=poly[i][1], xj=poly[j][0], yj=poly[j][1];
+      if(((yi>y)!==(yj>y)) && (x < (xj-xi)*(y-yi)/(yj-yi)+xi)) inside = !inside;
+    }
+    return inside;
+  }
+  function polyPerimeterPoints(poly, n){
+    var segs = [], total = 0, i;
+    for(i=0;i<poly.length;i++){
+      var a = poly[i], b = poly[(i+1)%poly.length];
+      var len = Math.hypot(b[0]-a[0], b[1]-a[1]);
+      segs.push({a:a,b:b,len:len,acc:total}); total += len;
+    }
+    var out = [], k = 0;
+    for(i=0;i<n;i++){
+      var d = total*i/n;
+      while(k<segs.length-1 && segs[k].acc + segs[k].len < d) k++;
+      var s = segs[k], u = s.len ? (d - s.acc)/s.len : 0;
+      out.push([s.a[0] + (s.b[0]-s.a[0])*u, s.a[1] + (s.b[1]-s.a[1])*u]);
+    }
+    return out;
+  }
+
+  /* ============ puzzle generators ============ */
+  function genMaze(cols, rows){
+    var cells = [], i, j;
+    for(i=0;i<rows;i++){ cells[i]=[]; for(j=0;j<cols;j++) cells[i][j]={n:1,e:1,s:1,w:1,v:0}; }
+    var stack = [[0,0]]; cells[0][0].v = 1;
+    while(stack.length){
+      var cur = stack[stack.length-1], r = cur[0], c = cur[1], opts = [];
+      if(r>0 && !cells[r-1][c].v) opts.push([r-1,c,"n","s"]);
+      if(r<rows-1 && !cells[r+1][c].v) opts.push([r+1,c,"s","n"]);
+      if(c>0 && !cells[r][c-1].v) opts.push([r,c-1,"w","e"]);
+      if(c<cols-1 && !cells[r][c+1].v) opts.push([r,c+1,"e","w"]);
+      if(!opts.length){ stack.pop(); continue; }
+      var o = pick(opts);
+      cells[r][c][o[2]] = 0; cells[o[0]][o[1]][o[3]] = 0; cells[o[0]][o[1]].v = 1;
+      stack.push([o[0],o[1]]);
+    }
+    return cells;
+  }
+  function genSudoku(n, blanks){
+    var box = n===4 ? [2,2] : n===6 ? [2,3] : [3,3];
+    var bh = box[0], bw = box[1];
+    var rows = [], cols = [], nums = shuffle(Array.from({length:n}, function(_,i){ return i+1; })), r, c;
+    var bands = shuffle(Array.from({length:n/bh}, function(_,i){ return i; }));
+    for(var bi=0;bi<bands.length;bi++){
+      var inner = shuffle(Array.from({length:bh}, function(_,i){ return i; }));
+      for(var ii=0;ii<inner.length;ii++) rows.push(bands[bi]*bh + inner[ii]);
+    }
+    var stacks = shuffle(Array.from({length:n/bw}, function(_,i){ return i; }));
+    for(var si=0;si<stacks.length;si++){
+      var inn = shuffle(Array.from({length:bw}, function(_,i){ return i; }));
+      for(var jj=0;jj<inn.length;jj++) cols.push(stacks[si]*bw + inn[jj]);
+    }
+    function pat(r,c){ return (bw*(r%bh) + Math.floor(r/bh) + c) % n; }
+    var grid = [];
+    for(r=0;r<n;r++){ grid[r]=[]; for(c=0;c<n;c++) grid[r][c] = nums[pat(rows[r], cols[c])]; }
+    var puzzle = grid.map(function(row){ return row.slice(); });
+    var idx = shuffle(Array.from({length:n*n}, function(_,i){ return i; }));
+    for(var k=0;k<Math.min(blanks, idx.length-1); k++){ puzzle[Math.floor(idx[k]/n)][idx[k]%n] = 0; }
+    return {puzzle:puzzle, box:box};
+  }
+  function genWordSearch(words, size){
+    var grid = [], i, j;
+    for(i=0;i<size;i++){ grid[i]=[]; for(j=0;j<size;j++) grid[i][j]=""; }
+    var dirs = [[0,1],[1,0],[1,1],[-1,1],[0,-1],[-1,0],[-1,-1],[1,-1]];
+    var placed = [];
+    words.forEach(function(w){
+      var word = w.toUpperCase().replace(/[^A-Z]/g,"");
+      if(!word || word.length>size) return;
+      for(var tries=0; tries<220; tries++){
+        var d = pick(dirs), r = ri(0,size-1), c = ri(0,size-1);
+        var er = r + d[0]*(word.length-1), ec = c + d[1]*(word.length-1);
+        if(er<0||er>=size||ec<0||ec>=size) continue;
+        var ok = true, k;
+        for(k=0;k<word.length;k++){
+          var ch = grid[r+d[0]*k][c+d[1]*k];
+          if(ch && ch!==word[k]){ ok=false; break; }
+        }
+        if(!ok) continue;
+        for(k=0;k<word.length;k++) grid[r+d[0]*k][c+d[1]*k] = word[k];
+        placed.push(word); return;
+      }
+    });
+    var A = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for(i=0;i<size;i++) for(j=0;j<size;j++) if(!grid[i][j]) grid[i][j] = A[ri(0,25)];
+    return {grid:grid, placed:placed};
+  }
+
+  /* ============ activities ============ */
+  var ACT = {
+
+    nameTrace: {
+      label:"Name Tracing", cat:"Writing", ico:"pencil", tint:PAL.r, ages:"3–6",
+      title:function(o, st){ return titleCase((st&&st.name)||"My Name") + "'s Name"; },
+      opts:{
+        rows:{type:"step", label:"Lines", min:3, max:7, def:5},
+        style:{type:"seg", label:"Guides", options:["Dotted","Outline first","All dotted"], def:"Outline first"}
+      },
+      build:function(o, st, body){
+        body.appendChild(instruction("Trace each name slowly. Start at the dot and stay between the lines."));
+        var name = titleCase((st.name||"Me").trim()) || "Me", i;
+        var box = h("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="2mm";
+        for(i=0;i<o.rows;i++){
+          var mode = (o.style==="Outline first" && i===0) ? "solid" : (o.style==="Dotted" ? "dotted" : "dotted");
+          if(o.style==="Dotted") mode = "dotted";
+          box.appendChild(traceRow(name, mode, 26));
+        }
+        body.appendChild(box);
+      }
+    },
+
+    letterTrace: {
+      label:"Letter Tracing", cat:"Writing", ico:"alpha", tint:PAL.p, ages:"3–6",
+      title:function(){ return "Letter Practice"; },
+      opts:{
+        letters:{type:"text", label:"Letters to practise", def:"Aa Bb Cc"},
+        rows:{type:"step", label:"Lines each", min:1, max:3, def:2}
+      },
+      build:function(o, st, body){
+        body.appendChild(instruction("Trace the letters. Say the sound out loud each time you finish one."));
+        var maxGroups = Math.max(1, Math.floor(8 / o.rows));
+        var groups = (o.letters||"Aa").trim().split(/\s+/).slice(0, maxGroups), i, k;
+        var box = h("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="1.5mm";
+        for(i=0;i<groups.length;i++){
+          for(k=0;k<o.rows;k++) box.appendChild(traceRow(groups[i]+" "+groups[i]+" "+groups[i], (k===0?"solid":"dotted"), 24));
+        }
+        body.appendChild(box);
+      }
+    },
+
+    numberTrace: {
+      label:"Number Tracing", cat:"Writing", ico:"digits", tint:PAL.b, ages:"3–6",
+      title:function(){ return "Number Practice"; },
+      opts:{
+        from:{type:"step", label:"Start at", min:0, max:15, def:1},
+        count:{type:"step", label:"How many numbers", min:3, max:6, def:5}
+      },
+      build:function(o, st, body){
+        body.appendChild(instruction("Trace each number, then count that many claps."));
+        var box = h("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="1.5mm";
+        for(var i=0;i<o.count;i++){
+          var n = String(o.from + i);
+          box.appendChild(traceRow(n+" "+n+" "+n+" "+n, i===0?"solid":"dotted", 25));
+        }
+        body.appendChild(box);
+      }
+    },
+
+    math: {
+      label:"Math Drills", cat:"Numbers", ico:"plus", tint:PAL.g, ages:"5–10",
+      title:function(o){ return {"+":"Addition","−":"Subtraction","×":"Multiplication","÷":"Division"}[o.op] + " Practice"; },
+      opts:{
+        op:{type:"seg", label:"Operation", options:["+","−","×","÷"], def:"+"},
+        max:{type:"step", label:"Biggest number", min:5, max:20, def:10},
+        count:{type:"step", label:"How many sums", min:6, max:24, def:12},
+        layout:{type:"seg", label:"Layout", options:["Across","Stacked"], def:"Across"}
+      },
+      build:function(o, st, body){
+        body.appendChild(instruction("Work out each one and write your answer on the line."));
+        var grid = h("div",{"class":"grid-probs"});
+        grid.style.gridTemplateColumns = "repeat("+(o.layout==="Stacked"?4:3)+",1fr)";
+        for(var i=0;i<o.count;i++){
+          var a, b, q;
+          if(o.op==="+"){ a=ri(1,o.max); b=ri(1,o.max); q=a+" + "+b; }
+          else if(o.op==="−"){ a=ri(2,o.max); b=ri(1,a); q=a+" − "+b; }
+          else if(o.op==="×"){ a=ri(1,Math.min(12,o.max)); b=ri(1,Math.min(12,o.max)); q=a+" × "+b; }
+          else { b=ri(1,Math.min(12,o.max)); var ans=ri(1,Math.min(12,o.max)); a=b*ans; q=a+" ÷ "+b; }
+          var cell = h("div",{"class":"prob"});
+          cell.appendChild(h("div",{"class":"idx", text:String(i+1)}));
+          if(o.layout==="Stacked"){
+            var st2 = h("div",{"class":"stack"});
+            st2.appendChild(h("div",{text:String(a)}));
+            st2.appendChild(h("div",{"class":"op", text:o.op+" "+b}));
+            st2.appendChild(h("div",{html:"&nbsp;"}));
+            cell.appendChild(st2);
+          } else {
+            cell.appendChild(h("div",{"class":"q", text:q+" ="}));
+            cell.appendChild(h("span",{"class":"ans"}));
+          }
+          grid.appendChild(cell);
+        }
+        body.appendChild(grid);
+      }
+    },
+
+    counting: {
+      label:"Counting Fun", cat:"Numbers", ico:"count", tint:PAL.y, ages:"3–6",
+      title:function(){ return "Count and Write"; },
+      opts:{
+        rows:{type:"step", label:"How many rows", min:3, max:7, def:5},
+        max:{type:"step", label:"Up to", min:4, max:12, def:8},
+        shape:{type:"seg", label:"Things to count", options:["Stars","Apples","Balls","Fish"], def:"Stars"}
+      },
+      build:function(o, st, body){
+        body.appendChild(instruction("Count the pictures in each row. Write the number in the box."));
+        var wrap = h("div"); wrap.style.display="flex"; wrap.style.flexDirection="column"; wrap.style.gap="4mm";
+        var colors = [PAL.r, PAL.y, PAL.b, PAL.g, PAL.p];
+        for(var i=0;i<o.rows;i++){
+          var n = ri(2, o.max);
+          var row = h("div"); row.style.display="flex"; row.style.alignItems="center"; row.style.gap="2.5mm";
+          row.style.borderBottom = ".5mm dashed "+FAINT; row.style.paddingBottom="3mm";
+          for(var k=0;k<n;k++) row.appendChild(shapeGlyph(o.shape, "11mm", colors[i%colors.length]));
+          var box = h("div");
+          box.style.cssText = "margin-left:auto; width:16mm; height:16mm; border:.9mm solid "+INK+"; border-radius:3mm; flex:none";
+          row.appendChild(box);
+          wrap.appendChild(row);
+        }
+        body.appendChild(wrap);
+      }
+    },
+
+    missing: {
+      label:"Missing Numbers", cat:"Numbers", ico:"seq", tint:PAL.b, ages:"4–8",
+      title:function(){ return "What Comes Next?"; },
+      opts:{
+        rows:{type:"step", label:"How many rows", min:4, max:10, def:7},
+        step:{type:"seg", label:"Counting by", options:["1","2","5","10"], def:"1"},
+        len:{type:"step", label:"Numbers per row", min:5, max:9, def:7}
+      },
+      build:function(o, st, body){
+        body.appendChild(instruction("Fill in the numbers that are missing from each line."));
+        var stp = parseInt(o.step,10);
+        for(var i=0;i<o.rows;i++){
+          var start = ri(1, 12) * stp;
+          var row = h("div",{"class":"seq"});
+          var blanks = shuffle(Array.from({length:o.len}, function(_,k){ return k; })).slice(0, Math.max(2, Math.round(o.len/3)));
+          for(var k=0;k<o.len;k++){
+            var val = start + k*stp;
+            if(blanks.indexOf(k)>=0) row.appendChild(h("span",{"class":"blank"}));
+            else row.appendChild(h("span",{text:String(val)}));
+            if(k<o.len-1) row.appendChild(h("span",{text:",", style:"color:"+SOFT}));
+          }
+          body.appendChild(row);
+        }
+      }
+    },
+
+    clock: {
+      label:"Telling Time", cat:"Numbers", ico:"clock", tint:PAL.p, ages:"6–10",
+      title:function(){ return "What Time Is It?"; },
+      opts:{
+        count:{type:"step", label:"How many clocks", min:4, max:12, def:9},
+        grain:{type:"seg", label:"Times to use", options:["O'clock","Half past","Quarters","5 minutes"], def:"Half past"}
+      },
+      build:function(o, st, body){
+        body.appendChild(instruction("Read each clock and write the time underneath."));
+        var grid = h("div"); grid.style.display="grid"; grid.style.gridTemplateColumns="repeat(3,1fr)"; grid.style.gap="5mm";
+        var mins = o.grain==="O'clock" ? [0] : o.grain==="Half past" ? [0,30] : o.grain==="Quarters" ? [0,15,30,45] : [0,5,10,15,20,25,30,35,40,45,50,55];
+        for(var i=0;i<o.count;i++){
+          var hr = ri(1,12), mn = pick(mins);
+          var cell = h("div"); cell.style.textAlign="center";
+          var s = sv("svg",{viewBox:"0 0 100 100", width:"100%", height:"30mm"});
+          s.appendChild(sv("circle",{cx:50,cy:50,r:45, fill:"#fff", stroke:INK, "stroke-width":"3"}));
+          for(var t=0;t<12;t++){
+            var a = (t/12)*Math.PI*2 - Math.PI/2;
+            s.appendChild(sv("line",{x1:50+Math.cos(a)*40, y1:50+Math.sin(a)*40, x2:50+Math.cos(a)*44, y2:50+Math.sin(a)*44, stroke:INK,"stroke-width":"2"}));
+            var tx = sv("text",{x:50+Math.cos(a)*33, y:50+Math.sin(a)*33+4, "text-anchor":"middle","font-family":"Andika, sans-serif","font-size":"11","font-weight":"700", fill:INK});
+            tx.textContent = String(t===0?12:t); s.appendChild(tx);
+          }
+          var ha = ((hr%12) + mn/60)/12*Math.PI*2 - Math.PI/2;
+          var ma = (mn/60)*Math.PI*2 - Math.PI/2;
+          s.appendChild(sv("line",{x1:50,y1:50,x2:50+Math.cos(ha)*20,y2:50+Math.sin(ha)*20, stroke:INK,"stroke-width":"5","stroke-linecap":"round"}));
+          s.appendChild(sv("line",{x1:50,y1:50,x2:50+Math.cos(ma)*30,y2:50+Math.sin(ma)*30, stroke:PAL.r,"stroke-width":"3.4","stroke-linecap":"round"}));
+          s.appendChild(sv("circle",{cx:50,cy:50,r:3.4, fill:INK}));
+          cell.appendChild(s);
+          var line = h("div"); line.style.cssText="border-bottom:.7mm solid "+SOFT+"; height:8mm; margin:1mm 4mm 0";
+          cell.appendChild(line);
+          grid.appendChild(cell);
+        }
+        body.appendChild(grid);
+      }
+    },
+
+    wordsearch: {
+      label:"Word Search", cat:"Puzzles", ico:"search", tint:PAL.r, ages:"6–10",
+      title:function(){ return "Word Search"; },
+      opts:{
+        words:{type:"text", label:"Words (comma separated)", def:"cat, dog, sun, book, happy, jump"},
+        size:{type:"step", label:"Grid size", min:8, max:14, def:11}
+      },
+      build:function(o, st, body){
+        var words = (o.words||"").split(",").map(function(w){ return w.trim(); }).filter(Boolean);
+        if(st.name) words = [st.name].concat(words);
+        words = words.slice(0, 12);
+        var res = genWordSearch(words, o.size);
+        body.appendChild(instruction("Find every word in the list. They can go across, down, or diagonally."));
+        var tbl = h("div");
+        tbl.style.cssText = "display:grid; grid-template-columns:repeat("+o.size+",1fr); gap:0; border:.9mm solid "+INK+"; border-radius:2mm; overflow:hidden";
+        for(var r=0;r<o.size;r++) for(var c=0;c<o.size;c++){
+          var cell = h("div",{text:res.grid[r][c]});
+          cell.style.cssText = "aspect-ratio:1; display:grid; place-items:center; font-family:Andika,sans-serif; font-weight:700; font-size:4.6mm; border-right:.3mm solid "+FAINT+"; border-bottom:.3mm solid "+FAINT;
+          tbl.appendChild(cell);
+        }
+        body.appendChild(tbl);
+        var list = h("div",{"class":"wordlist"});
+        res.placed.forEach(function(w){ list.appendChild(h("span",{text:w})); });
+        body.appendChild(list);
+      }
+    },
+
+    maze: {
+      label:"Maze", cat:"Puzzles", ico:"maze", tint:PAL.g, ages:"4–10",
+      title:function(){ return "Find the Way Out"; },
+      opts:{ size:{type:"step", label:"Maze size", min:8, max:22, def:14} },
+      build:function(o, st, body){
+        body.appendChild(instruction("Start at the green arrow and draw a path to the star. No cutting through walls!"));
+        var n = o.size, cells = genMaze(n, n), cs = 100/n;
+        var s = sv("svg",{viewBox:"-3 -3 106 106", width:"100%", height:"200mm"});
+        s.appendChild(sv("rect",{x:0,y:0,width:100,height:100, fill:"#fff"}));
+        for(var r=0;r<n;r++) for(var c=0;c<n;c++){
+          var x=c*cs, y=r*cs, cell=cells[r][c];
+          if(cell.n) s.appendChild(sv("line",{x1:x,y1:y,x2:x+cs,y2:y, stroke:INK,"stroke-width":"1.1","stroke-linecap":"round"}));
+          if(cell.w) s.appendChild(sv("line",{x1:x,y1:y,x2:x,y2:y+cs, stroke:INK,"stroke-width":"1.1","stroke-linecap":"round"}));
+          if(r===n-1) s.appendChild(sv("line",{x1:x,y1:y+cs,x2:x+cs,y2:y+cs, stroke:INK,"stroke-width":"1.1","stroke-linecap":"round"}));
+          if(c===n-1) s.appendChild(sv("line",{x1:x+cs,y1:y,x2:x+cs,y2:y+cs, stroke:INK,"stroke-width":"1.1","stroke-linecap":"round"}));
+        }
+        s.appendChild(sv("circle",{cx:cs/2, cy:cs/2, r:cs*0.3, fill:PAL.g}));
+        s.appendChild(sv("path",{d:"M"+(100-cs/2)+" "+(100-cs*0.82)+" l"+(cs*0.16)+" "+(cs*0.34)+" l"+(cs*0.36)+" "+(cs*0.05)+" l-"+(cs*0.26)+" "+(cs*0.25)+" l"+(cs*0.06)+" "+(cs*0.36)+" l-"+(cs*0.32)+"-"+(cs*0.17)+" l-"+(cs*0.32)+" "+(cs*0.17)+" l"+(cs*0.06)+"-"+(cs*0.36)+" l-"+(cs*0.26)+"-"+(cs*0.25)+" l"+(cs*0.36)+"-"+(cs*0.05)+" Z", fill:PAL.y, stroke:INK,"stroke-width":".5"}));
+        body.appendChild(s);
+      }
+    },
+
+    sudoku: {
+      label:"Sudoku", cat:"Puzzles", ico:"sudoku", tint:PAL.b, ages:"6–12",
+      title:function(o){ return "Sudoku " + o.size; },
+      opts:{
+        size:{type:"seg", label:"Grid", options:["4×4","6×6","9×9"], def:"6×6"},
+        blanks:{type:"step", label:"Empty squares", min:4, max:45, def:16}
+      },
+      build:function(o, st, body){
+        var n = parseInt(o.size,10);
+        var res = genSudoku(n, Math.min(o.blanks, n*n-4));
+        body.appendChild(instruction("Every row, every column and every block must use each number exactly once."));
+        var holder = h("div"); holder.style.cssText="display:flex; justify-content:center";
+        var box = h("div");
+        box.style.cssText = "display:grid; grid-template-columns:repeat("+n+",1fr); width:"+(n<=4?"90mm":n<=6?"120mm":"150mm")+"; border:1.1mm solid "+INK+"; border-radius:2mm; overflow:hidden";
+        for(var r=0;r<n;r++) for(var c=0;c<n;c++){
+          var v = res.puzzle[r][c];
+          var cell = h("div",{text: v? String(v):""});
+          var br = ((c+1)%res.box[1]===0 && c<n-1) ? ".9mm solid "+INK : ".3mm solid "+FAINT;
+          var bb = ((r+1)%res.box[0]===0 && r<n-1) ? ".9mm solid "+INK : ".3mm solid "+FAINT;
+          cell.style.cssText = "aspect-ratio:1; display:grid; place-items:center; font-family:Andika,sans-serif; font-weight:700; font-size:7mm; border-right:"+br+"; border-bottom:"+bb+"; color:"+(v?INK:SOFT);
+          box.appendChild(cell);
+        }
+        holder.appendChild(box);
+        body.appendChild(holder);
+      }
+    },
+
+    colorBy: {
+      label:"Colour by Number", cat:"Creative", ico:"paint", tint:PAL.y, ages:"4–8",
+      title:function(){ return "Colour by Number"; },
+      opts:{
+        picture:{type:"seg", label:"Picture", options:["Star","Heart","Flower","Sun","Fish"], def:"Heart"},
+        grid:{type:"step", label:"Squares across", min:10, max:20, def:14}
+      },
+      build:function(o, st, body){
+        body.appendChild(instruction("Colour every square using the key below. A picture will appear!"));
+        var key = [
+          {n:1, name:"Red", hex:PAL.r},
+          {n:2, name:"Yellow", hex:PAL.y},
+          {n:3, name:"Blue", hex:PAL.b},
+          {n:4, name:"Green", hex:PAL.g}
+        ];
+        var legend = h("div",{"class":"legend"});
+        key.forEach(function(k){
+          var sw = h("div",{"class":"sw"});
+          var chip = h("div",{"class":"chip", text:String(k.n)});
+          chip.style.background = "#fff";
+          sw.appendChild(chip); sw.appendChild(h("span",{text:"= "+k.name}));
+          sw.appendChild(h("span",{text:"■", style:"color:"+k.hex+"; font-size:5mm"}));
+          legend.appendChild(sw);
+        });
+        body.appendChild(legend);
+        var poly = SHAPES[o.picture]();
+        var n = o.grid;
+        var s = sv("svg",{viewBox:"0 0 "+n+" "+n, width:"100%", height:"175mm"});
+        for(var r=0;r<n;r++) for(var c=0;c<n;c++){
+          var x = (c + .5)/n*2.2 - 1.1, y = (r + .5)/n*2.2 - 1.1;
+          var num;
+          if(inPoly([x,y], poly, .45)) num = 1;
+          else if(inPoly([x,y], poly, .75)) num = 2;
+          else if(inPoly([x,y], poly, 1.0)) num = 3;
+          else num = 4;
+          s.appendChild(sv("rect",{x:c, y:r, width:1, height:1, fill:"#fff", stroke:FAINT, "stroke-width":".03"}));
+          var t = sv("text",{x:c+.5, y:r+.68, "text-anchor":"middle", "font-family":"Nunito, sans-serif", "font-size":".46", "font-weight":"700", fill:"#5B5786"});
+          t.textContent = String(num);
+          s.appendChild(t);
+        }
+        body.appendChild(s);
+      }
+    },
+
+    dots: {
+      label:"Dot to Dot", cat:"Creative", ico:"dots", tint:PAL.p, ages:"4–8",
+      title:function(){ return "Join the Dots"; },
+      opts:{
+        picture:{type:"seg", label:"Picture", options:["Star","Heart","Flower","Sun","Fish"], def:"Star"},
+        dots:{type:"step", label:"How many dots", min:10, max:40, def:22}
+      },
+      build:function(o, st, body){
+        body.appendChild(instruction("Start at number 1 and join the dots in order. Then colour it in."));
+        var poly = SHAPES[o.picture]();
+        var pts = polyPerimeterPoints(poly, o.dots);
+        var s = sv("svg",{viewBox:"-1.35 -1.35 2.7 2.7", width:"100%", height:"185mm"});
+        pts.forEach(function(p, i){
+          s.appendChild(sv("circle",{cx:p[0], cy:p[1], r:.026, fill:INK}));
+          var off = Math.hypot(p[0],p[1]) || 1;
+          var lx = p[0] + p[0]/off*.11, ly = p[1] + p[1]/off*.11;
+          var t = sv("text",{x:lx, y:ly+.03, "text-anchor":"middle", "font-family":"Nunito, sans-serif", "font-size":".095", "font-weight":"800", fill:PAL.p});
+          t.textContent = String(i+1);
+          s.appendChild(t);
+        });
+        body.appendChild(s);
+      }
+    },
+
+    patterns: {
+      label:"Pattern Party", cat:"Creative", ico:"shapes", tint:PAL.g, ages:"3–7",
+      title:function(){ return "Finish the Pattern"; },
+      opts:{
+        rows:{type:"step", label:"How many patterns", min:4, max:9, def:6},
+        kind:{type:"seg", label:"Pattern type", options:["AB","AAB","ABC","ABB"], def:"AB"}
+      },
+      build:function(o, st, body){
+        body.appendChild(instruction("Look at the pattern. Draw or colour what comes next in the empty box."));
+        var kinds = ["Stars","Apples","Balls","Fish"];
+        var colors = [PAL.r, PAL.y, PAL.b, PAL.g, PAL.p];
+        var seq = o.kind.split("");
+        for(var i=0;i<o.rows;i++){
+          var map = {}, used = shuffle(kinds.slice()), cu = shuffle(colors.slice()), ci = 0;
+          "ABC".split("").forEach(function(L){ map[L] = {shape:used[ci], color:cu[ci]}; ci++; });
+          var row = h("div");
+          row.style.cssText = "display:flex; align-items:center; gap:3mm; padding:3mm 0; border-bottom:.5mm dashed "+FAINT;
+          for(var k=0;k<7;k++){
+            var L = seq[k % seq.length];
+            row.appendChild(shapeGlyph(map[L].shape, "13mm", map[L].color));
+          }
+          var box = h("div");
+          box.style.cssText = "width:16mm; height:16mm; border:.9mm dashed "+PAL.p+"; border-radius:3mm; flex:none; margin-left:2mm";
+          row.appendChild(box);
+          body.appendChild(row);
+        }
+      }
+    }
+  };
+
+  var ORDER = ["nameTrace","letterTrace","numberTrace","math","counting","missing","clock","wordsearch","maze","sudoku","colorBy","dots","patterns"];
+
+  /* ============ state ============ */
+  var state = { name:"Emma", age:5, act:"nameTrace", pages:1, opts:{}, unlocked:false, licence:null, maxPages:1 };
+  var API = "";   // the licence API is served from this same origin
+
+  ORDER.forEach(function(id){
+    state.opts[id] = {};
+    var defs = ACT[id].opts, k;
+    for(k in defs) state.opts[id][k] = defs[k].def;
+  });
+
+  /* ============ control rendering ============ */
+  function buildActPicker(){
+    var host = $("actPicker"); host.textContent = "";
+    var cats = [], byCat = {};
+    ORDER.forEach(function(id){
+      var c = ACT[id].cat;
+      if(!byCat[c]){ byCat[c] = []; cats.push(c); }
+      byCat[c].push(id);
+    });
+    cats.forEach(function(c){
+      host.appendChild(h("div",{"class":"cat-head", text:c}));
+      var grid = h("div",{"class":"acts"});
+      byCat[c].forEach(function(id){
+        var a = ACT[id];
+        var btn = h("button",{type:"button","class":"act","aria-pressed": id===state.act ? "true":"false"});
+        var ico = h("div",{"class":"ico"});
+        ico.style.background = a.tint + "22";
+        ico.appendChild(icon(a.ico, a.tint));
+        btn.appendChild(ico);
+        btn.appendChild(h("div",{"class":"nm", text:a.label}));
+        btn.addEventListener("click", function(){ state.act = id; buildActPicker(); buildOpts(); render(); });
+        grid.appendChild(btn);
+      });
+      host.appendChild(grid);
+    });
+  }
+
+  function buildOpts(){
+    var host = $("optPanel"); host.textContent = "";
+    var defs = ACT[state.act].opts, cur = state.opts[state.act], k;
+    for(k in defs){ (function(key, def){
+      var wrap = h("div",{"class":"fld"});
+      wrap.appendChild(h("span",{"class":"fld-label", text:def.label}));
+      if(def.type==="text"){
+        var inp = h("input",{"class":"input", type:"text", id:"opt_"+key, value:cur[key]});
+        inp.addEventListener("input", function(){ cur[key] = inp.value; render(); });
+        wrap.appendChild(inp);
+      } else if(def.type==="step"){
+        var row = h("div",{"class":"stepper"});
+        var dn = h("button",{type:"button","aria-label":"Less "+def.label, text:"−"});
+        var val = h("div",{"class":"val", text:String(cur[key])});
+        var up = h("button",{type:"button","aria-label":"More "+def.label, text:"+"});
+        dn.addEventListener("click", function(){ cur[key] = Math.max(def.min, cur[key]-1); val.textContent = cur[key]; render(); });
+        up.addEventListener("click", function(){ cur[key] = Math.min(def.max, cur[key]+1); val.textContent = cur[key]; render(); });
+        row.appendChild(dn); row.appendChild(val); row.appendChild(up);
+        wrap.appendChild(row);
+      } else if(def.type==="seg"){
+        var seg = h("div",{"class":"seg"});
+        def.options.forEach(function(op){
+          var b = h("button",{type:"button", text:op, "aria-pressed": cur[key]===op ? "true":"false"});
+          b.addEventListener("click", function(){
+            cur[key] = op;
+            Array.prototype.forEach.call(seg.children, function(x){ x.setAttribute("aria-pressed", x===b ? "true":"false"); });
+            render();
+          });
+          seg.appendChild(b);
+        });
+        wrap.appendChild(seg);
+      }
+      host.appendChild(wrap);
+    })(k, defs[k]); }
+  }
+
+  /* ============ sheet rendering ============ */
+  function makeSheet(pageNo, total){
+    var a = ACT[state.act], o = state.opts[state.act];
+    var sheet = h("div",{"class":"sheet"});
+
+    var head = h("div",{"class":"sheet-head"});
+    var titleText = typeof a.title === "function" ? a.title(o, state) : a.label;
+    var hgroup = h("div");
+    hgroup.appendChild(h("h2",{"class":"display", text:titleText}));
+    hgroup.appendChild(h("div",{"class":"sub", text:a.cat + " · Ages " + a.ages}));
+    head.appendChild(hgroup);
+    var meta = h("div",{"class":"sheet-meta"});
+    meta.appendChild(h("div",{html:"Name<span></span>"}));
+    meta.appendChild(h("div",{html:"Date<span></span>", style:"margin-top:2.5mm"}));
+    head.appendChild(meta);
+    sheet.appendChild(head);
+
+    var body = h("div",{"class":"sheet-body"});
+    try { a.build(o, state, body); }
+    catch(err){ body.appendChild(h("div",{"class":"empty", text:"Could not draw this sheet — try different settings."})); }
+    sheet.appendChild(body);
+
+    var foot = h("div",{"class":"sheet-foot"});
+    foot.appendChild(h("span",{text: state.unlocked ? titleCase(state.name||"") : "Made with Worksheet Workshop"}));
+    foot.appendChild(h("span",{text:"Page "+pageNo+" of "+total}));
+    var stars = h("div",{"class":"stars"});
+    for(var i=0;i<3;i++){
+      var s = sv("svg",{viewBox:"0 0 24 24", width:"14", height:"14"});
+      s.appendChild(sv("path",{d:"M12 2l3 6.3 6.9 1-5 4.8 1.2 6.9L12 17.8 5.9 21l1.2-6.9-5-4.8 6.9-1L12 2Z", fill:"none", stroke:"#C7CCE4","stroke-width":"1.6","stroke-linejoin":"round"}));
+      stars.appendChild(s);
+    }
+    foot.appendChild(stars);
+    sheet.appendChild(foot);
+    return sheet;
+  }
+
+  function fitSheets(){
+    var scroller = $("scroller");
+    var avail = scroller.clientWidth - 28;
+    var sheets = document.querySelectorAll(".sheet-fit");
+    Array.prototype.forEach.call(sheets, function(fit){
+      var sheet = fit.firstElementChild;
+      if(!sheet) return;
+      sheet.style.transform = "none";
+      var w = sheet.offsetWidth, hgt = sheet.offsetHeight;
+      var z = Math.min(1, avail / w);
+      sheet.style.transform = "scale(" + z + ")";
+      fit.style.width = (w*z) + "px";
+      fit.style.height = (hgt*z) + "px";
+    });
+  }
+
+  function render(){
+    var a = ACT[state.act];
+    var total = state.unlocked ? state.pages : 1;
+    var wrap = $("sheetWrap");
+    wrap.textContent = "";
+    for(var i=1;i<=total;i++){
+      var fit = h("div",{"class":"sheet-fit"});
+      fit.appendChild(makeSheet(i, total));
+      if(total>1) fit.appendChild(h("div",{"class":"page-tag", text:"Page "+i}));
+      wrap.appendChild(fit);
+    }
+    $("stageTitle").textContent = typeof a.title==="function" ? a.title(state.opts[state.act], state) : a.label;
+    $("pageBadge").textContent = total + (total===1 ? " page" : " pages");
+    $("ageBadge").textContent = "Ages " + a.ages;
+    $("pgVal").textContent = String(state.pages);
+    fitSheets();
+  }
+
+  /* ============ wiring ============ */
+  $("kidName").addEventListener("input", function(){ state.name = this.value; render(); });
+  $("ageUp").addEventListener("click", function(){ state.age = Math.min(12, state.age+1); $("ageVal").textContent = state.age; });
+  $("ageDown").addEventListener("click", function(){ state.age = Math.max(2, state.age-1); $("ageVal").textContent = state.age; });
+  $("pgUp").addEventListener("click", function(){
+    if(!state.unlocked){ openModal(); return; }
+    state.pages = Math.min(state.maxPages, state.pages+1); render();
+  });
+  $("pgDown").addEventListener("click", function(){ state.pages = Math.max(1, state.pages-1); render(); });
+  $("shuffleBtn").addEventListener("click", render);
+  $("printBtn").addEventListener("click", function(){ window.print(); });
+
+  function openModal(){ $("scrim").hidden = false; $("keyErr").textContent = ""; setTimeout(function(){ $("keyInput").focus(); }, 60); }
+  function closeModal(){ $("scrim").hidden = true; }
+  $("unlockBtn").addEventListener("click", openModal);
+  $("keyCancel").addEventListener("click", closeModal);
+  $("scrim").addEventListener("click", function(e){ if(e.target === this) closeModal(); });
+  function api(path, body){
+    return fetch(API + path, {
+      method:"POST",
+      headers:{"content-type":"application/json"},
+      body: JSON.stringify(body)
+    }).then(function(r){
+      return r.json().then(function(j){ return {status:r.status, body:j}; },
+                          function(){ return {status:r.status, body:{}}; });
+    });
+  }
+
+  function applyLicence(lic){
+    state.unlocked = true;
+    state.licence = lic;
+    // maxPages 0 means unlimited on the Studio licence.
+    state.maxPages = (lic && lic.maxPages > 0) ? lic.maxPages : 200;
+    $("statusPill").className = "pill full";
+    $("statusText").textContent = (lic && lic.name ? lic.name : "Full") + " licence";
+    $("unlockBtn").hidden = true;
+  }
+
+  $("keyGo").addEventListener("click", function(){
+    var btn = this, v = ($("keyInput").value || "").trim();
+    if(!v){ $("keyErr").textContent = "Enter the key from your order."; return; }
+    btn.disabled = true; btn.textContent = "Checking…"; $("keyErr").textContent = "";
+    api("/api/activate", {key:v}).then(function(res){
+      if(res.status === 200 && res.body.ok){
+        try{ localStorage.setItem("ww.token", res.body.token); }catch(e){}
+        applyLicence(res.body.licence);
+        closeModal(); render();
+      } else {
+        $("keyErr").textContent = res.body.message || "That key didn't work. Check your order message.";
+      }
+    })["catch"](function(){
+      $("keyErr").textContent = "Couldn't reach the licence server. Check your connection and try again.";
+    }).then(function(){ btn.disabled = false; btn.textContent = "Unlock"; });
+  });
+  $("keyInput").addEventListener("keydown", function(e){ if(e.key==="Enter") $("keyGo").click(); });
+
+  (function restoreLicence(){
+    var token = null;
+    try{ token = localStorage.getItem("ww.token"); }catch(e){}
+    if(!token) return;
+    api("/api/verify", {token:token}).then(function(res){
+      if(res.status === 200 && res.body.ok){ applyLicence(res.body.licence); render(); }
+      else { try{ localStorage.removeItem("ww.token"); }catch(e){} }
+    })["catch"](function(){ /* offline — stay in demo rather than guess */ });
+  })();
+
+  window.addEventListener("resize", fitSheets);
+
+  buildActPicker();
+  buildOpts();
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitSheets);
+  render();
+})();
+</script>
+
+</body>
+</html>
