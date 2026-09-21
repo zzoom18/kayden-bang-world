@@ -191,6 +191,43 @@
     font-family:"Baloo 2",sans-serif; font-weight:800; font-size:clamp(26px,6vw,38px);
     display:grid; place-items:center; padding:14px; transition:transform .14s var(--ease), background .16s ease;
   }
+  /* ---- Harbour Cannon ---- */
+  .sea{position:relative; width:100%; max-width:760px; height:clamp(280px,50vh,500px);
+    border-radius:26px; overflow:hidden; touch-action:manipulation;
+    background:linear-gradient(180deg,#5FB6EA 0%,#3D97D4 46%,#1F6FAE 100%);
+    box-shadow:inset 0 -18px 34px rgba(11,60,100,.35), 0 10px 0 rgba(0,0,0,.20)}
+  /* Sky above the horizon, water below it, so a boat looks like it is afloat. */
+  .sea-sky{position:absolute; left:0; right:0; top:0; height:27%; pointer-events:none;
+    background:linear-gradient(180deg,#BDE9FF 0%,#8FD6F7 78%,#7FCBEF 100%);
+    border-bottom:3px solid rgba(255,255,255,.34)}
+  .sea-sun{position:absolute; top:12px; right:18px; font-size:34px; opacity:.95; z-index:2}
+  .sea-wave{position:absolute; left:0; right:0; bottom:0; height:44%; pointer-events:none;
+    background:
+      repeating-linear-gradient(180deg, rgba(255,255,255,.10) 0 2px, rgba(255,255,255,0) 2px 16px),
+      linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,0))}
+  .boat{position:absolute; left:0; z-index:3; padding:0; border:none; background:none;
+    transform-origin:center; will-change:transform; touch-action:manipulation;
+    filter:drop-shadow(0 6px 10px rgba(11,60,100,.4))}
+  .boat:active{filter:drop-shadow(0 3px 6px rgba(11,60,100,.45)) brightness(1.1)}
+  .boat.sunk{animation:none; transition:opacity .5s ease, filter .5s ease; opacity:0; filter:blur(2px)}
+  .boat.bounced{animation:bounceoff .4s ease}
+  @keyframes bounceoff{0%,100%{filter:none} 30%{filter:brightness(1.7) saturate(.4)} 60%{filter:none}}
+  .splash{position:absolute; font-size:40px; pointer-events:none; transform:translate(-50%,-10%);
+    animation:splashup .8s ease-out forwards}
+  @keyframes splashup{0%{opacity:0; transform:translate(-50%,10%) scale(.5)}
+    35%{opacity:1; transform:translate(-50%,-30%) scale(1.15)}
+    100%{opacity:0; transform:translate(-50%,-70%) scale(.8)}}
+
+  .gundeck{display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; width:100%}
+  .gun{display:flex; align-items:center; gap:12px; padding:12px 18px; border-radius:22px;
+    background:linear-gradient(140deg,#4A4290,#332C74); border:3px solid rgba(255,255,255,.18)}
+  .gun-barrel{font-size:34px; line-height:1; transform:scaleX(-1)}
+  .gun-shell{text-align:left; min-width:120px}
+  .gs-l{font-size:11px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:#FFD98A}
+  .gs-v{font-family:"Baloo 2",sans-serif; font-weight:800; font-size:clamp(24px,5.5vw,34px); line-height:1.1}
+  .gs-v.swap{animation:pop .4s var(--ease)}
+  .reloadbtn{min-height:52px; padding:0 18px; font-size:15px}
+
   /* ---- English games ---- */
   .sentence{font-size:clamp(19px,4.4vw,27px); font-weight:800; line-height:1.45; max-width:620px}
   .why{font-size:15px; font-weight:800; color:#8FE3C4; max-width:560px; line-height:1.45}
@@ -665,7 +702,7 @@
 </div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 
-<script src="content.js?v=20260921-11"></script>
+<script src="content.js?v=20260921-12"></script>
 <script>
 (function(){
   "use strict";
@@ -1066,7 +1103,9 @@
      Each subject is an ordered path, roughly the order the syllabus takes them
      in. Mastery is Level 5, which is four successful rounds past the start. */
   var JOURNEY = {
-    maths:   ["tenframe","bonds","numbers","shapes","sgmoney","money","picgraph","barmodel","fraction","areaperim","balance"],
+    /* Harbour Cannon sits second so it is open from the first day at every
+       age: it is the game a child will want to show someone. */
+    maths:   ["tenframe","cannon","bonds","numbers","shapes","sgmoney","money","picgraph","barmodel","fraction","areaperim","balance"],
     english: ["sounds","spell","rhyme","opposites","grammar","sentence","punct","meaning","affix","idiom","reading"],
     think:   ["odd","sort","code"],
     science: ["quiz"],
@@ -1375,6 +1414,8 @@
     /* Two players, one iPad. The head-to-head pair turn the far player's half
        upside down so the tablet can lie flat between two children; the other
        two take turns and are read the right way up by both. */
+    {id:"cannon",  nm:"Harbour Cannon", sub:"Sink it only if your shell is bigger", emo:"🚢", bg:"linear-gradient(150deg,#6FC6F0,#2E7FC2)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
+
     /* English past P4. The subject used to stop at Word Builder, which left a
        P5 or P6 child with nothing of their own. */
     {id:"opposites",nm:"Opposites",     sub:"Big and small, fast and slow",   emo:"↔️", bg:"linear-gradient(150deg,#FFB3D9,#FF5D8F)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"english", topic:"Words & Meaning"},
@@ -4252,6 +4293,7 @@
     if(world.id === "findodd")  return startFindOdd(world);
     if(world.id === "shadow")   return startShadow(world);
     if(world.id === "detective")return startDetective(world);
+    if(world.id === "cannon")   return startCannon(world);
     if(world.id === "opposites")return startOpposites(world);
     if(world.id === "grammar")  return startGrammar(world);
     if(world.id === "sentence") return startSentence(world);
@@ -4272,6 +4314,301 @@
 
 
 
+
+
+  /* ---------- Harbour Cannon ----------
+   *
+   * Boats sail across the harbour carrying a number. The cannon holds a shell
+   * with a number of its own, and a boat can only be sunk when the shell beats
+   * it. Everything else in here teaches "greater than" with a symbol between
+   * two numbers; this asks a child to do it twenty times a minute with a boat
+   * getting away.
+   *
+   * Boat size follows the number: the little skiffs carry the small numbers
+   * and the cargo ships the big ones, so the picture and the arithmetic agree.
+   * That is the whole point of the sizes, not decoration.
+   *
+   * From P3 the shell stops being a plain number and becomes a sum, so the
+   * child works it out before deciding — the comparison is the easy half by
+   * then.
+   */
+  function cannonSpec(r){
+    if(r <= 2) return {                       // Nursery to K2
+      lo:1, hi:12, shellLo:2, shellHi:14,
+      shot:function(v){ return {label:String(v), value:v}; }
+    };
+    if(r <= 4) return {                       // P1, P2
+      lo:5, hi:80, shellLo:8, shellHi:99,
+      shot:function(v){ return {label:String(v), value:v}; }
+    };
+    if(r <= 6) return {                       // P3, P4 — work the shell out first
+      lo:10, hi:110, shellLo:12, shellHi:144,
+      shot:function(v){
+        /* Find a times-table pair that lands near the wanted value, so the
+           shell is a sum but still beats what it needs to. */
+        var best = null, a, c;
+        for(a = 2; a <= 12; a++){
+          c = Math.round(v / a);
+          if(c < 2 || c > 12) continue;
+          var got = a * c;
+          if(got < v) continue;
+          if(!best || got < best.value) best = {label:a + " × " + c, value:got};
+        }
+        return best || {label:String(v), value:v};
+      }
+    };
+    return {                                  // P5, P6 — percentages and fractions
+      lo:10, hi:200, shellLo:12, shellHi:240,
+      shot:function(v){
+        var kinds = [
+          function(){ var pc = pick([10,20,25,50,75]); var whole = Math.ceil(v / (pc/100) / 10) * 10;
+            return {label:pc + "% of " + whole, value:whole * pc / 100}; },
+          function(){ var den = pick([2,3,4,5]); var num = ri(1, den - 1);
+            var whole = Math.ceil(v / (num/den) / den) * den;
+            return {label:num + "/" + den + " of " + whole, value:whole / den * num}; },
+          function(){ var a = ri(4, 15); return {label:a + " × " + Math.ceil(v / a), value:a * Math.ceil(v / a)}; }
+        ];
+        var s = pick(kinds)();
+        return (s.value >= v && isFinite(s.value)) ? s : {label:String(v), value:v};
+      }
+    };
+  }
+
+  /* The hull and sails are mirrored for a boat sailing the other way, but the
+     number is drawn outside that group — flipping the whole thing printed the
+     numbers backwards, which is a cruel thing to do in a comparison game. */
+  function boatSvg(w, h, hull, sail, num, facingLeft){
+    var ns = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 120 100");
+    svg.setAttribute("width", w); svg.setAttribute("height", h);
+
+    function make(tag, attrs, into){
+      var e = document.createElementNS(ns, tag), k;
+      for(k in attrs) e.setAttribute(k, attrs[k]);
+      (into || svg).appendChild(e); return e;
+    }
+
+    var g = make("g", facingLeft ? {transform:"translate(120,0) scale(-1,1)"} : {});
+    make("path", {d:"M14 92 L4 64 H116 L106 92 Z", fill:hull}, g);          // hull
+    make("path", {d:"M4 64 H116 L113 58 H7 Z", fill:"rgba(0,0,0,.24)"}, g); // deck line
+    make("rect", {x:"56", y:"8", width:"5", height:"52", rx:"2.5", fill:"#6B4A2A"}, g);
+    make("path", {d:"M61 10 L104 56 H61 Z", fill:sail}, g);                 // main sail
+    make("path", {d:"M55 18 L26 56 H55 Z", fill:sail, opacity:".8"}, g);    // fore sail
+    make("path", {d:"M0 92 H120 L118 100 H2 Z", fill:"rgba(255,255,255,.34)"}, g); // wake
+
+    /* The number sits on a white plate so it reads against any sail colour. */
+    var label = String(num);
+    var plateW = Math.max(34, 15 + label.length * 15);
+    make("rect", {x:String(60 - plateW/2), y:"26", width:String(plateW), height:"34",
+      rx:"12", fill:"#FFFFFF", opacity:".94"});
+    var t = make("text", {x:"60", y:"51", "text-anchor":"middle",
+      "font-family":"Baloo 2, sans-serif", "font-weight":"800",
+      "font-size": label.length > 3 ? "20" : "26", fill:"#1B1743"});
+    t.textContent = label;
+    return svg;
+  }
+
+  function startCannon(world){
+    var r = rank(), spec = cannonSpec(r);
+    var shots = 10;
+    var shell = gameShell(world, shots);
+    var fired = 0, hits = 0, running = true, live = [];
+
+    /* Three classes of boat. The number a boat carries is drawn from its own
+       slice of the range, so size really does mean magnitude. */
+    var span = spec.hi - spec.lo;
+    /* A three-year-old aiming at a moving target needs longer than a P6 child.
+       Small boats are the quick ones, so this matters most to them. */
+    var pace = r <= 2 ? 0.58 : r <= 4 ? 0.78 : 1;
+    var CLASSES = [
+      {nm:"small",  w:88,  speed:0.30, lo:spec.lo,                     hi:spec.lo + Math.round(span*0.33), hull:"#FF8A5B", sail:"#FFE3B0"},
+      {nm:"medium", w:120, speed:0.21, lo:spec.lo + Math.round(span*0.33), hi:spec.lo + Math.round(span*0.66), hull:"#35C48F", sail:"#D6F5E7"},
+      {nm:"big",    w:146, speed:0.14, lo:spec.lo + Math.round(span*0.66), hi:spec.hi,                        hull:"#9B7BFF", sail:"#E7DEFF"}
+    ];
+
+    /* Every lane is as tall as the largest boat, so lane geometry needs it. */
+    var BOAT_RATIO = 0.72;
+    var maxBoatH = 0;
+    CLASSES.forEach(function(c){ maxBoatH = Math.max(maxBoatH, Math.round(c.w * BOAT_RATIO)); });
+
+    shell.stage.appendChild(el("div",{"class":"prompt",
+      text:"Sink a boat only if your shell is BIGGER than its number"}));
+
+    /* A round ends on ten shots or when the clock runs out, whichever comes
+       first. Without the clock a child who never fires sits there forever. */
+    var seconds = r <= 2 ? 75 : 60;
+    var timer = el("div",{"class":"timerpill"}, "⏱", el("b",{text:String(seconds)}));
+    shell.stage.appendChild(timer);
+
+    var sea = el("div",{"class":"sea"});
+    sea.appendChild(el("div",{"class":"sea-sun", text:"☀️"}));
+    sea.appendChild(el("div",{"class":"sea-sky"}));
+    sea.appendChild(el("div",{"class":"sea-wave"}));
+    shell.stage.appendChild(sea);
+
+    var deck = el("div",{"class":"gundeck"});
+    var gun = el("div",{"class":"gun"});
+    gun.appendChild(el("div",{"class":"gun-barrel", text:"🔫"}));
+    var shellBox = el("div",{"class":"gun-shell"});
+    shellBox.appendChild(el("div",{"class":"gs-l", text:"YOUR SHELL"}));
+    var shellVal = el("div",{"class":"gs-v", text:"—"});
+    shellBox.appendChild(shellVal);
+    gun.appendChild(shellBox);
+    deck.appendChild(gun);
+    var reload = el("button",{"class":"btn btn-ghost reloadbtn", text:"🔄  New shell"});
+    deck.appendChild(reload);
+    shell.stage.appendChild(deck);
+
+    var current = null;
+
+    /* The shell is always rolled so that something on the water can be sunk —
+       otherwise a child can be handed a 3 with nothing but cargo ships in
+       sight and told to try harder. */
+    function rollShell(){
+      var beatable = live.filter(function(bt){ return !bt._gone; })
+                         .map(function(bt){ return bt._n; }).sort(function(a,b){ return a-b; });
+      var want;
+      if(beatable.length){
+        var floorN = beatable[0];
+        var ceilN = beatable[beatable.length - 1] + 6;
+        want = ri(floorN + 1, Math.max(floorN + 1, Math.min(ceilN, spec.shellHi)));
+      } else {
+        want = ri(spec.shellLo, spec.shellHi);
+      }
+      current = spec.shot(want);
+      shellVal.textContent = current.label;
+      shellVal.classList.remove("swap"); void shellVal.offsetWidth; shellVal.classList.add("swap");
+    }
+
+    reload.addEventListener("click", function(){
+      if(!running) return;
+      sfx.swoosh(); rollShell();
+    });
+
+    function spawn(){
+      if(!running) return;
+      var cls = pick(CLASSES);
+      var n = ri(cls.lo, Math.max(cls.lo, cls.hi));
+      var rightToLeft = Math.random() < .5;
+      var w = cls.w, h = Math.round(w * BOAT_RATIO);
+
+      var bt = el("button",{"class":"boat", "aria-label":"Boat carrying " + n});
+      bt.appendChild(boatSvg(w, h, cls.hull, cls.sail, n, rightToLeft));
+      bt._n = n; bt._w = w;
+      bt._dir = rightToLeft ? -1 : 1;
+      bt._speed = cls.speed * pace * (0.85 + Math.random() * 0.35);
+      var W = sea.clientWidth || 320;
+      bt._x = rightToLeft ? W + 10 : -w - 10;
+
+      /* One boat to a lane. Guarding only the lane entrance was not enough:
+         a quick little skiff put behind a slow cargo ship in the same lane
+         catches up and sits on top of it, and two numbers on top of each
+         other is the one thing this game cannot afford. A lane is taken until
+         its boat has sailed out. */
+      var seaH = sea.clientHeight || 300;
+      /* The lane pitch is the height of the biggest boat, not of this one.
+         Spacing lanes by the current boat's height let a cargo ship in one
+         lane hang into the skiff's lane below it. Every boat then sits on the
+         bottom of its band, so they all share a waterline. */
+      var laneTop = Math.round(seaH * 0.29);
+      var band = maxBoatH + 6;
+      var lanes = Math.max(2, Math.min(4, Math.floor((seaH - 12 - laneTop) / band)));
+      var free = [], li;
+      for(li = 0; li < lanes; li++){
+        if(live.some(function(o){ return o._lane === li; })) continue;
+        free.push({i:li, y: laneTop + li * band + (maxBoatH - h)});
+      }
+      if(!free.length) return;
+      var lane = pick(free);
+      bt._lane = lane.i;
+      bt.style.top = lane.y + "px";
+
+      bt.addEventListener("click", function(){
+        if(!running || bt._gone || !current) return;
+        bt._gone = true;
+        fired++;
+        var won = current.value > bt._n;
+        if(won){
+          hits++;
+          bt.classList.add("sunk");
+          sfx.pop();
+          rightAnswer(bt);
+          splash(bt);
+        } else {
+          bt.classList.add("bounced");
+          wrongAnswer();
+          banner(current.label + " is not bigger than " + bt._n);
+          /* A boat that shrugged off the shell keeps sailing. */
+          setTimeout(function(){ if(bt.parentNode) bt._gone = false, bt.classList.remove("bounced"); }, 700);
+        }
+        markDot(shell.dots, Math.min(fired, shots) - 1, won);
+        if(won){
+          setTimeout(function(){
+            if(bt.parentNode) bt.parentNode.removeChild(bt);
+            var ix = live.indexOf(bt); if(ix >= 0) live.splice(ix, 1);
+          }, 560);
+        }
+        if(fired >= shots){ end(); return; }
+        setTimeout(rollShell, won ? 520 : 260);
+      });
+
+      sea.appendChild(bt);
+      live.push(bt);
+      if(!current) rollShell();
+    }
+
+    function splash(bt){
+      var s = el("div",{"class":"splash", text:"💦"});
+      s.style.left = (bt._x + bt._w / 2) + "px";
+      s.style.top = bt.style.top;
+      sea.appendChild(s);
+      setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); }, 800);
+    }
+
+    /* Spawns are attempted often because some are refused for want of a free
+       lane; the lanes themselves are what limit how busy the water gets. */
+    var spawner = setInterval(spawn, r <= 2 ? 900 : 700);
+    spawn(); spawn(); spawn();
+
+    var tick = setInterval(function(){
+      if(!running) return;
+      seconds--;
+      timer.lastChild.textContent = String(seconds);
+      if(seconds <= 0) end();
+    }, 1000);
+
+    var last = null;
+    function frame(ts){
+      if(!running) return;
+      if(!document.body.contains(sea)){ running = false; clearInterval(spawner); clearInterval(tick); return; }
+      if(last === null) last = ts;
+      var dt = Math.min(0.05, (ts - last) / 1000);
+      last = ts;
+      var W2 = sea.clientWidth || 320, i, bt;
+      for(i = live.length - 1; i >= 0; i--){
+        bt = live[i];
+        bt._x += bt._dir * W2 * bt._speed * dt;
+        bt.style.transform = "translateX(" + bt._x + "px)";
+        if(bt._x > W2 + bt._w + 20 || bt._x < -bt._w - 20){
+          if(bt.parentNode) bt.parentNode.removeChild(bt);
+          live.splice(i, 1);
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    function end(){
+      if(!running) return;
+      running = false;
+      clearInterval(spawner); clearInterval(tick);
+      /* Out of time with shots to spare is scored on what was fired, so a
+           careful child is not punished for taking aim. */
+      var outOf = fired > 0 ? Math.max(fired, Math.min(shots, fired)) : shots;
+      setTimeout(function(){ finish(world, hits, outOf); }, 700);
+    }
+  }
 
   /* ==========================================================================
      English, P1 to P6
