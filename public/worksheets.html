@@ -1138,7 +1138,7 @@
       var lock = h("div",{"class":"lockedstage"});
       lock.appendChild(h("div",{"class":"lk-e", text:"🔒"}));
       lock.appendChild(h("div",{"class":"lk-t display", text:"Sign in to make worksheets"}));
-      lock.appendChild(h("div",{"class":"lk-s", text:"Thirteen kinds of worksheet, with your child's own name on them. Free, and your stars carry over from the games."}));
+      lock.appendChild(h("div",{"class":"lk-s", text:"Thirteen kinds of worksheet, with your child's own name on them, and your stars carry over from the games."}));
       var go = h("button",{"class":"btn btn-go", style:"margin-top:16px; padding:14px 26px; font-size:16px"});
       go.textContent = "Sign in";
       go.addEventListener("click", function(){ showWelcome(false); });
@@ -1220,7 +1220,7 @@
     if(lic && lic.trial){
       var d = expiresAt ? daysLeft(expiresAt) : null;
       $("statusPill").className = "pill demo";
-      $("statusText").textContent = d === null ? "Free trial"
+      $("statusText").textContent = d === null ? "Trial"
         : d <= 0 ? "Trial ends today"
         : d === 1 ? "Trial · 1 day left"
         : "Trial · " + d + " days left";
