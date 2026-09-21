@@ -251,6 +251,13 @@
     background:var(--mint); color:#fff; font-size:12px; font-weight:800;
   }
 
+  .lockedstage{max-width:520px; margin:8vh auto; text-align:center; padding:28px 22px;
+    background:#fff; border-radius:var(--r-lg); box-shadow:var(--shadow-md);
+    border:3px solid rgba(36,31,77,.06)}
+  .lk-e{font-size:52px; line-height:1}
+  .lk-t{font-size:23px; margin:10px 0 8px; color:var(--ink)}
+  .lk-s{font-size:15px; font-weight:700; color:var(--ink-soft); line-height:1.55}
+
   @media (max-width:900px){
     .layout{grid-template-columns:minmax(0,1fr); overflow-x:hidden}
     .deck{overflow:visible; max-height:none}
@@ -1116,9 +1123,28 @@
 
   function render(){
     var a = ACT[state.act];
-    var total = state.unlocked ? state.pages : 1;
     var wrap = $("sheetWrap");
     wrap.textContent = "";
+
+    if(!state.unlocked){
+      /* A placeholder, not a worksheet. Nothing printable exists in the page
+         until the account is known. */
+      var lock = h("div",{"class":"lockedstage"});
+      lock.appendChild(h("div",{"class":"lk-e", text:"🔒"}));
+      lock.appendChild(h("div",{"class":"lk-t display", text:"Sign in to make worksheets"}));
+      lock.appendChild(h("div",{"class":"lk-s", text:"Thirteen kinds of worksheet, with your child's own name on them. Free, and your stars carry over from the games."}));
+      var go = h("button",{"class":"btn btn-go", style:"margin-top:16px; padding:14px 26px; font-size:16px"});
+      go.textContent = "Sign in";
+      go.addEventListener("click", function(){ showWelcome(false); });
+      lock.appendChild(go);
+      wrap.appendChild(lock);
+      $("stageTitle").textContent = "Printable worksheets";
+      $("pageBadge").textContent = "locked";
+      $("ageBadge").textContent = "Ages 3–12";
+      return;
+    }
+
+    var total = state.pages;
     for(var i=1;i<=total;i++){
       var fit = h("div",{"class":"sheet-fit"});
       fit.appendChild(makeSheet(i, total));
@@ -1141,8 +1167,21 @@
     state.pages = Math.min(state.maxPages, state.pages+1); render();
   });
   $("pgDown").addEventListener("click", function(){ state.pages = Math.max(1, state.pages-1); render(); });
-  $("shuffleBtn").addEventListener("click", render);
-  $("printBtn").addEventListener("click", function(){ window.print(); });
+  $("shuffleBtn").addEventListener("click", function(){
+    if(!state.unlocked){ showWelcome(false); return; }
+    render();
+  });
+  $("printBtn").addEventListener("click", function(){
+    if(!state.unlocked){ showWelcome(false); return; }
+    window.print();
+  });
+  /* Ctrl+P and the browser menu bypass the button entirely. */
+  window.addEventListener("beforeprint", function(){
+    if(!state.unlocked){
+      var w = $("sheetWrap");
+      if(w) w.textContent = "";
+    }
+  });
 
   function openModal(){ $("scrim").hidden = false; $("keyErr").textContent = ""; setTimeout(function(){ $("keyInput").focus(); }, 60); }
   function closeModal(){ $("scrim").hidden = true; }
@@ -1196,6 +1235,7 @@
     }
     $("welcome").hidden = false;
     setTimeout(function(){ $("regName").focus(); }, 60);
+    render();
   }
   function hideWelcome(){ $("welcome").hidden = true; }
 

@@ -281,7 +281,7 @@ async function handleRegister(req, res) {
   signups.set(ip, [...(signups.get(ip) || []), Date.now()]);
 
   const ent = entitlementFor(email);
-  const token = issueToken(KEY_SECRET, { tier: ent.tier, serial: 0, days: ent.days });
+  const token = issueToken(KEY_SECRET, { tier: ent.tier, serial: 0, days: ent.days, email });
   recordRegistration({
     at: new Date().toISOString(),
     name,
@@ -299,6 +299,134 @@ async function handleRegister(req, res) {
     trialDays: ent.days,
     licence: { id: licence.id, name: licence.name, maxPages: licence.maxPages, commercial: licence.commercial, trial: !!licence.trial }
   });
+}
+
+/* ---------- saved progress ----------
+ *
+ * Stars, levels and badges used to live in localStorage and nowhere else, so
+ * a cleared browser or a second iPad meant starting again. They are now kept
+ * against the account the token was issued to.
+ *
+ * One file per account, named by a hash of the address rather than the
+ * address itself — the progress directory should not read as a mailing list
+ * to anyone who gets a look at the disk.
+ *
+ * Merging matters more than saving. A child who plays on a phone and then a
+ * tablet must not lose the afternoon's work because the tablet's copy was
+ * older, so the two are merged per game, keeping the better of each, rather
+ * than one overwriting the other.
+ */
+const PROGRESS_DIR = path.join(DATA_DIR, 'progress');
+const MAX_PROGRESS_BYTES = 64 * 1024;
+
+function progressFile(email) {
+  const key = crypto.createHash('sha256').update(`papercub-progress:${email}`).digest('hex').slice(0, 32);
+  return path.join(PROGRESS_DIR, `${key}.json`);
+}
+
+function readProgress(email) {
+  try {
+    return JSON.parse(fs.readFileSync(progressFile(email), 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function writeProgress(email, state) {
+  try {
+    fs.mkdirSync(PROGRESS_DIR, { recursive: true });
+    fs.writeFileSync(progressFile(email), JSON.stringify(state));
+    return true;
+  } catch (err) {
+    console.error('[progress] could not save:', err.message);
+    return false;
+  }
+}
+
+/* Only the fields the app actually keeps, with sane bounds. Whatever a browser
+   posts here comes back to a browser later, so it is rebuilt field by field
+   rather than stored as sent. */
+function cleanProgress(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const out = {
+    name: String(raw.name || '').slice(0, 14),
+    age: Math.min(12, Math.max(3, Number(raw.age) || 5)),
+    avatar: String(raw.avatar || '🦊').slice(0, 8),
+    setup: !!raw.setup,
+    stars: Math.min(999999, Math.max(0, Math.floor(Number(raw.stars) || 0))),
+    streak: Math.min(3650, Math.max(0, Math.floor(Number(raw.streak) || 0))),
+    perfects: Math.min(999999, Math.max(0, Math.floor(Number(raw.perfects) || 0))),
+    lastPlayed: String(raw.lastPlayed || '').slice(0, 10),
+    motion: raw.motion !== false,
+    sound: raw.sound !== false,
+    progress: {},
+    updatedAt: Math.floor(Date.now() / 1000)
+  };
+  const src = raw.progress && typeof raw.progress === 'object' ? raw.progress : {};
+  let n = 0;
+  for (const id of Object.keys(src)) {
+    if (n++ >= 200) break;
+    if (!/^[a-z0-9_-]{1,24}$/i.test(id)) continue;
+    const p = src[id];
+    if (!p || typeof p !== 'object') continue;
+    out.progress[id] = {
+      level: Math.min(99, Math.max(1, Math.floor(Number(p.level) || 1))),
+      stars: Math.min(99999, Math.max(0, Math.floor(Number(p.stars) || 0)))
+    };
+  }
+  return out;
+}
+
+/* The better of the two, game by game. Nothing a child has earned is dropped
+   because the other device had not heard about it yet. */
+function mergeProgress(mine, theirs) {
+  if (!mine) return theirs;
+  if (!theirs) return mine;
+  const newer = (Number(theirs.updatedAt) || 0) >= (Number(mine.updatedAt) || 0) ? theirs : mine;
+  const merged = {
+    ...newer,
+    stars: Math.max(Number(mine.stars) || 0, Number(theirs.stars) || 0),
+    perfects: Math.max(Number(mine.perfects) || 0, Number(theirs.perfects) || 0),
+    streak: Math.max(Number(mine.streak) || 0, Number(theirs.streak) || 0),
+    setup: !!(mine.setup || theirs.setup),
+    progress: {}
+  };
+  const ids = new Set([...Object.keys(mine.progress || {}), ...Object.keys(theirs.progress || {})]);
+  for (const id of ids) {
+    const a = (mine.progress || {})[id] || { level: 1, stars: 0 };
+    const b = (theirs.progress || {})[id] || { level: 1, stars: 0 };
+    merged.progress[id] = {
+      level: Math.max(Number(a.level) || 1, Number(b.level) || 1),
+      stars: Math.max(Number(a.stars) || 0, Number(b.stars) || 0)
+    };
+  }
+  return merged;
+}
+
+async function handleProgress(req, res) {
+  let body;
+  try { body = await readBody(req, MAX_PROGRESS_BYTES); }
+  catch { return sendJson(req, res, 400, { ok: false, error: 'bad_request' }); }
+
+  const result = readToken(KEY_SECRET, body.token);
+  if (!result.ok) return sendJson(req, res, 401, { ok: false, error: result.reason });
+  if (!result.email) {
+    // A key activated without registering has no account to save against.
+    return sendJson(req, res, 200, { ok: true, saved: false, reason: 'no_account' });
+  }
+
+  const stored = readProgress(result.email);
+
+  if (req.method === 'GET' || !body.state) {
+    return sendJson(req, res, 200, { ok: true, state: stored, email: result.email });
+  }
+
+  const incoming = cleanProgress(body.state);
+  if (!incoming) return sendJson(req, res, 400, { ok: false, error: 'bad_state' });
+
+  const merged = mergeProgress(stored, incoming);
+  const saved = writeProgress(result.email, merged);
+  return sendJson(req, res, 200, { ok: true, saved, state: merged });
 }
 
 /* ---------- Sign in with Google ----------
@@ -372,7 +500,7 @@ async function handleGoogle(req, res) {
   signups.set(ip, [...(signups.get(ip) || []), Date.now()]);
 
   const ent = entitlementFor(email);
-  const token = issueToken(KEY_SECRET, { tier: ent.tier, serial: 0, days: ent.days });
+  const token = issueToken(KEY_SECRET, { tier: ent.tier, serial: 0, days: ent.days, email });
   recordRegistration({
     at: new Date().toISOString(),
     name,
@@ -526,7 +654,7 @@ async function handleVerify(req, res) {
     let tier;
     try { tier = tierByName(settings.defaultTier); } catch { tier = 3; }
     const up = TIERS[tier];
-    const token = issueToken(KEY_SECRET, { tier, serial: result.serial || 0, days: TOKEN_DAYS });
+    const token = issueToken(KEY_SECRET, { tier, serial: result.serial || 0, days: TOKEN_DAYS, email: result.email });
     return sendJson(req, res, 200, {
       ok: true,
       token,
@@ -680,6 +808,7 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/admin/login' && req.method === 'POST') return await handleAdminLogin(req, res);
     if (url.pathname === '/api/activate' && req.method === 'POST') return await handleActivate(req, res);
     if (url.pathname === '/api/verify' && req.method === 'POST') return await handleVerify(req, res);
+    if (url.pathname === '/api/progress' && req.method === 'POST') return await handleProgress(req, res);
     if (url.pathname === '/api/admin/mint' && req.method === 'POST') return await handleMint(req, res);
     if (url.pathname === '/api/admin/registrations' && req.method === 'GET') return await handleRegistrations(req, res);
     if (url.pathname === '/api/admin/settings') return await handleSettings(req, res);

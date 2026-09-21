@@ -603,6 +603,9 @@
   .sheet h2{margin:0 0 8px; font-size:26px}
   .sheet p{margin:0 0 18px; color:#C9C4EE; font-weight:700; line-height:1.55; font-size:15px}
   .field{margin-bottom:13px}
+  .savednote{font-size:13px; font-weight:800; color:#8FE3C4; line-height:1.5;
+    background:rgba(53,196,143,.14); border-radius:14px; padding:10px 13px; margin:-6px 0 14px}
+  .fieldnote{font-size:12.5px; font-weight:700; color:#8FE3C4; margin:-3px 0 7px}
   .field label{display:block; font-size:12px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:7px}
   .field input{
     width:100%; border:3px solid rgba(255,255,255,.16); border-radius:var(--r-md); padding:14px 16px;
@@ -702,7 +705,7 @@
 </div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 
-<script src="content.js?v=20260921-12"></script>
+<script src="content.js?v=20260921-13"></script>
 <script>
 (function(){
   "use strict";
@@ -1072,7 +1075,60 @@
   var licence = null;
   var licenceExp = null;
 
-  function save(){ try{ localStorage.setItem("papercub.player", JSON.stringify(state)); }catch(e){} }
+  /* ---------- saving ----------
+     localStorage keeps the app instant and working offline; the account copy
+     is what survives a cleared browser or a move to another iPad. Every save
+     writes locally at once and pushes to the account a moment later, batched
+     so a run of right answers is one request rather than ten. */
+  var pushTimer = null, accountEmail = null;
+
+  function save(){
+    try{ localStorage.setItem("papercub.player", JSON.stringify(state)); }catch(e){}
+    schedulePush();
+  }
+
+  function schedulePush(){
+    if(PREVIEW) return;
+    if(pushTimer) clearTimeout(pushTimer);
+    pushTimer = setTimeout(pushProgress, 1800);
+  }
+
+  function pushProgress(){
+    pushTimer = null;
+    var token = null;
+    try{ token = localStorage.getItem("papercub.token"); }catch(e){}
+    if(!token) return;
+    api("/api/progress", {token:token, state:state})["catch"](function(){
+      /* Offline or the server is down: the local copy still holds everything,
+         and the next save will try again. */
+    });
+  }
+
+  /* Called once, after the licence is settled. Sends what this device has and
+     takes back the merge, so a child who played on a phone this morning finds
+     those stars here this afternoon. */
+  function syncProgress(then){
+    var token = null;
+    try{ token = localStorage.getItem("papercub.token"); }catch(e){}
+    if(!token){ if(then) then(); return; }
+    api("/api/progress", {token:token, state:state}).then(function(res){
+      if(res.status === 200 && res.body.ok && res.body.state){
+        var incoming = res.body.state;
+        var k;
+        for(k in DEFAULT) if(incoming[k] !== undefined) state[k] = incoming[k];
+        state.progress = incoming.progress || {};
+        accountEmail = res.body.email || null;
+        try{ localStorage.setItem("papercub.player", JSON.stringify(state)); }catch(e){}
+      }
+    })["catch"](function(){})
+     .then(function(){ if(then) then(); });
+  }
+
+  /* Sending the whole state on every keystroke of a game is wasteful, so a
+     page being closed gets one last push instead. */
+  window.addEventListener("pagehide", function(){
+    if(pushTimer){ clearTimeout(pushTimer); pushProgress(); }
+  });
   function load(){
     try{
       var raw = localStorage.getItem("papercub.player");
@@ -5532,7 +5588,11 @@
     var box = el("div");
     box.appendChild(el("h2",{"class":"display", text:"Grown-up corner"}));
     box.appendChild(el("p",{text:"How " + (state.name || "your child") + " is getting on, at age " + (state.age||5)
-      + " (" + BANDS[band()].label + "). Progress is kept on this device only."}));
+      + " (" + BANDS[band()].label + ")."}));
+    box.appendChild(el("div",{"class":"savednote",
+      text: accountEmail
+        ? "💾  Saved to " + accountEmail + " — sign in with that address on any device and everything follows."
+        : "💾  Progress is kept on this device. Sign in to save it to your account."}));
     var list = el("div",{"class":"grownup"});
     WORLDS.forEach(function(w){
       list.appendChild(el("div",{"class":"prow"},
@@ -5602,6 +5662,8 @@
 
     var fe = el("div",{"class":"field"});
     fe.appendChild(el("label",{text:"Email", "for":"pc_reg_email"}));
+    fe.appendChild(el("div",{"class":"fieldnote",
+      text:"Played before? Use the same email and your stars come back."}));
     var mailI = el("input",{type:"email", id:"pc_reg_email", maxlength:"254", autocomplete:"email", spellcheck:"false"});
     fe.appendChild(mailI); box.appendChild(fe);
 
@@ -5637,9 +5699,16 @@
         try{ localStorage.setItem("papercub.token", res.body.token); }catch(e){}
         applyLicence(res.body.licence, Math.floor(Date.now()/1000) + (res.body.trialDays || 7) * 86400);
         var kid = (kidI.value||"").trim();
-        if(kid){ state.name = kid.slice(0,14); save(); }
-        m.close(); renderHome();
-        if(!state.setup) openProfile();
+        m.close();
+        /* Signing in with an address that has played before brings back
+           everything that account has earned, on any device. */
+        syncProgress(function(){
+          if(kid && !state.name) state.name = kid.slice(0,14);
+          save();
+          renderHome();
+          if(!state.setup) openProfile();
+          if(state.stars > 0) banner("Welcome back — ⭐ " + state.stars + " restored");
+        });
         return true;
       }
       err.textContent = res.body.message || (who === "google"
@@ -5797,8 +5866,12 @@
              since this browser last checked. */
           if(res.body.token){ try{ localStorage.setItem("papercub.token", res.body.token); }catch(e){} }
           applyLicence(res.body.licence, res.body.expiresAt);
-          renderHome();
-          if(!state.setup) openProfile();
+          /* Draw only once the account's stars are in, or the home screen
+             would show this device's total and then quietly change. */
+          syncProgress(function(){
+            renderHome();
+            if(!state.setup) openProfile();
+          });
         } else {
           try{ localStorage.removeItem("papercub.token"); }catch(e){}
           openWelcome(res.body && res.body.error === "expired");
