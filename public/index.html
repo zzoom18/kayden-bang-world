@@ -201,6 +201,55 @@
     font-family:"Baloo 2",sans-serif; font-weight:800; font-size:clamp(26px,6vw,38px);
     display:grid; place-items:center; padding:14px; transition:transform .14s var(--ease), background .16s ease;
   }
+  /* ---- Maths Quest ---- */
+  .questStage{gap:14px; justify-content:flex-start; padding-top:10px}
+  .herogrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(104px,1fr)); gap:11px; margin:6px 0 4px}
+  .herocard{border-radius:20px; padding:15px 8px; color:#fff; font-family:inherit;
+    display:flex; flex-direction:column; align-items:center; gap:7px;
+    box-shadow:0 6px 0 rgba(0,0,0,.26); transition:transform .16s var(--ease)}
+  .herocard:active{transform:translateY(4px)}
+  .herocard .he{font-size:38px; line-height:1}
+  .herocard .hn{font-weight:800; font-size:14px}
+
+  .arena-q{display:flex; align-items:stretch; justify-content:center; gap:10px;
+    width:100%; max-width:700px}
+  .fighter{flex:1; min-width:0; position:relative; border-radius:22px; padding:13px 11px;
+    display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center;
+    background:rgba(255,255,255,.14); border:3px solid rgba(255,255,255,.14)}
+  .fighter.boss{border-color:#FFD98A; box-shadow:0 0 0 3px rgba(255,217,138,.25)}
+  .f-name{font-size:12.5px; font-weight:800; line-height:1.25; min-height:2.5em;
+    display:flex; align-items:center; justify-content:center}
+  .f-e{font-size:clamp(44px,12vw,66px); line-height:1; transition:transform .18s ease}
+  .f-e.swing{animation:swing .4s var(--ease)}
+  @keyframes swing{0%,100%{transform:none} 40%{transform:translateY(-10px) rotate(-16deg) scale(1.12)}}
+  .f-e.hurt{animation:hurt .4s ease}
+  @keyframes hurt{0%,100%{transform:none; filter:none}
+    30%{transform:translateX(7px); filter:brightness(2) saturate(.3)}
+    60%{transform:translateX(-5px)}}
+  .hpbar{width:100%; height:12px; border-radius:999px; background:rgba(0,0,0,.34); overflow:hidden}
+  .hpfill{height:100%; border-radius:999px; transition:width .35s var(--ease)}
+  .foehp{background:linear-gradient(90deg,#FF8A5B,#FF5D8F)}
+  .mehp{background:linear-gradient(90deg,#6FE0B4,#35C48F)}
+  .hptxt{font-size:11.5px; font-weight:800; color:var(--ink-soft)}
+  .versus{display:flex; align-items:center; font-size:22px; opacity:.6; flex:none}
+  .kit{display:flex; gap:6px; margin-top:2px}
+  .kitslot{width:32px; height:32px; border-radius:11px; display:grid; place-items:center;
+    font-size:17px; background:rgba(0,0,0,.26)}
+  .kitslot.empty{opacity:.3; font-size:13px}
+  .dmg{position:absolute; top:34%; left:50%; transform:translateX(-50%);
+    font-family:"Baloo 2",sans-serif; font-weight:800; font-size:26px; pointer-events:none;
+    animation:dmgup .9s ease-out forwards; text-shadow:0 2px 6px rgba(0,0,0,.5)}
+  .dmg.bad-dmg{color:#FFD98A}
+  @keyframes dmgup{0%{opacity:0; transform:translate(-50%,6px) scale(.7)}
+    25%{opacity:1; transform:translate(-50%,-10px) scale(1.15)}
+    100%{opacity:0; transform:translate(-50%,-46px) scale(1)}}
+  .qbox{display:flex; flex-direction:column; align-items:center; gap:14px; width:100%}
+  .gearwin{display:flex; align-items:center; gap:11px; justify-content:center;
+    background:linear-gradient(120deg, rgba(255,196,61,.28), rgba(155,123,255,.28));
+    border:3px solid rgba(255,217,138,.4); border-radius:18px; padding:11px 15px;
+    font-size:14.5px; font-weight:700; max-width:420px; line-height:1.4}
+  .gw-e{font-size:28px; line-height:1; flex:none}
+
   /* ---- Harbour Cannon ---- */
   .sea{position:relative; width:100%; max-width:760px; height:clamp(280px,50vh,500px);
     border-radius:26px; overflow:hidden; touch-action:manipulation;
@@ -753,7 +802,7 @@
 </div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 
-<script src="content.js?v=20260921-18"></script>
+<script src="content.js?v=20260921-19"></script>
 <script>
 (function(){
   "use strict";
@@ -897,6 +946,7 @@
     mystery: {root:174.61, scale:[0,3,5,7,10],     chords:[[0,3,7],[5,8,12],[3,7,10],[7,10,14]], bpm:54, wave:"sine",     pad:0.034, lead:0.038},
     sea:     {root:196.00, scale:[0,2,4,7,9,11],   chords:[[0,4,7],[2,7,11],[5,9,12],[4,7,11]],  bpm:70, wave:"sine",     pad:0.030, lead:0.044},
     bouncy:  {root:293.66, scale:[0,2,4,7,9],      chords:[[0,4,7],[5,9,12],[7,11,14],[0,4,9]],  bpm:92, wave:"triangle", pad:0.022, lead:0.040},
+    heroic:  {root:174.61, scale:[0,2,3,5,7,8,10],  chords:[[0,3,7],[5,8,12],[7,10,14],[3,7,10]], bpm:84, wave:"triangle", pad:0.030, lead:0.046},
     sunny:   {root:246.94, scale:[0,2,4,7,9,11],   chords:[[0,4,7],[7,11,14],[2,5,9],[5,9,12]],  bpm:80, wave:"sine",     pad:0.026, lead:0.042}
   };
 
@@ -908,7 +958,7 @@
     quick:"bouncy", duo:"bouncy"
   };
   /* A few games are distinctive enough to deserve their own. */
-  var GAME_MOOD = { cannon:"sea", homes:"sunny", lifecycle:"sunny", foodchain:"sunny",
+  var GAME_MOOD = { quest:"heroic", cannon:"sea", homes:"sunny", lifecycle:"sunny", foodchain:"sunny",
     detective:"mystery", shadow:"mystery", mystery:"mystery", riddle:"curious",
     duomaths:"bouncy", duoword:"bouncy", reading:"calm" };
 
@@ -1301,7 +1351,8 @@
      settings, and the app also honours the system "reduce motion" setting
      without being asked. */
   var DEFAULT = { name:"", age:5, avatar:"🦊", setup:false, stars:0, streak:0, perfects:0,
-    lastPlayed:"", motion:true, sound:true, music:true, readAloud:true, progress:{} };
+    lastPlayed:"", motion:true, sound:true, music:true, readAloud:true,
+    quest:null, progress:{} };
   var state = JSON.parse(JSON.stringify(DEFAULT));
   var licence = null;
   var licenceExp = null;
@@ -1436,7 +1487,7 @@
   var JOURNEY = {
     /* Harbour Cannon sits second so it is open from the first day at every
        age: it is the game a child will want to show someone. */
-    maths:   ["tenframe","cannon","bonds","numbers","shapes","sgmoney","money","picgraph","barmodel","fraction","areaperim","balance"],
+    maths:   ["tenframe","cannon","quest","bonds","numbers","shapes","sgmoney","money","picgraph","barmodel","fraction","areaperim","balance"],
     english: ["sounds","spell","rhyme","opposites","grammar","sentence","punct","meaning","affix","idiom","reading"],
     think:   ["odd","sort","code"],
     science: ["quiz"],
@@ -1745,6 +1796,7 @@
     /* Two players, one iPad. The head-to-head pair turn the far player's half
        upside down so the tablet can lie flat between two children; the other
        two take turns and are read the right way up by both. */
+    {id:"quest",   nm:"Maths Quest",    sub:"Fight 250 enemies with sums",    emo:"⚔️", bg:"linear-gradient(150deg,#FFB36B,#E8563C)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"cannon",  nm:"Harbour Cannon", sub:"Sink it only if your shell is bigger", emo:"🚢", bg:"linear-gradient(150deg,#6FC6F0,#2E7FC2)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
 
     /* English past P4. The subject used to stop at Word Builder, which left a
@@ -2095,33 +2147,53 @@
   /* ---------- Number Quest ---------- */
   /* The question types change with age, not just the size of the numbers:
      counting pictures at 3, times tables at 8, missing numbers at 11. */
-  function numberOptions(ans, spread){
+  /* Four choices by default; three for the youngest, where a wall of options
+     is most of the difficulty. */
+  function numberOptions(ans, spread, total){
+    var want = Math.max(2, (total || 4)) - 1;
     var wrongs = [], guard = 0;
-    while(wrongs.length < 3 && guard++ < 90){
+    while(wrongs.length < want && guard++ < 120){
       var d = ans + ri(-spread, spread);
       if(d !== ans && d >= 0 && wrongs.indexOf(d) < 0) wrongs.push(d);
     }
-    while(wrongs.length < 3) wrongs.push(ans + wrongs.length + 1);
+    var bump = 1;
+    while(wrongs.length < want){
+      var alt = ans + bump;
+      if(alt >= 0 && alt !== ans && wrongs.indexOf(alt) < 0) wrongs.push(alt);
+      bump = bump > 0 ? -bump : -bump + 1;
+      if(bump > 30) break;
+    }
     return shuffle([ans].concat(wrongs));
   }
   function buildNumbers(level){
-    var b = band(), qs = [], i, count = b === 0 ? 6 : 8;
+    var b = band(), qs = [], i, count = b === 0 ? 5 : b === 1 ? 7 : 8;
     for(i=0;i<count;i++) qs.push(numberQuestion(b, level));
     return qs;
   }
   function numberQuestion(b, level){
     var a, c, ans, kinds;
     if(b === 0){
-      kinds = ["count","count","plus1"];
+      /* Three and four year olds. Counting to five before counting to ten,
+         three choices rather than four, and the numbers grow only as the
+         child clears levels — the first sums a preschooler meets should be
+         ones they can get right. */
+      kinds = ["count","count","count","plus1"];
       var kind = pick(kinds);
       if(kind === "count"){
-        var n = ri(1, Math.min(5 + level, 10));
+        var n = ri(1, Math.min(2 + level, 6));
         var emo = pick(PICS).e;
-        return {emoji: new Array(n+1).join(emo + " "), prompt:"How many?", a:n, opts:numberOptions(n, 3)};
+        return {emoji: new Array(n+1).join(emo + " "), prompt:"How many?", a:n,
+          opts:numberOptions(n, 2, 3)};
       }
-      a = ri(1, Math.min(4 + level, 9));
+      a = ri(1, Math.min(2 + level, 5));
       ans = a + 1;
-      return {q: a + " + 1", prompt:"What is…", a:ans, opts:numberOptions(ans, 3)};
+      return {q: a + " + 1", prompt:"What is…", a:ans, opts:numberOptions(ans, 2, 3)};
+    }
+    if(b === 1 && level <= 2){
+      /* Five and six, just starting: keep the first couple of levels inside
+         ten so the game is a win before it is a test. */
+      a = ri(1, 6); c = ri(1, Math.min(4, 10 - a));
+      return {q: a + " + " + c, prompt:"What is…", a:a+c, opts:numberOptions(a+c, 3, 3)};
     }
     if(b === 1){
       a = ri(1, Math.min(6 + level*2, 20));
@@ -4635,6 +4707,7 @@
     if(world.id === "findodd")  return startFindOdd(world);
     if(world.id === "shadow")   return startShadow(world);
     if(world.id === "detective")return startDetective(world);
+    if(world.id === "quest")    return startQuest(world);
     if(world.id === "cannon")   return startCannon(world);
     if(world.id === "opposites")return startOpposites(world);
     if(world.id === "grammar")  return startGrammar(world);
@@ -4657,6 +4730,360 @@
 
 
 
+
+
+  /* ==========================================================================
+     Maths Quest
+     --------------------------------------------------------------------------
+     A hero, an enemy, and a sum between them. Answer correctly and you strike;
+     get it wrong and the enemy strikes you. Beat the enemy and the next one is
+     a little tougher.
+
+     250 levels, built rather than written out: twenty-five creatures across
+     ten tiers gives exactly 250 named enemies, each stronger than the last,
+     and a boss on every tenth level. Gear unlocks as you climb, and it has to
+     keep pace with the enemies or the whole thing stalls — so damage and hit
+     points are tuned against each other and checked by a test that plays all
+     250 levels.
+
+     The maths is the same numberQuestion() every other game uses, so a P3
+     child fights with times tables and a P6 child fights with ratio and
+     speed. The fighting is the wrapper; the syllabus is underneath.
+
+     Nothing is ever lost. Running out of hearts restarts the level, never the
+     quest — a nine-year-old who has climbed to level 40 is not going to be
+     sent back to the start by this app.
+     ========================================================================== */
+
+  var HEROES = [
+    {id:"warrior",  nm:"Warrior",  e:"🗡️", c:"#FF8A5B"},
+    {id:"princess", nm:"Princess", e:"👸", c:"#FF8AB0"},
+    {id:"knight",   nm:"Knight",   e:"🛡️", c:"#63D6FF"},
+    {id:"mage",     nm:"Mage",     e:"🧙", c:"#C9B4FF"},
+    {id:"ranger",   nm:"Ranger",   e:"🏹", c:"#6FE0B4"},
+    {id:"ninja",    nm:"Ninja",    e:"🥷", c:"#9B7BFF"}
+  ];
+
+  var FOES = [
+    {e:"🟢",nm:"Slime"},    {e:"🦇",nm:"Bat"},      {e:"🕷️",nm:"Spider"},  {e:"🐀",nm:"Rat"},
+    {e:"🐺",nm:"Wolf"},     {e:"🦂",nm:"Scorpion"}, {e:"🐍",nm:"Serpent"}, {e:"👻",nm:"Ghost"},
+    {e:"🧟",nm:"Zombie"},   {e:"🦈",nm:"Shark"},    {e:"🐗",nm:"Boar"},    {e:"🦅",nm:"Hawk"},
+    {e:"🦉",nm:"Owl"},      {e:"🐊",nm:"Croc"},     {e:"🦏",nm:"Rhino"},   {e:"👹",nm:"Ogre"},
+    {e:"🗿",nm:"Golem"},    {e:"🧛",nm:"Vampire"},  {e:"🧌",nm:"Troll"},   {e:"🦑",nm:"Kraken"},
+    {e:"🔥",nm:"Fire Spirit"}, {e:"❄️",nm:"Ice Spirit"}, {e:"⚡",nm:"Storm Spirit"},
+    {e:"🐉",nm:"Dragon"},   {e:"☠️",nm:"Reaper"}
+  ];
+  var FOE_TIERS = ["Baby","Wild","Fierce","Elder","Shadow","Crystal","Storm","Ancient","Royal","Eternal"];
+  var QUEST_LEVELS = FOES.length * FOE_TIERS.length;   /* 250 */
+
+  /* Gear unlocks on the way up. Attack keeps pace with enemy hit points and
+     defence keeps pace with their damage; without both, the climb stalls
+     somewhere around level 60. */
+  var GEAR = [
+    {at:1,   slot:"weapon", nm:"Wooden Stick",   e:"🥢", atk:2},
+    {at:1,   slot:"armour", nm:"Cloth Shirt",    e:"👕", def:1},
+    {at:5,   slot:"weapon", nm:"Short Sword",    e:"🗡️", atk:5},
+    {at:10,  slot:"armour", nm:"Leather Vest",   e:"🦺", def:3},
+    {at:18,  slot:"weapon", nm:"Battle Axe",     e:"🪓", atk:9},
+    {at:26,  slot:"shield", nm:"Round Shield",   e:"🛡️", def:4},
+    {at:35,  slot:"weapon", nm:"Silver Blade",   e:"⚔️", atk:15},
+    {at:45,  slot:"armour", nm:"Chain Mail",     e:"⛓️", def:8},
+    {at:60,  slot:"weapon", nm:"War Hammer",     e:"🔨", atk:23},
+    {at:75,  slot:"shield", nm:"Tower Shield",   e:"🔰", def:12},
+    {at:90,  slot:"weapon", nm:"Flame Sword",    e:"🔥", atk:34},
+    {at:105, slot:"armour", nm:"Knight Plate",   e:"🥋", def:18},
+    {at:125, slot:"weapon", nm:"Thunder Spear",  e:"⚡", atk:48},
+    {at:145, slot:"shield", nm:"Mirror Shield",  e:"💠", def:26},
+    {at:165, slot:"weapon", nm:"Frost Glaive",   e:"❄️", atk:66},
+    {at:185, slot:"armour", nm:"Dragon Scale",   e:"🐲", def:36},
+    {at:205, slot:"weapon", nm:"Star Blade",     e:"🌟", atk:92},
+    {at:225, slot:"shield", nm:"Aegis",          e:"✨", def:50},
+    {at:240, slot:"weapon", nm:"Sword of Dawn",  e:"☀️", atk:125}
+  ];
+
+  /* Enemies are built from what the hero can actually do at that level, not
+     from a curve of their own. Scaling the two separately looked fine on
+     paper and produced a wall at level 8 that no amount of correct answers
+     could pass: enemy hit points outgrew the gear table, and enemy damage
+     outgrew the hearts. Deriving both from the player's numbers means a
+     fight is always worth roughly the same number of right answers, and
+     surviving always costs roughly the same number of wrong ones, for all
+     250 levels and every age. */
+  function questHearts(level, def){ return 20 + level * 2 + def * 3; }
+
+  function questFoe(level){
+    var n = Math.max(1, Math.min(QUEST_LEVELS, level));
+    var idx = (n - 1) % FOES.length;
+    var tier = Math.floor((n - 1) / FOES.length);
+    var foe = FOES[idx];
+    var boss = n % 10 === 0;
+
+    var b = band();
+    /* The youngest fight shorter battles, not weaker-looking ones: the level
+       number should mean "how far I have come", not "how long this takes". */
+    var ease = b === 0 ? 0.55 : b === 1 ? 0.75 : b === 2 ? 0.9 : 1;
+
+    var gear = gearAt(n);
+    var myHit = 3 + gear.atk;                 /* the lowest roll, so the worst case */
+    var hearts = questHearts(n, gear.def);
+
+    /* What actually decides whether a level is beatable is the accuracy it
+       demands: you need `swings` right answers before `survive` wrong ones.
+       Four swings early creeping to seven at level 250, against eight wrong
+       answers, keeps that around half — a child who gets half their sums
+       right still advances. A boss asks for about two thirds. */
+    var swings = (4 + n / 84) * ease * (boss ? 1.3 : 1);
+    var hp = Math.max(4, Math.round(myHit * swings));
+
+    var survive = (boss ? 6 : 8) / ease;
+    var dmg = Math.max(1, Math.round(hearts / survive));
+
+    return {
+      name: (boss ? "\u2605 " : "") + FOE_TIERS[tier] + " " + foe.nm,
+      emoji: foe.e,
+      hp: hp, maxHp: hp, dmg: dmg, boss: boss, level: n
+    };
+  }
+
+  function gearAt(level){
+    var out = {weapon:null, armour:null, shield:null, owned:[]};
+    GEAR.forEach(function(g){
+      if(g.at <= level){
+        out.owned.push(g);
+        out[g.slot] = g;           /* the newest of each slot wins */
+      }
+    });
+    out.atk = (out.weapon ? out.weapon.atk : 0);
+    out.def = (out.armour ? out.armour.def : 0) + (out.shield ? out.shield.def : 0);
+    return out;
+  }
+
+  function questState(){
+    if(!state.quest || typeof state.quest !== "object"){
+      state.quest = {hero:null, level:1, best:1, wins:0};
+    }
+    var q = state.quest;
+    q.level = Math.max(1, Math.min(QUEST_LEVELS, Number(q.level) || 1));
+    q.best = Math.max(Number(q.best) || 1, q.level);
+    q.wins = Math.max(0, Number(q.wins) || 0);
+    return q;
+  }
+
+  function startQuest(world){
+    var q = questState();
+    if(!q.hero){ chooseHero(world); return; }
+    runQuestLevel(world);
+  }
+
+  function chooseHero(world){
+    var box = el("div");
+    box.appendChild(el("h2",{"class":"display", text:"Choose your hero"}));
+    box.appendChild(el("p",{text:"You will fight 250 enemies with maths. Pick who you want to be — you can change later."}));
+    var grid = el("div",{"class":"herogrid"});
+    HEROES.forEach(function(h){
+      var b = el("button",{"class":"herocard", style:"background:linear-gradient(150deg," + h.c + ",rgba(0,0,0,.25))"});
+      b.appendChild(el("div",{"class":"he", text:h.e}));
+      b.appendChild(el("div",{"class":"hn", text:h.nm}));
+      b.addEventListener("click", function(){
+        sfx.pop();
+        questState().hero = h.id;
+        save();
+        m.close();
+        runQuestLevel(world);
+      });
+      grid.appendChild(b);
+    });
+    box.appendChild(grid);
+    var m = modal(box);
+    var back = el("button",{"class":"btn btn-lg btn-ghost", style:"width:100%; margin-top:14px", text:"Not now"});
+    back.addEventListener("click", function(){ m.close(); renderHome(); });
+    box.appendChild(back);
+  }
+
+  function heroById(id){
+    for(var i=0;i<HEROES.length;i++) if(HEROES[i].id === id) return HEROES[i];
+    return HEROES[0];
+  }
+
+  function runQuestLevel(world){
+    var q = questState();
+    var hero = heroById(q.hero);
+    var gear = gearAt(q.level);
+    var foe = questFoe(q.level);
+
+    var heroMaxHp = questHearts(q.level, gear.def);
+    var heroHp = heroMaxHp;
+    var asked = 0, hits = 0, over = false;
+
+    var wrap = el("div",{style:"flex:1; min-height:0; display:flex; flex-direction:column"});
+    var bar = el("div",{"class":"gamebar"});
+    var back = el("button",{"class":"iconbtn","aria-label":"Back to the games", text:"←"});
+    back.addEventListener("click", function(){ sfx.tap(); music.stop(); renderHome(); });
+    bar.appendChild(back);
+    bar.appendChild(el("div",{"class":"dots"}));
+    bar.appendChild(el("div",{"class":"tally"}, "⚔️", el("b",{text:"Lv " + q.level})));
+    wrap.appendChild(bar);
+
+    var stage = el("div",{"class":"stage questStage"});
+    wrap.appendChild(stage);
+
+    /* ---- the arena ---- */
+    var arena = el("div",{"class":"arena-q"});
+
+    var foeBox = el("div",{"class":"fighter foe" + (foe.boss ? " boss" : "")});
+    foeBox.appendChild(el("div",{"class":"f-name", text:foe.name}));
+    var foeSprite = el("div",{"class":"f-e", text:foe.emoji});
+    foeBox.appendChild(foeSprite);
+    var foeBarOuter = el("div",{"class":"hpbar"});
+    var foeBar = el("div",{"class":"hpfill foehp"});
+    foeBarOuter.appendChild(foeBar);
+    foeBox.appendChild(foeBarOuter);
+    var foeHpTxt = el("div",{"class":"hptxt", text:foe.hp + " / " + foe.maxHp});
+    foeBox.appendChild(foeHpTxt);
+    arena.appendChild(foeBox);
+
+    arena.appendChild(el("div",{"class":"versus", text:"⚔️"}));
+
+    var meBox = el("div",{"class":"fighter me"});
+    meBox.appendChild(el("div",{"class":"f-name", text:(state.name || "You") + "  ·  " + hero.nm}));
+    var meSprite = el("div",{"class":"f-e", text:hero.e});
+    meBox.appendChild(meSprite);
+    var meBarOuter = el("div",{"class":"hpbar"});
+    var meBar = el("div",{"class":"hpfill mehp"});
+    meBarOuter.appendChild(meBar);
+    meBox.appendChild(meBarOuter);
+    var meHpTxt = el("div",{"class":"hptxt", text:heroHp + " / " + heroMaxHp});
+    meBox.appendChild(meHpTxt);
+    var kit = el("div",{"class":"kit"});
+    ["weapon","armour","shield"].forEach(function(slot){
+      var g = gear[slot];
+      kit.appendChild(el("div",{"class":"kitslot" + (g ? "" : " empty"),
+        title: g ? g.nm : "nothing yet", text: g ? g.e : "·"}));
+    });
+    meBox.appendChild(kit);
+    arena.appendChild(meBox);
+    stage.appendChild(arena);
+
+    var qbox = el("div",{"class":"qbox"});
+    stage.appendChild(qbox);
+
+    show(wrap);
+    music.start("heroic");
+
+    function redraw(){
+      foeBar.style.width = Math.max(0, foe.hp / foe.maxHp * 100) + "%";
+      meBar.style.width = Math.max(0, heroHp / heroMaxHp * 100) + "%";
+      foeHpTxt.textContent = Math.max(0, foe.hp) + " / " + foe.maxHp;
+      meHpTxt.textContent = Math.max(0, heroHp) + " / " + heroMaxHp;
+    }
+    redraw();
+
+    function floater(node, text, cls){
+      var f = el("div",{"class":"dmg " + cls, text:text});
+      node.appendChild(f);
+      setTimeout(function(){ if(f.parentNode) f.parentNode.removeChild(f); }, 900);
+    }
+
+    function nextQuestion(){
+      if(over) return;
+      qbox.textContent = "";
+      var b = band(), lvl = Math.max(1, levelOf("numbers"));
+      var Q = numberQuestion(b, lvl);
+      asked++;
+      qbox.appendChild(el("div",{"class":"prompt", text: Q.prompt || "What is…"}));
+      if(Q.emoji) qbox.appendChild(el("div",{"class":"countrow", text:Q.emoji.trim()}));
+      else qbox.appendChild(el("div",{"class":"bigq", text: qLine(Q)}));
+      qbox.appendChild(choiceGrid(Q.opts, Q.a, function(ok){
+        if(over) return;
+        if(ok){
+          hits++;
+          var dmg = 3 + gear.atk + ri(0, Math.max(1, Math.round(gear.atk * 0.35)));
+          foe.hp -= dmg;
+          sfx.pop();
+          meSprite.classList.add("swing");
+          foeSprite.classList.add("hurt");
+          floater(foeBox, "-" + dmg, "bad-dmg");
+          rightAnswer();
+          setTimeout(function(){ meSprite.classList.remove("swing"); foeSprite.classList.remove("hurt"); }, 420);
+        } else {
+          var taken = Math.max(1, foe.dmg - ri(0, gear.def));
+          heroHp -= taken;
+          wrongAnswer();
+          foeSprite.classList.add("swing");
+          meSprite.classList.add("hurt");
+          floater(meBox, "-" + taken, "bad-dmg");
+          setTimeout(function(){ foeSprite.classList.remove("swing"); meSprite.classList.remove("hurt"); }, 420);
+        }
+        redraw();
+
+        if(foe.hp <= 0){ over = true; setTimeout(victory, 700); return; }
+        if(heroHp <= 0){ over = true; setTimeout(defeat, 700); return; }
+        setTimeout(nextQuestion, ok ? 620 : 1000);
+      }, false));
+    }
+
+    function victory(){
+      music.stop();
+      sfx.win();
+      confettiBurst(foe.boss ? 110 : 55);
+      q.wins++;
+      var wasLevel = q.level;
+      q.level = Math.min(QUEST_LEVELS, q.level + 1);
+      q.best = Math.max(q.best, q.level);
+      /* The quest is its own ladder, but a win still feeds the stars the rest
+         of the app runs on. */
+      award(world.id, foe.boss ? 3 : 1, true);
+      save();
+
+      var newGear = GEAR.filter(function(g){ return g.at === q.level; });
+
+      var box = el("div",{"class":"result"});
+      box.appendChild(el("div",{"class":"stars-big", text: foe.boss ? "🏆" : "⚔️"}));
+      box.appendChild(el("div",{"class":"score display", text: foe.name + " defeated!"}));
+      box.appendChild(el("div",{style:"font-weight:800; color:#C9C4EE; font-size:16px",
+        text: hits + " of " + asked + " right  ·  level " + wasLevel + " cleared"}));
+
+      if(q.level > wasLevel){
+        box.appendChild(el("div",{style:"font-weight:800; color:#FFD98A; font-size:17px",
+          text:"⬆️  Level " + q.level + " of " + QUEST_LEVELS}));
+      }
+      newGear.forEach(function(g){
+        box.appendChild(el("div",{"class":"gearwin"},
+          el("span",{"class":"gw-e", text:g.e}),
+          el("span",{}, el("b",{text:"New " + g.slot + "!  "}), g.nm +
+            (g.atk ? "  +" + g.atk + " attack" : "  +" + g.def + " defence"))));
+        setTimeout(function(){ sfx.levelup(); }, 400);
+      });
+
+      var on = el("button",{"class":"btn btn-lg btn-go", style:"min-width:240px", text:
+        q.level > wasLevel ? "Fight level " + q.level : "Fight again"});
+      on.addEventListener("click", function(){ sfx.tap(); runQuestLevel(world); });
+      var home = el("button",{"class":"btn btn-lg btn-ghost", style:"min-width:240px", text:"Choose another game"});
+      home.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+      box.appendChild(on); box.appendChild(home);
+      show(box);
+    }
+
+    function defeat(){
+      music.stop();
+      sfx.bad();
+      /* No penalty beyond trying again. Losing a level you have already
+         reached would be a cruel thing to do to a child learning tables. */
+      var box = el("div",{"class":"result"});
+      box.appendChild(el("div",{"class":"stars-big", text:"💫"}));
+      box.appendChild(el("div",{"class":"score display", text:"Out of hearts!"}));
+      box.appendChild(el("div",{style:"font-weight:800; color:#C9C4EE; font-size:16px",
+        text: foe.name + " was too strong this time. You keep level " + q.level + " — have another go."}));
+      var again = el("button",{"class":"btn btn-lg btn-go", style:"min-width:240px", text:"Try level " + q.level + " again"});
+      again.addEventListener("click", function(){ sfx.tap(); runQuestLevel(world); });
+      var home = el("button",{"class":"btn btn-lg btn-ghost", style:"min-width:240px", text:"Choose another game"});
+      home.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+      box.appendChild(again); box.appendChild(home);
+      show(box);
+    }
+
+    nextQuestion();
+  }
 
   /* ---------- Harbour Cannon ----------
    *

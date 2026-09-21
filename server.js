@@ -347,6 +347,20 @@ function writeProgress(email, state) {
 /* Only the fields the app actually keeps, with sane bounds. Whatever a browser
    posts here comes back to a browser later, so it is rebuilt field by field
    rather than stored as sent. */
+/* The quest's own ladder, kept with the rest of the account so a child who
+   has climbed to level 40 finds level 40 on any device. */
+function cleanQuest(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const hero = String(raw.hero || '').slice(0, 16);
+  if (!/^[a-z]{0,16}$/.test(hero)) return null;
+  return {
+    hero: hero || null,
+    level: Math.min(250, Math.max(1, Math.floor(Number(raw.level) || 1))),
+    best: Math.min(250, Math.max(1, Math.floor(Number(raw.best) || 1))),
+    wins: Math.min(999999, Math.max(0, Math.floor(Number(raw.wins) || 0)))
+  };
+}
+
 function cleanProgress(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const out = {
@@ -362,6 +376,7 @@ function cleanProgress(raw) {
     sound: raw.sound !== false,
     music: raw.music !== false,
     readAloud: raw.readAloud !== false,
+    quest: cleanQuest(raw.quest),
     progress: {},
     updatedAt: Math.floor(Date.now() / 1000)
   };
@@ -394,6 +409,12 @@ function mergeProgress(mine, theirs) {
     setup: !!(mine.setup || theirs.setup),
     progress: {}
   };
+  const a = mine.quest, b = theirs.quest;
+  if (a || b) {
+    merged.quest = (!a) ? b : (!b) ? a
+      : { hero: (b.hero || a.hero), level: Math.max(a.level, b.level),
+          best: Math.max(a.best, b.best), wins: Math.max(a.wins, b.wins) };
+  }
   const ids = new Set([...Object.keys(mine.progress || {}), ...Object.keys(theirs.progress || {})]);
   for (const id of ids) {
     const a = (mine.progress || {})[id] || { level: 1, stars: 0 };
