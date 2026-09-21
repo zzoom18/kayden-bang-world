@@ -129,10 +129,6 @@
       <button class="toggle" id="openToggle" aria-pressed="false" aria-label="Toggle open access"></button>
     </div>
     <div class="row" style="margin-top:14px">
-      <div>
-        <label for="tier">What they get</label>
-        <select id="tier"></select>
-      </div>
       <div class="fit">
         <button class="btn btn-go" id="saveSettings">Save</button>
       </div>
@@ -166,11 +162,10 @@
 
   <section class="panel">
     <h2>Make licence keys</h2>
-    <p class="note">Only needed when open access is off. Serial numbers must never repeat within a tier — keep note of where you stopped.</p>
+    <p class="note">Only needed when open access is off. Every key unlocks the whole app. Serial numbers must never repeat — keep note of where you stopped.</p>
     <div class="row">
       <div><label for="mCount">How many</label><input id="mCount" type="number" value="10" min="1" max="500"></div>
-      <div><label for="mTier">Tier</label><select id="mTier"></select></div>
-      <div><label for="mFrom">Start at serial</label><input id="mFrom" type="number" value="10" min="0"></div>
+            <div><label for="mFrom">Start at serial</label><input id="mFrom" type="number" value="10" min="0"></div>
       <div class="fit"><button class="btn btn-go" id="mintGo">Mint</button></div>
     </div>
     <div class="msg" id="mintMsg"></div>
@@ -258,13 +253,10 @@
     state.grants = data.grants || {};
     state.tiers = data.tiers || [];
 
-    fillTiers($("tier"), false);
+    /* One tier: the grant dropdown is Full access or Remove access, nothing
+       else. Granting is the common action, so it is what sits selected. */
     fillTiers($("gTier"), true);
-    fillTiers($("mTier"), false);
-    $("tier").value = state.settings.defaultTier || "studio";
-    $("mTier").value = state.settings.defaultTier || "personal";
-    // Granting is the common action here, so do not default to revoking.
-    $("gTier").value = "studio";
+    $("gTier").value = "full";
 
     var on = !!state.settings.openAccess;
     $("openToggle").setAttribute("aria-pressed", on ? "true" : "false");
@@ -302,7 +294,7 @@
   $("saveSettings").addEventListener("click", function(){
     var body = {
       openAccess: $("openToggle").getAttribute("aria-pressed") === "true",
-      defaultTier: $("tier").value
+      defaultTier: "full"
     };
     this.disabled = true;
     api("/api/admin/settings", {method:"POST", body:body}).then(function(res){
@@ -418,7 +410,7 @@
   $("mintGo").addEventListener("click", function(){
     var body = {
       count: Number($("mCount").value) || 1,
-      tier: $("mTier").value,
+      tier: "full",
       from: Number($("mFrom").value) || 0
     };
     this.disabled = true;

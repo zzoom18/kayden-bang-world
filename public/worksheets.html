@@ -1145,7 +1145,7 @@
   function applyLicence(lic, expiresAt){
     state.unlocked = true;
     state.licence = lic;
-    // maxPages 0 means unlimited on the Studio licence.
+    // maxPages 0 means unlimited, which is what a full licence carries.
     state.maxPages = (lic && lic.maxPages > 0) ? lic.maxPages : 200;
     if(lic && lic.trial){
       var d = expiresAt ? daysLeft(expiresAt) : null;

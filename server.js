@@ -3,7 +3,8 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { verify, issueToken, readToken, mint, tierByName, TIERS, TRIAL_TIER } from './lib/keys.js';
+import { verify, issueToken, readToken, mint, tierByName, TIERS, SELLABLE_TIERS, TRIAL_TIER } from './lib/keys.js';
+import { verifyGoogleToken } from './lib/google.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(ROOT, 'public');
@@ -38,7 +39,7 @@ if (KEY_SECRET.length < 32) {
 /* ---------- settings and grants ----------
    Who gets what is a runtime decision, not a deploy-time one: the owner flips
    open access on or off from the admin page without touching the server. */
-let settings = { openAccess: true, defaultTier: 'studio' };
+let settings = { openAccess: true, defaultTier: 'full' };
 let grants = {};   // email -> tier id, set per person from the admin page
 
 function loadStore(){
@@ -300,6 +301,100 @@ async function handleRegister(req, res) {
   });
 }
 
+/* ---------- Sign in with Google ----------
+ *
+ * The browser gets an ID token from Google Identity Services and posts it
+ * here. We verify it ourselves rather than trusting it: fetch Google's public
+ * keys, check the RS256 signature, then check the issuer, the audience, the
+ * expiry and that Google has actually verified the address. Only then does the
+ * email count as proven, and the account is created exactly as a typed
+ * registration would create it.
+ *
+ * No library: node:crypto reads a JWK directly.
+ */
+const GOOGLE_CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || '').trim();
+const GOOGLE_JWKS_URL = 'https://www.googleapis.com/oauth2/v3/certs';
+const JWKS_TTL_MS = 60 * 60 * 1000;
+// Google rotates these keys, so they are refetched rather than pinned. The
+// previous set is kept as a fallback for the moment a fetch fails mid-rotation.
+let jwksCache = { keys: [], fetchedAt: 0 };
+
+async function googleKeys() {
+  const fresh = Date.now() - jwksCache.fetchedAt < JWKS_TTL_MS;
+  if (jwksCache.keys.length && fresh) return jwksCache.keys;
+  try {
+    const res = await fetch(GOOGLE_JWKS_URL, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const body = await res.json();
+    if (Array.isArray(body.keys) && body.keys.length) {
+      jwksCache = { keys: body.keys, fetchedAt: Date.now() };
+    }
+  } catch (err) {
+    console.error('[google] could not fetch signing keys:', err.message);
+    if (!jwksCache.keys.length) throw new Error('keys_unavailable');
+  }
+  return jwksCache.keys;
+}
+
+async function handleGoogle(req, res) {
+  if (!GOOGLE_CLIENT_ID) {
+    return sendJson(req, res, 503, {
+      ok: false, error: 'google_not_configured',
+      message: 'Google sign-in is not set up on this site yet.'
+    });
+  }
+
+  const ip = clientIp(req);
+  if (signupLimited(ip)) {
+    return sendJson(req, res, 429, {
+      ok: false, error: 'too_many_signups',
+      message: 'That is a lot of sign-ins from one place. Get in touch and we will sort you out.'
+    });
+  }
+
+  let body;
+  try { body = await readBody(req); } catch { return sendJson(req, res, 400, { ok: false, error: 'bad_request' }); }
+
+  let claims;
+  try {
+    claims = verifyGoogleToken(body.credential, { keys: await googleKeys(), clientId: GOOGLE_CLIENT_ID });
+  } catch (err) {
+    console.error('[google] rejected a sign-in:', err.message);
+    return sendJson(req, res, 401, {
+      ok: false, error: 'google_rejected',
+      message: 'Google could not confirm that sign-in. Please try again.'
+    });
+  }
+
+  const email = String(claims.email).trim().slice(0, 254).toLowerCase();
+  const name = String(claims.name || claims.given_name || '').trim().slice(0, 60) || email.split('@')[0];
+
+  signups.set(ip, [...(signups.get(ip) || []), Date.now()]);
+
+  const ent = entitlementFor(email);
+  const token = issueToken(KEY_SECRET, { tier: ent.tier, serial: 0, days: ent.days });
+  recordRegistration({
+    at: new Date().toISOString(),
+    name,
+    email,
+    child: String(body.child || '').trim().slice(0, 40) || null,
+    via: 'google',
+    ip,
+    ua: String(req.headers['user-agent'] || '').slice(0, 200)
+  });
+
+  const licence = TIERS[ent.tier];
+  console.log(`[google] ${email} access=${ent.reason} tier=${licence.id} ip=${ip}`);
+  return sendJson(req, res, 200, {
+    ok: true,
+    token,
+    name,
+    email,
+    trialDays: ent.days,
+    licence: { id: licence.id, name: licence.name, maxPages: licence.maxPages, commercial: licence.commercial, trial: !!licence.trial }
+  });
+}
+
 async function handleSettings(req, res) {
   if (!requireAdmin(req, res)) return;
 
@@ -308,7 +403,7 @@ async function handleSettings(req, res) {
       ok: true,
       settings,
       grants,
-      tiers: Object.values(TIERS).filter((t) => !t.trial).map((t) => ({ id: t.id, name: t.name })),
+      tiers: SELLABLE_TIERS.map((n) => ({ id: TIERS[n].id, name: TIERS[n].name })),
       trialDays: TRIAL_DAYS,
       registrations: countRegistrations()
     });
@@ -473,11 +568,14 @@ async function handleMint(req, res) {
 
   const count = Math.min(Math.max(Number(body.count) || 1, 1), 500);
   const from = Math.max(Number(body.from) || 0, 0);
+  /* Only the one real tier is ever minted. A legacy tier name still verifies
+     on an old key, but nothing new is issued against it. */
   let tier;
   try {
-    tier = tierByName(body.tier || 'personal');
-  } catch (e) {
-    return sendJson(req, res, 400, { ok: false, error: 'bad_tier', message: e.message });
+    tier = tierByName(body.tier || 'full');
+    if (SELLABLE_TIERS.indexOf(tier) < 0) tier = SELLABLE_TIERS[0];
+  } catch {
+    tier = SELLABLE_TIERS[0];
   }
 
   const keys = [];
@@ -499,7 +597,13 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/health') {
       return sendJson(req, res, 200, { ok: true, service: 'papercub', time: new Date().toISOString() });
     }
+    /* Public, and deliberately so: a Google client ID is not a secret, and the
+       page needs it before it can draw the sign-in button. */
+    if (url.pathname === '/api/config') {
+      return sendJson(req, res, 200, { ok: true, googleClientId: GOOGLE_CLIENT_ID || null });
+    }
     if (url.pathname === '/api/register' && req.method === 'POST') return await handleRegister(req, res);
+    if (url.pathname === '/api/google' && req.method === 'POST') return await handleGoogle(req, res);
     if (url.pathname === '/api/activate' && req.method === 'POST') return await handleActivate(req, res);
     if (url.pathname === '/api/verify' && req.method === 'POST') return await handleVerify(req, res);
     if (url.pathname === '/api/admin/mint' && req.method === 'POST') return await handleMint(req, res);
@@ -522,7 +626,8 @@ server.listen(PORT, () => {
   console.log(`Kayden Bang World listening on :${PORT}`);
   console.log(`  admin mint endpoint: ${ADMIN_TOKEN ? 'enabled' : 'disabled (set ADMIN_TOKEN to enable)'}`);
   console.log(`  cross-origin activation: ${ALLOWED_ORIGINS.length ? ALLOWED_ORIGINS.join(', ') : 'same-origin only'}`);
-  console.log(`  free trial: ${TRIAL_DAYS} days, registrations saved to ${REGISTRATIONS}`);
+  console.log(`  sample access: ${TRIAL_DAYS} days, registrations saved to ${REGISTRATIONS}`);
   console.log(`  access: ${settings.openAccess ? 'OPEN — everyone gets ' + settings.defaultTier : 'trial then licence key'}`);
+  console.log(`  Google sign-in: ${GOOGLE_CLIENT_ID ? 'enabled' : 'off (set GOOGLE_CLIENT_ID)'}`);
   console.log(`  admin page: /admin`);
 });

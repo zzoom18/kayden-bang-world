@@ -427,6 +427,10 @@
   .scrim{position:fixed; inset:0; z-index:40; background:rgba(28,22,86,.58); display:grid; place-items:center; padding:20px; overflow-y:auto}
   .sheet{background:#3A3286; border-radius:var(--r-xl); padding:26px; width:min(460px,100%); box-shadow:0 24px 60px rgba(0,0,0,.5); animation:rise .3s var(--ease)}
   @keyframes rise{from{transform:translateY(18px) scale(.96); opacity:0} to{transform:none; opacity:1}}
+  .gsi-wrap{margin:0 0 4px; display:flex; justify-content:center; min-height:44px}
+  .or-line{display:flex; align-items:center; gap:12px; margin:16px 0 14px; color:var(--ink-soft);
+    font-weight:800; font-size:12.5px; letter-spacing:.09em; text-transform:uppercase}
+  .or-line:before, .or-line:after{content:""; flex:1; height:2px; background:rgba(255,255,255,.12)}
   .sheet h2{margin:0 0 8px; font-size:26px}
   .sheet p{margin:0 0 18px; color:#C9C4EE; font-weight:700; line-height:1.55; font-size:15px}
   .field{margin-bottom:13px}
@@ -529,7 +533,7 @@
 </div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 
-<script src="content.js?v=20260921-4"></script>
+<script src="content.js?v=20260921-6"></script>
 <script>
 (function(){
   "use strict";
@@ -956,15 +960,15 @@
       var pill = el("div",{"class":"pill " + (licence.trial ? "trial" : "full")});
       if(licence.trial){
         var d = licenceExp ? Math.max(0, Math.ceil((licenceExp*1000 - Date.now())/86400000)) : null;
-        pill.textContent = d === null ? "Free trial"
-          : d <= 0 ? "Trial ends today"
-          : d === 1 ? "Trial · 1 day left"
-          : "Trial · " + d + " days left";
+        pill.textContent = d === null ? "Sample games"
+          : d <= 0 ? "Sample ends today"
+          : d === 1 ? "Sample · 1 day left"
+          : "Sample · " + d + " days left";
         var up = el("button",{"class":"linkbtn", id:"pc_upgrade", text:"Unlock all games"});
         up.addEventListener("click", function(){ sfx.tap(); openKey(); });
         pad.appendChild(el("div",{style:"display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:8px"}, pill, up));
       } else {
-        pill.textContent = licence.name + " — everything unlocked";
+        pill.textContent = "Everything unlocked";
         pad.appendChild(el("div",{style:"margin-bottom:8px"}, pill));
       }
     }
@@ -4113,10 +4117,11 @@
   }
 
   /* ---------- licence ---------- */
-  function api(path, body){
-    return fetch(API + path, {
-      method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify(body)
-    }).then(function(r){
+  function api(path, body, method){
+    var opts = method === "GET"
+      ? {method:"GET"}
+      : {method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify(body)};
+    return fetch(API + path, opts).then(function(r){
       return r.json().then(
         function(j){ return {status:r.status, body:j}; },
         function(){ return {status:r.status, body:{}}; }
@@ -4144,6 +4149,14 @@
       });
       box.appendChild(perks);
     }
+
+    /* Google first, because one tap beats three fields on an iPad. The typed
+       form stays underneath for anyone without a Google account, and for the
+       times the button cannot load. */
+    var gsiWrap = el("div",{"class":"gsi-wrap"});
+    var orLine = el("div",{"class":"or-line", text:"or"});
+    gsiWrap.style.display = "none"; orLine.style.display = "none";
+    box.appendChild(gsiWrap); box.appendChild(orLine);
 
     var fn = el("div",{"class":"field"});
     fn.appendChild(el("label",{text:"Your name", "for":"pc_reg_name"}));
@@ -4179,23 +4192,53 @@
     peek.appendChild(pk); box.appendChild(peek);
 
     var m = modal(box);
+
+    /* The child's name is the one thing Google cannot tell us, so it is asked
+       for on the player setup sheet that follows either way. */
+    function signedIn(res, who){
+      if(res.status === 200 && res.body.ok){
+        try{ localStorage.setItem("papercub.token", res.body.token); }catch(e){}
+        applyLicence(res.body.licence, Math.floor(Date.now()/1000) + (res.body.trialDays || 7) * 86400);
+        var kid = (kidI.value||"").trim();
+        if(kid){ state.name = kid.slice(0,14); save(); }
+        m.close(); renderHome();
+        if(!state.setup) openProfile();
+        return true;
+      }
+      err.textContent = res.body.message || (who === "google"
+        ? "That Google sign-in did not go through. Please try again."
+        : "Something went wrong. Please try again.");
+      return false;
+    }
+
+    loadGoogle().then(function(clientId){
+      if(!clientId || !window.google || !window.google.accounts || !window.google.accounts.id) return;
+      try{
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: function(resp){
+            err.textContent = "";
+            api("/api/google", {credential: resp.credential, child:(kidI.value||"").trim()})
+              .then(function(r){ signedIn(r, "google"); })
+              ["catch"](function(){ err.textContent = "Couldn't reach the server. Check your connection."; });
+          }
+        });
+        window.google.accounts.id.renderButton(gsiWrap, {
+          theme:"filled_blue", size:"large", shape:"pill", text:"continue_with", width:320
+        });
+        gsiWrap.style.display = ""; orLine.style.display = "";
+      }catch(e){ /* leave the typed form as the only way in */ }
+    });
+
     pk.addEventListener("click", function(){ m.close(); renderHome(); });
     hk.addEventListener("click", function(){ m.close(); openKey(); });
     go.addEventListener("click", function(){
       var name = (nameI.value||"").trim(), email = (mailI.value||"").trim(), kid = (kidI.value||"").trim();
       if(!name){ err.textContent = "Please tell us your name."; nameI.focus(); return; }
-      if(!email){ err.textContent = "We need an email to set up the trial."; mailI.focus(); return; }
+      if(!email){ err.textContent = "We need an email to set up your account."; mailI.focus(); return; }
       go.disabled = true; go.textContent = "Setting up…"; err.textContent = "";
       api("/api/register", {name:name, email:email, child:kid}).then(function(res){
-        if(res.status === 200 && res.body.ok){
-          try{ localStorage.setItem("papercub.token", res.body.token); }catch(e){}
-          applyLicence(res.body.licence, Math.floor(Date.now()/1000) + (res.body.trialDays || 7) * 86400);
-          if(kid){ state.name = kid.slice(0,14); save(); }
-          m.close(); renderHome();
-          if(!state.setup) openProfile();
-        } else {
-          err.textContent = res.body.message || "Something went wrong. Please try again.";
-        }
+        signedIn(res, "form");
       })["catch"](function(){
         err.textContent = "Couldn't reach the server. Check your connection.";
       }).then(function(){ go.disabled = false; go.textContent = "Start playing"; });
@@ -4247,6 +4290,29 @@
      below this page, so the swipe lands on it instead of leaving the site, and
      immediately push another one ready for the next swipe. Nothing the child
      can do with a finger closes the app. */
+  /* Whether Google sign-in is available is the server's to say — it depends on
+     a client ID being configured there. Asked for once, at boot. */
+  var googleClientId = null, googleReady = null;
+  function loadGoogle(){
+    if(googleReady) return googleReady;
+    googleReady = api("/api/config", null, "GET").then(function(res){
+      if(!(res.status === 200 && res.body.ok && res.body.googleClientId)) return null;
+      googleClientId = res.body.googleClientId;
+      return new Promise(function(resolve){
+        if(window.google && window.google.accounts) return resolve(googleClientId);
+        var sc = document.createElement("script");
+        sc.src = "https://accounts.google.com/gsi/client";
+        sc.async = true; sc.defer = true;
+        sc.onload = function(){ resolve(googleClientId); };
+        /* Blocked script, no network, an ad blocker — the typed form is still
+           there, so the sheet must not break. */
+        sc.onerror = function(){ resolve(null); };
+        document.head.appendChild(sc);
+      });
+    })["catch"](function(){ return null; });
+    return googleReady;
+  }
+
   function holdHistory(){
     try{
       history.pushState({kbw:1}, "", location.href);
