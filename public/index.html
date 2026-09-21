@@ -224,6 +224,46 @@
   .finishline{position:absolute; right:8px; top:0; bottom:0; display:flex; align-items:center;
     font-size:26px; pointer-events:none}
 
+
+  /* ---- Slice the Answer ---- */
+  .ninja-arena{position:relative; width:100%; max-width:560px; height:clamp(230px,42vh,340px);
+    border-radius:22px; overflow:hidden; border:3px solid rgba(255,255,255,.12);
+    background:linear-gradient(180deg,#2B2560 0%,#4A2A66 62%,#1C1840 100%)}
+  .fruit{position:absolute; top:0; left:0; width:58px; height:58px; padding:0; border:0;
+    background:none; cursor:pointer; will-change:transform; -webkit-tap-highlight-color:transparent;
+    display:grid; place-items:center; font-family:inherit}
+  .fruit-skin{grid-area:1/1; font-size:52px; line-height:1; filter:drop-shadow(0 3px 5px rgba(0,0,0,.4))}
+  .fruit-num{grid-area:1/1; font-weight:900; font-size:21px; color:#20143A;
+    text-shadow:0 1px 0 rgba(255,255,255,.75)}
+  .fruit.hit{animation:fruithit .4s var(--ease) forwards}
+  @keyframes fruithit{to{transform:scale(2.1); opacity:0}}
+  .fruit.miss{animation:fruitmiss .4s ease}
+  @keyframes fruitmiss{0%,100%{filter:none} 50%{filter:grayscale(1) brightness(.5)}}
+
+  /* ---- Table Tower ---- */
+  .tower-scene{position:relative; width:100%; max-width:420px; height:clamp(210px,34vh,320px);
+    border-radius:22px; border:3px solid rgba(255,255,255,.12);
+    background:linear-gradient(180deg,#8FD3F4 0%,#C8E9FF 68%,#E9F6D6 100%); overflow:hidden}
+  .tower-ground{position:absolute; left:0; right:0; bottom:0; height:46px;
+    background:linear-gradient(180deg,#8FBF63,#5E9440)}
+  .tower-stack{position:absolute; left:50%; bottom:44px; transform:translateX(-50%);
+    display:flex; flex-direction:column-reverse; align-items:center; gap:2px}
+  .tower-block{width:82px; height:32px; border-radius:7px; display:grid; place-items:center;
+    font-size:16px; box-shadow:inset 0 -4px 0 rgba(0,0,0,.18), 0 2px 4px rgba(0,0,0,.2);
+    animation:blockdrop .34s var(--ease)}
+  @keyframes blockdrop{from{transform:translateY(-70px); opacity:0} to{transform:none; opacity:1}}
+  .tower-block.falling{animation:blockfall .5s ease forwards}
+  @keyframes blockfall{to{transform:translate(52px,120px) rotate(58deg); opacity:0}}
+  .tower-crane{position:absolute; left:50%; bottom:52px; transform:translateX(-50%);
+    font-size:26px; transition:bottom .34s var(--ease); z-index:2}
+  .tower-scene.wobble{animation:towerwobble .5s ease}
+  @keyframes towerwobble{0%,100%{transform:none} 25%{transform:rotate(-1.6deg)} 70%{transform:rotate(1.2deg)}}
+
+  /* ---- Measure Up, Word Problems ---- */
+  .boardwrap{display:flex; justify-content:center; width:100%; margin:4px 0 2px}
+  .wordprob{max-width:520px; font-weight:800; font-size:clamp(17px,3.8vw,22px); line-height:1.45;
+    color:#fff; text-align:center; text-wrap:balance}
+
   /* ---- Maths Quest ---- */
   .questStage{gap:14px; justify-content:flex-start; padding-top:10px}
   .herogrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(104px,1fr)); gap:11px; margin:6px 0 4px}
@@ -1330,6 +1370,8 @@
   var ZH_CHARS = PC.ZH_CHARS, ZH_NUMBERS = PC.ZH_NUMBERS, ZH_WORDS = PC.ZH_WORDS;
   var OPPOSITES = PC.OPPOSITES, GRAMMAR = PC.GRAMMAR, SENTENCES = PC.SENTENCES, PUNCT = PC.PUNCT;
   var MEANINGS = PC.MEANINGS, IDIOMS = PC.IDIOMS, AFFIXES = PC.AFFIXES, PASSAGES = PC.PASSAGES;
+  var SYNONYMS = PC.SYNONYMS, TENSES = PC.TENSES, PLURALS = PC.PLURALS;
+  var ANIMAL_GROUPS = PC.ANIMAL_GROUPS, WP_NAMES = PC.WP_NAMES, WP_THINGS = PC.WP_THINGS;
 
   /* Age bands. Everything a child is shown is chosen against these. */
   var BANDS = [
@@ -1513,10 +1555,10 @@
     /* Number Quest is the backbone of the subject and stays open from day one
        at every age; the two showy games are worth earning. Adding them ahead
        of it quietly pushed the flagship game behind a 35-star gate. */
-    maths:   ["tenframe","numbers","cannon","quest","race","bonds","shapes","sgmoney","money","picgraph","barmodel","fraction","areaperim","balance"],
-    english: ["sounds","spell","rhyme","opposites","grammar","sentence","punct","meaning","affix","idiom","reading"],
+    maths:   ["tenframe","numbers","cannon","quest","race","ninja","bonds","shapes","measure","wordprob","tower","sgmoney","money","picgraph","barmodel","fraction","areaperim","balance"],
+    english: ["sounds","spell","rhyme","plural","opposites","synonym","grammar","tenses","sentence","punct","meaning","affix","idiom","reading"],
     think:   ["odd","sort","code"],
-    science: ["quiz"],
+    science: ["quiz","animals"],
     inspect: ["spotdiff","findodd","shadow","detective"],
     music:   ["tune","highlow","beats","tempo"],
     guess:   ["guessnum","guessanimal","mystery","riddle"],
@@ -1825,6 +1867,14 @@
     {id:"race",    nm:"Number Rally",   sub:"Answer fast, beat three rivals",  emo:"🏎️", bg:"linear-gradient(150deg,#7FD8FF,#2F7FD6)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"quest",   nm:"Maths Quest",    sub:"Fight 250 enemies with sums",    emo:"⚔️", bg:"linear-gradient(150deg,#FFB36B,#E8563C)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"cannon",  nm:"Harbour Cannon", sub:"Sink it only if your shell is bigger", emo:"🚢", bg:"linear-gradient(150deg,#6FC6F0,#2E7FC2)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
+    {id:"ninja",   nm:"Slice the Answer", sub:"Slice the right number before it drops", emo:"\ud83d\udde1\ufe0f", bg:"linear-gradient(150deg,#FF9AA2,#C2185B)", ages:"3\u201312", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery \u2013 P6", free:true, cat:"maths", topic:"Numbers & Counting"},
+    {id:"tower",   nm:"Table Tower",    sub:"Stack a block for every table you know", emo:"\ud83c\udfd7\ufe0f", bg:"linear-gradient(150deg,#FFD97D,#E8862F)", ages:"7\u201312", levels:["P2","P3","P4","P5","P6"], sg:"P2 \u2013 P6", free:true, cat:"maths", topic:"Multiplication & Division"},
+    {id:"measure", nm:"Measure Up",     sub:"Read the ruler, the jug and the scale", emo:"\ud83d\udccf", bg:"linear-gradient(150deg,#A7E8C4,#22996B)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5"], sg:"K2 \u2013 P5", free:true, cat:"maths", topic:"Measurement"},
+    {id:"wordprob",nm:"Word Problems",  sub:"The sum is hidden in the story", emo:"\ud83d\udcdd", bg:"linear-gradient(150deg,#B8B5FF,#5A51C9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Word Problems"},
+    {id:"synonym", nm:"Same Meaning",   sub:"A better word than the one you used", emo:"\ud83d\udd01", bg:"linear-gradient(150deg,#FFC4E1,#C2478E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Vocabulary"},
+    {id:"tenses",  nm:"Tense Time",     sub:"Yesterday, today or tomorrow?", emo:"\u23f3", bg:"linear-gradient(150deg,#9BD6FF,#2E6FB7)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Grammar"},
+    {id:"plural",  nm:"One or Many",    sub:"One mouse, two\u2026?", emo:"\ud83d\udc65", bg:"linear-gradient(150deg,#FFE08A,#D98B14)", ages:"3\u201312", levels:["K1","K2","P1","P2","P3","P4","P5"], sg:"K1 \u2013 P5", free:true, cat:"english", topic:"Grammar"},
+    {id:"animals", nm:"Animal Groups",  sub:"Mammal, bird, fish, reptile or insect?", emo:"\ud83d\udc3e", bg:"linear-gradient(150deg,#9EE6A8,#2E8B4F)", ages:"7\u201312", levels:["P3","P4","P5","P6"], sg:"P3 \u2013 P6", free:false, cat:"science", topic:"Diversity of Living Things"},
 
     /* English past P4. The subject used to stop at Word Builder, which left a
        P5 or P6 child with nothing of their own. */
@@ -4756,6 +4806,14 @@
     if(world.id === "duomaths") return startDuoMaths(world);
     if(world.id === "duoword")  return startDuoWord(world);
     if(world.id === "duosquares")return startDuoSquares(world);
+    if(world.id === "ninja")    return startNinja(world);
+    if(world.id === "tower")    return startTower(world);
+    if(world.id === "measure")  return startMeasure(world);
+    if(world.id === "wordprob") return startWordProblems(world);
+    if(world.id === "synonym")  return startSynonyms(world);
+    if(world.id === "tenses")   return startTenses(world);
+    if(world.id === "plural")   return startPlurals(world);
+    if(world.id === "animals")  return startAnimalGroups(world);
     if(world.id === "duomemory")return startDuoMemory(world);
   }
 
@@ -4764,6 +4822,509 @@
 
 
 
+
+
+  /* ==========================================================================
+     Slice the Answer
+     --------------------------------------------------------------------------
+     The question sits at the top; numbers are tossed up from below on real
+     arcs. Tap the one that answers it before gravity takes it back down.
+
+     Everything a child has to read is still, and only the numbers move: the
+     hurry is in the hand, never in the reading.
+     ========================================================================== */
+
+  var NINJA_SKINS = ["🍉","🍎","🍊","🍍","🥝","🍑"];
+
+  function startNinja(world){
+    var b = band();
+    var rounds = b === 0 ? 5 : b === 1 ? 6 : 8;
+    /* Younger hands get a slower, higher throw and more time at the top. */
+    var gravity = b === 0 ? 900 : b === 1 ? 1050 : b === 2 ? 1250 : 1450;
+
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0, over = false;
+
+    shell.stage.appendChild(el("div",{"class":"prompt",
+      text:"Slice the right number before it falls!"}));
+    var qline = el("div",{"class":"bigq"});
+    shell.stage.appendChild(qline);
+    var arena = el("div",{"class":"ninja-arena"});
+    shell.stage.appendChild(arena);
+
+    function next(){
+      if(over) return;
+      if(i >= rounds){ over = true; finish(world, correct, rounds); return; }
+      arena.textContent = "";
+      var Q = numberQuestion(b, Math.max(1, levelOf("numbers")));
+      qline.textContent = qLine(Q);
+      speak(Q.prompt ? Q.prompt : qLine(Q));
+
+      /* Three or four fruits, one of them right. They leave at staggered
+         moments so they never come up as a wall. */
+      var opts = shuffle(Q.opts.slice(0, b === 0 ? 3 : 4));
+      var live = [], done = false;
+
+      opts.forEach(function(v, k){
+        var f = el("button",{"class":"fruit","aria-label":String(v)});
+        f.appendChild(el("span",{"class":"fruit-skin", text: NINJA_SKINS[k % NINJA_SKINS.length]}));
+        f.appendChild(el("span",{"class":"fruit-num", text:String(v)}));
+        arena.appendChild(f);
+        var w = arena.clientWidth || 320, h = arena.clientHeight || 260;
+        var o = {
+          el: f, val: String(v), sliced: false,
+          x: (w * (k + 1)) / (opts.length + 1) - 26,
+          y: h,
+          vx: (Math.random() - 0.5) * 40,
+          /* Chosen so the top of the arc lands just inside the arena. */
+          vy: -Math.sqrt(2 * gravity * (h * 0.78)),
+          delay: k * 0.28
+        };
+        f.style.transform = "translate(" + o.x + "px," + o.y + "px)";
+        f.addEventListener("click", function(){ slice(o); });
+        live.push(o);
+      });
+
+      function slice(o){
+        if(done || o.sliced) return;
+        o.sliced = true;
+        o.el.classList.add(o.val === String(Q.a) ? "hit" : "miss");
+        if(o.val === String(Q.a)){
+          done = true; correct++;
+          sfx.pop(); rightAnswer(o.el); confettiBurst(24);
+          markDot(shell.dots, i, true);
+          i++; setTimeout(next, 700);
+        } else {
+          sfx.bad(); wrongAnswer();
+        }
+      }
+
+      var last = null, t = 0;
+      function frame(ts){
+        if(over || done) return;
+        if(!document.body.contains(arena)){ over = true; return; }
+        if(last === null) last = ts;
+        var dt = Math.min(0.04, (ts - last) / 1000); last = ts; t += dt;
+        var h = arena.clientHeight || 260, gone = 0;
+        live.forEach(function(o){
+          if(o.delay > 0){ o.delay -= dt; o.el.style.opacity = "0"; gone += o.y > h ? 0 : 0; return; }
+          o.el.style.opacity = "1";
+          o.vy += gravity * dt;
+          o.x += o.vx * dt; o.y += o.vy * dt;
+          o.el.style.transform = "translate(" + o.x + "px," + o.y + "px)";
+          if(o.y > h + 40) gone++;
+        });
+        if(gone >= live.length){
+          /* Everything fell: the round is missed, and the answer is shown
+             rather than left a mystery. */
+          done = true;
+          sfx.bad(); wrongAnswer();
+          qline.textContent = qLine(Q) + "  " + Q.a;
+          markDot(shell.dots, i, false);
+          i++; setTimeout(next, 1000);
+          return;
+        }
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+    next();
+  }
+
+  /* ==========================================================================
+     Table Tower
+     --------------------------------------------------------------------------
+     Times tables, which are learnt by repetition and nothing else. Every right
+     answer stacks a block; a wrong one shakes the tower and the top block
+     falls off. Nothing is ever lost below the ground floor.
+     ========================================================================== */
+
+  var TOWER_COLOURS = ["#F2A93B","#E8563C","#4AA8E8","#57C08A","#9C6BE8","#E85C9A","#2FB6E6","#FFD166"];
+
+  function startTower(world){
+    var b = band();
+    var need = b <= 2 ? 8 : 10;
+    /* The tables a child at this level is actually being tested on. */
+    var tables = b <= 2 ? [2,3,4,5,10] : [3,4,6,7,8,9,11,12];
+
+    var shell = gameShell(world, need);
+    var blocks = 0, asked = 0, correct = 0, over = false, missStreak = 0;
+
+    shell.stage.appendChild(el("div",{"class":"prompt",
+      text:"Every right answer adds a floor. Build " + need + " of them! " +
+           "Two mistakes in a row and a floor falls off."}));
+
+    var scene = el("div",{"class":"tower-scene"});
+    var stack = el("div",{"class":"tower-stack"});
+    var crane = el("div",{"class":"tower-crane", text:"👷"});
+    scene.appendChild(crane); scene.appendChild(stack);
+    scene.appendChild(el("div",{"class":"tower-ground"}));
+    shell.stage.appendChild(scene);
+
+    var qbox = el("div",{"class":"qbox"});
+    shell.stage.appendChild(qbox);
+
+    function addBlock(){
+      var bl = el("div",{"class":"tower-block", text:"⭐"});
+      bl.style.background = TOWER_COLOURS[blocks % TOWER_COLOURS.length];
+      stack.insertBefore(bl, stack.firstChild);
+      blocks++;
+      crane.style.bottom = (52 + blocks * 34) + "px";
+    }
+    function dropBlock(){
+      if(!stack.firstChild) return;
+      var top = stack.firstChild;
+      top.classList.add("falling");
+      setTimeout(function(){ if(top.parentNode) top.parentNode.removeChild(top); }, 520);
+      blocks = Math.max(0, blocks - 1);
+      crane.style.bottom = (52 + blocks * 34) + "px";
+      scene.classList.add("wobble");
+      setTimeout(function(){ scene.classList.remove("wobble"); }, 500);
+    }
+
+    function nextQuestion(){
+      if(over) return;
+      qbox.textContent = "";
+      var t = pick(tables);
+      var other = ri(2, b <= 2 ? 10 : 12);
+      /* Division shows up once a child is past the early tables, because the
+         table is only half learnt until it can be read backwards. */
+      var divide = b >= 3 && Math.random() < 0.4;
+      var ans, text;
+      if(divide){ ans = other; text = (t * other) + " ÷ " + t + " = ?"; }
+      else { ans = t * other; text = t + " × " + other + " = ?"; }
+      asked++;
+
+      qbox.appendChild(el("div",{"class":"bigq", text:text}));
+      speak(text.replace("×"," times ").replace("÷"," divided by ").replace("= ?"," equals what"));
+      qbox.appendChild(choiceGrid(numberOptions(ans, Math.max(2, Math.round(ans * 0.25)), 4), ans,
+        function(ok){
+          if(over) return;
+          if(ok){
+            correct++; missStreak = 0; addBlock(); sfx.pop(); rightAnswer();
+            markDot(shell.dots, Math.min(blocks, need) - 1, true);
+            if(blocks >= need){ over = true; setTimeout(function(){ finishTower(true); }, 700); return; }
+          } else {
+            /* One slip only shakes the tower. A child who is getting most of
+               them right should still watch it grow, or the game is a
+               treadmill and they stop playing it. */
+            missStreak++;
+            sfx.bad(); wrongAnswer();
+            if(missStreak >= 2){ dropBlock(); missStreak = 0; }
+            else {
+              scene.classList.add("wobble");
+              setTimeout(function(){ scene.classList.remove("wobble"); }, 500);
+            }
+          }
+          setTimeout(nextQuestion, ok ? 480 : 900);
+        }, false));
+
+      /* A tower that can never be finished is not a game: after a generous
+         number of tries we stop and score what was built. */
+      if(asked > need * 4){ over = true; setTimeout(function(){ finishTower(false); }, 400); }
+    }
+
+    function finishTower(won){
+      music.stop();
+      if(won){ sfx.win(); confettiBurst(110); }
+      var box = el("div",{"class":"result"});
+      box.appendChild(el("div",{"class":"stars-big", text: won ? "🏙️" : "🏗️"}));
+      box.appendChild(el("div",{"class":"score display",
+        text: won ? "Tower finished!" : blocks + " floors built"}));
+      box.appendChild(el("div",{style:"font-weight:800; color:#C9C4EE; font-size:16px",
+        text: correct + " right out of " + asked}));
+      award(world.id, won ? 3 : blocks >= need * 0.7 ? 2 : blocks >= need * 0.4 ? 1 : 0,
+        won || blocks >= need * 0.7);
+      var again = el("button",{"class":"btn btn-lg btn-go", style:"min-width:240px", text:"Build again"});
+      again.addEventListener("click", function(){ sfx.tap(); startTower(world); });
+      var home = el("button",{"class":"btn btn-lg btn-ghost", style:"min-width:240px", text:"Choose another game"});
+      home.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+      box.appendChild(again); box.appendChild(home);
+      show(box);
+    }
+
+    nextQuestion();
+  }
+
+  /* ==========================================================================
+     Measure Up
+     --------------------------------------------------------------------------
+     Reading a scale is its own skill, separate from the arithmetic: a child
+     who can add fluently will still read a ruler from the wrong end. Three
+     instruments, all drawn rather than described.
+     ========================================================================== */
+
+  function rulerBoard(cm, maxCm){
+    var g = board(360, 110, 460), i;
+    g.appendChild(sv("rect",{x:10,y:34,width:340,height:44,rx:6,fill:"#FFE9B8",stroke:"#B07C2A","stroke-width":2}));
+    for(i = 0; i <= maxCm; i++){
+      var x = 10 + (340 * i) / maxCm;
+      var tall = (i % (maxCm > 12 ? 5 : 1) === 0);
+      g.appendChild(sv("line",{x1:x,y1:34,x2:x,y2:tall?58:48,stroke:"#B07C2A","stroke-width":tall?2:1}));
+      if(tall) g.appendChild(label(x, 74, i, 11, "#7A5316"));
+    }
+    /* The object starts at zero, the way a ruler is meant to be used. */
+    var end = 10 + (340 * cm) / maxCm;
+    g.appendChild(sv("rect",{x:10,y:12,width:(end-10),height:18,rx:5,fill:"#E8563C"}));
+    g.appendChild(sv("polygon",{points:(end)+",12 "+(end)+",30 "+(end+9)+",21",fill:"#E8563C"}));
+    return g;
+  }
+  function jugBoard(ml, maxMl){
+    var g = board(220, 230, 300), i;
+    g.appendChild(sv("path",{d:"M55 20 L55 200 Q55 214 70 214 L150 214 Q165 214 165 200 L165 20",
+      fill:"#EAF7FF",stroke:"#2E7FC2","stroke-width":4,"stroke-linecap":"round"}));
+    var step = maxMl / 5;
+    for(i = 1; i <= 5; i++){
+      var y = 206 - (186 * (i * step)) / maxMl;
+      g.appendChild(sv("line",{x1:55,y1:y,x2:92,y2:y,stroke:"#2E7FC2","stroke-width":2}));
+      g.appendChild(label(118, y + 5, i * step + " ml", 13, "#2E6FA8", "start"));
+    }
+    var top = 206 - (186 * ml) / maxMl;
+    g.appendChild(sv("path",{d:"M57 "+top+" L163 "+top+" L163 200 Q163 212 150 212 L70 212 Q57 212 57 200 Z",
+      fill:"#5BC0F0",opacity:"0.85"}));
+    return g;
+  }
+  function scaleBoard(gr, maxG){
+    var g = board(240, 230, 300), i;
+    g.appendChild(sv("circle",{cx:120,cy:120,r:92,fill:"#FFF7E4",stroke:"#B07C2A","stroke-width":5}));
+    for(i = 0; i < 10; i++){
+      var a = (-Math.PI * 1.25) + (i * Math.PI * 1.5) / 9;
+      var x1 = 120 + Math.cos(a) * 76, y1 = 120 + Math.sin(a) * 76;
+      var x2 = 120 + Math.cos(a) * 88, y2 = 120 + Math.sin(a) * 88;
+      g.appendChild(sv("line",{x1:x1,y1:y1,x2:x2,y2:y2,stroke:"#B07C2A","stroke-width":2}));
+      g.appendChild(label(120 + Math.cos(a) * 62, 120 + Math.sin(a) * 62 + 4,
+        Math.round((i * maxG) / 9), 11, "#7A5316"));
+    }
+    var ang = (-Math.PI * 1.25) + ((gr / maxG) * Math.PI * 1.5);
+    g.appendChild(sv("line",{x1:120,y1:120,x2:120 + Math.cos(ang) * 70,y2:120 + Math.sin(ang) * 70,
+      stroke:"#E8563C","stroke-width":5,"stroke-linecap":"round"}));
+    g.appendChild(sv("circle",{cx:120,cy:120,r:9,fill:"#E8563C"}));
+    return g;
+  }
+
+  function measureQuestion(b){
+    var kinds = b <= 1 ? ["ruler"] : b === 2 ? ["ruler","jug"] : ["ruler","jug","scale"];
+    var kind = pick(kinds);
+    if(kind === "ruler"){
+      var maxCm = b <= 1 ? 10 : b === 2 ? 15 : 20;
+      var cm = ri(2, maxCm - 1);
+      return {node: rulerBoard(cm, maxCm), prompt:"How long is the red bar?",
+        a: cm + " cm", opts: shuffle([cm, cm + 1, Math.max(1, cm - 1), cm + 2]
+          .filter(uniqNum()).map(function(n){ return n + " cm"; }))};
+    }
+    if(kind === "jug"){
+      var maxMl = pick([500, 1000]);
+      var stepMl = maxMl / 10;
+      var ml = stepMl * ri(2, 9);
+      return {node: jugBoard(ml, maxMl), prompt:"How much water is in the jug?",
+        a: ml + " ml", opts: shuffle([ml, ml + stepMl, Math.max(stepMl, ml - stepMl), ml + stepMl * 2]
+          .filter(uniqNum()).map(function(n){ return n + " ml"; }))};
+    }
+    var maxG = pick([900, 1800]);
+    var stepG = maxG / 9;
+    var gr = Math.round(stepG * ri(1, 8));
+    return {node: scaleBoard(gr, maxG), prompt:"What does the scale read?",
+      a: gr + " g", opts: shuffle([gr, Math.round(gr + stepG), Math.max(10, Math.round(gr - stepG)),
+        Math.round(gr + stepG * 2)].filter(uniqNum()).map(function(n){ return n + " g"; }))};
+  }
+  /* The four candidates can collide once a value is clamped, and a grid with
+     the same number twice reads as a trick. */
+  function uniqNum(){
+    var seen = {};
+    return function(n){ if(seen[n]) return false; seen[n] = 1; return true; };
+  }
+
+  function startMeasure(world){
+    var b = band(), rounds = b <= 1 ? 6 : 8;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0;
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var Q = measureQuestion(b);
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:Q.prompt}));
+      speak(Q.prompt);
+      var holder = el("div",{"class":"boardwrap"});
+      holder.appendChild(Q.node);
+      shell.stage.appendChild(holder);
+      shell.stage.appendChild(choiceGrid(Q.opts, Q.a, function(ok){
+        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 680 : 1050);
+      }, false));
+    }
+    next();
+  }
+
+  /* ==========================================================================
+     Word Problems
+     --------------------------------------------------------------------------
+     Built from templates rather than a fixed list, so the numbers are new
+     every time and a child cannot learn the answers by heart. The wording
+     follows the phrasing the papers use, and every problem is read aloud:
+     half of what makes these hard is the reading, not the sum.
+     ========================================================================== */
+
+  function wordProblem(b){
+    var n1 = WP_NAMES[Math.floor(Math.random() * WP_NAMES.length)];
+    var n2 = pick(WP_NAMES.filter(function(x){ return x !== n1; }));
+    var th = pick(WP_THINGS);
+    var a, x, y, z, text;
+
+    if(b <= 1){
+      x = ri(3, 9); y = ri(2, 9);
+      if(Math.random() < 0.5){ a = x + y;
+        text = n1 + " has " + x + " " + th.p + ". " + n2 + " gives " + n1 + " " + y +
+               " more. How many " + th.p + " does " + n1 + " have now?"; }
+      else { x = ri(6, 14); y = ri(2, 5); a = x - y;
+        text = n1 + " has " + x + " " + th.p + " and gives away " + y +
+               ". How many " + th.p + " are left?"; }
+    } else if(b === 2){
+      var r = Math.random();
+      if(r < 0.34){ x = ri(3, 9); y = ri(3, 8); a = x * y;
+        text = "There are " + x + " boxes. Each box holds " + y + " " + th.p +
+               ". How many " + th.p + " are there altogether?"; }
+      else if(r < 0.67){ y = ri(3, 8); a = ri(3, 9); x = y * a;
+        text = n1 + " shares " + x + " " + th.p + " equally among " + y +
+               " friends. How many " + th.p + " does each friend get?"; }
+      else {
+        /* Each day has to take from what is actually left, or the story ends
+           with a child owing someone eleven marbles. */
+        x = ri(24, 60);
+        y = ri(5, Math.floor(x / 3));
+        z = ri(4, Math.floor((x - y) / 2));
+        a = x - y - z;
+        text = n1 + " had " + x + " " + th.p + ". " + n1 + " used " + y +
+               " on Monday and " + z + " on Tuesday. How many " + th.p + " are left?"; }
+    } else {
+      var r2 = Math.random();
+      if(r2 < 0.3){ y = ri(3, 9); x = ri(12, 40); a = x + y * x;
+        text = n1 + " has " + x + " " + th.p + ". " + n2 + " has " + y +
+               " times as many. How many " + th.p + " do they have altogether?"; }
+      else if(r2 < 0.55){
+        /* The stock has to divide cleanly by the percentage, or the answer is
+           not a whole number of things and none of the choices is right. */
+        var pc = pick([10, 20, 25, 50]);
+        var unit = pc === 10 ? 10 : pc === 20 ? 5 : pc === 25 ? 4 : 2;
+        x = unit * ri(4, 24); a = x * pc / 100;
+        text = "A shop has " + x + " " + th.p + " and sells " + pc +
+               "% of them. How many " + th.p + " were sold?"; }
+      else if(r2 < 0.8){
+        y = ri(4, 9);
+        var bags = ri(6, 18), rem = ri(1, y - 1);
+        a = y * bags; x = a + rem;
+        text = x + " " + th.p + " are packed into bags of " + y + ". " + rem + " " +
+               (rem === 1 ? th.s + " is" : th.p + " are") +
+               " left over. How many " + th.p + " were packed?"; }
+      else { x = ri(3, 8); y = ri(4, 9); a = x * y * 2;
+        text = n1 + " buys " + x + " packets with " + y + " " + th.p +
+               " in each, then buys the same again. How many " + th.p + " in total?"; }
+    }
+    var spread = Math.max(2, Math.round(Math.abs(a) * 0.3));
+    return {text:text, emo:th.e, a:a, opts:numberOptions(a, spread, b <= 1 ? 3 : 4)};
+  }
+
+  function startWordProblems(world){
+    var b = band(), rounds = b <= 1 ? 5 : 7;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0;
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var Q = wordProblem(b);
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"countrow", text:Q.emo}));
+      var row = el("div",{"class":"sayrow"});
+      row.appendChild(el("div",{"class":"wordprob", text:Q.text}));
+      var say = sayButton(Q.text);
+      if(say) row.appendChild(say);
+      shell.stage.appendChild(row);
+      speak(Q.text);
+      shell.stage.appendChild(choiceGrid(Q.opts, Q.a, function(ok){
+        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 700 : 1200);
+      }, false));
+    }
+    next();
+  }
+
+  /* ==========================================================================
+     Word games: same meaning, tenses, one or many, animal groups
+     --------------------------------------------------------------------------
+     All four are the same shape — a prompt, four choices, read aloud — so they
+     share one runner and differ only in how a round is built.
+     ========================================================================== */
+
+  function wordRound(world, rounds, build){
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0;
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var R = build(i);
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:R.prompt}));
+      if(R.emo) shell.stage.appendChild(el("div",{"class":"countrow", text:R.emo}));
+      var row = el("div",{"class":"sayrow"});
+      row.appendChild(el("div",{"class":R.small ? "wordprob" : "bigq",
+        style: R.small ? "" : "font-size:clamp(28px,7vw,48px)", text:R.subject}));
+      var say = sayButton(R.speak || R.subject);
+      if(say) row.appendChild(say);
+      shell.stage.appendChild(row);
+      speak(R.speak || R.subject);
+      shell.stage.appendChild(choiceGrid(shuffle([R.a].concat(R.x.slice(0, 3))), R.a,
+        function(ok){
+          if(ok){ correct++; sfx.good(); flash("⭐"); if(R.after) speak(R.after); }
+          else { sfx.bad(); }
+          markDot(shell.dots, i, ok);
+          i++;
+          setTimeout(next, ok ? 700 : 1150);
+        }, false));
+    }
+    next();
+  }
+
+  function startSynonyms(world){
+    var pool = shuffle(forBand(SYNONYMS, band()).slice());
+    wordRound(world, 8, function(i){
+      var it = pool[i % pool.length];
+      return {prompt:"Which word means nearly the same as…", subject:it.w,
+        a:it.s, x:it.x, after:it.w + " … " + it.s};
+    });
+  }
+
+  function startTenses(world){
+    var pool = shuffle(forBand(TENSES, band()).slice());
+    wordRound(world, 8, function(i){
+      var it = pool[i % pool.length];
+      return {prompt:"Choose the right form of “" + it.v + "”", subject:it.q,
+        small:true, a:it.a, x:it.x, speak:it.q.replace("___","blank"),
+        after:it.q.replace("___", it.a)};
+    });
+  }
+
+  function startPlurals(world){
+    var pool = shuffle(forBand(PLURALS, band()).slice());
+    wordRound(world, 8, function(i){
+      var it = pool[i % pool.length];
+      return {prompt:"One " + it.w + ", two…?", subject:it.w,
+        a:it.a, x:it.x, speak:"One " + it.w + ". Two what?",
+        after:"One " + it.w + ", two " + it.a};
+    });
+  }
+
+  function startAnimalGroups(world){
+    var pool = shuffle(ANIMAL_GROUPS.slice());
+    var groups = [];
+    ANIMAL_GROUPS.forEach(function(a){ if(groups.indexOf(a.g) < 0) groups.push(a.g); });
+    wordRound(world, 8, function(i){
+      var it = pool[i % pool.length];
+      var wrongs = shuffle(groups.filter(function(g){ return g !== it.g; })).slice(0, 3);
+      return {prompt:"Which group does this animal belong to?", emo:it.e, subject:it.w,
+        a:it.g, x:wrongs, after:"A " + it.w + " is a " + it.g.toLowerCase()};
+    });
+  }
 
   /* ==========================================================================
      Number Rally

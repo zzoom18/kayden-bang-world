@@ -570,6 +570,124 @@ window.PC = (function(){
          {q:"Why is the bridge called both new and old?",a:"Old stone was kept, new iron put in",x:["It was rebuilt twice","Two bridges were joined","It was painted to look old"]}]}
   ];
 
+
+  /* ---------- words that mean the same (P2 onwards) ---------- */
+  /* The opposite of OPPOSITES, and the pair a child meets in composition
+     marking: "find a better word than said". */
+  var SYNONYMS = [
+    {b:1, w:"big",    s:"large",     x:["tiny","thin","soft"]},
+    {b:1, w:"small",  s:"little",    x:["heavy","loud","wide"]},
+    {b:1, w:"happy",  s:"glad",      x:["sleepy","angry","hungry"]},
+    {b:1, w:"quick",  s:"fast",      x:["quiet","kind","late"]},
+    {b:1, w:"begin",  s:"start",     x:["stop","lose","carry"]},
+    {b:1, w:"shut",   s:"close",     x:["open","pull","climb"]},
+    {b:2, w:"tired",  s:"weary",     x:["curious","brave","polite"]},
+    {b:2, w:"shout",  s:"yell",      x:["whisper","mutter","nod"]},
+    {b:2, w:"afraid", s:"scared",    x:["excited","proud","calm"]},
+    {b:2, w:"strange",s:"odd",       x:["ordinary","gentle","useful"]},
+    {b:2, w:"tidy",   s:"neat",      x:["messy","empty","early"]},
+    {b:2, w:"pretty", s:"lovely",    x:["plain","clever","spare"]},
+    {b:2, w:"brave",  s:"bold",      x:["timid","honest","silent"]},
+    {b:2, w:"hurry",  s:"rush",      x:["wander","rest","follow"]},
+    {b:3, w:"furious",s:"enraged",   x:["delighted","puzzled","weary"]},
+    {b:3, w:"ancient",s:"age-old",   x:["modern","fragile","distant"]},
+    {b:3, w:"reluctant",s:"unwilling",x:["eager","careless","capable"]},
+    {b:3, w:"abundant",s:"plentiful",x:["scarce","costly","fragile"]},
+    {b:3, w:"conceal",s:"hide",      x:["reveal","repair","report"]},
+    {b:3, w:"fragile",s:"delicate",  x:["sturdy","enormous","hollow"]},
+    {b:3, w:"generous",s:"giving",   x:["selfish","cautious","punctual"]},
+    {b:3, w:"weary",  s:"exhausted", x:["refreshed","restless","content"]},
+    {b:3, w:"peculiar",s:"unusual",  x:["typical","pleasant","precise"]},
+    {b:3, w:"grateful",s:"thankful", x:["resentful","hopeful","doubtful"]}
+  ];
+
+  /* ---------- verb tenses ---------- */
+  /* The single biggest source of red pen in a Singapore English paper.
+     The base verb is shown so the child is choosing a form, not a word. */
+  var TENSES = [
+    {b:1, v:"go",    q:"Yesterday I ___ to the market.",        a:"went",    x:["go","goes","going"]},
+    {b:1, v:"eat",   q:"Every morning she ___ rice porridge.",  a:"eats",    x:["eat","ate","eaten"]},
+    {b:1, v:"play",  q:"Right now the boys ___ football.",      a:"are playing", x:["plays","played","is playing"]},
+    {b:1, v:"run",   q:"He ___ very fast last Sports Day.",     a:"ran",     x:["run","runs","running"]},
+    {b:1, v:"have",  q:"My sister ___ two goldfish.",           a:"has",     x:["have","had","having"]},
+    {b:2, v:"write", q:"She ___ her name at the top already.",  a:"has written", x:["write","writing","was write"]},
+    {b:2, v:"take",  q:"Amir ___ the bus to school every day.", a:"takes",   x:["take","took","taken"]},
+    {b:2, v:"buy",   q:"We ___ the tickets an hour ago.",       a:"bought",  x:["buy","buys","have buy"]},
+    {b:2, v:"swim",  q:"They ___ in the pool when it rained.",  a:"were swimming", x:["swim","swam","are swimming"]},
+    {b:2, v:"bring", q:"Please ___ your water bottle tomorrow.",a:"bring",   x:["brought","brings","bringing"]},
+    {b:2, v:"fall",  q:"The vase ___ off the table just now.",  a:"fell",    x:["fall","falls","fallen"]},
+    {b:3, v:"finish",q:"By the time we arrived, the show ___.", a:"had finished", x:["finished","has finished","finishes"]},
+    {b:3, v:"live",  q:"My grandfather ___ here since 1975.",   a:"has lived", x:["lived","lives","is living"]},
+    {b:3, v:"see",   q:"If you had waited, you ___ the parade.",a:"would have seen", x:["saw","will see","have seen"]},
+    {b:3, v:"build", q:"The new hall ___ by the end of the year.", a:"will be built", x:["will build","is building","has built"]},
+    {b:3, v:"speak", q:"She ___ to the principal before she left.", a:"had spoken", x:["has spoke","speaks","was speaking"]},
+    {b:3, v:"rain",  q:"It ___ all week and the field is soaked.", a:"has been raining", x:["rained","is raining","rains"]},
+    {b:3, v:"lose",  q:"He ___ his pass twice this term.",      a:"has lost", x:["lose","losed","was losing"]}
+  ];
+
+  /* ---------- one or many ---------- */
+  var PLURALS = [
+    {b:0, w:"cat",    a:"cats",     x:["cates","catz","cat"]},
+    {b:0, w:"dog",    a:"dogs",     x:["doges","dogz","dog"]},
+    {b:0, w:"bus",    a:"buses",    x:["buss","busz","bus"]},
+    {b:0, w:"box",    a:"boxes",    x:["boxs","boxen","box"]},
+    {b:1, w:"baby",   a:"babies",   x:["babys","babyes","babie"]},
+    {b:1, w:"leaf",   a:"leaves",   x:["leafs","leafes","leaf"]},
+    {b:1, w:"foot",   a:"feet",     x:["foots","feets","footes"]},
+    {b:1, w:"child",  a:"children", x:["childs","childrens","childes"]},
+    {b:1, w:"mouse",  a:"mice",     x:["mouses","mices","mouse"]},
+    {b:1, w:"tooth",  a:"teeth",    x:["tooths","teeths","toothes"]},
+    {b:2, w:"knife",  a:"knives",   x:["knifes","knifs","knive"]},
+    {b:2, w:"shelf",  a:"shelves",  x:["shelfs","shelfes","shelvs"]},
+    {b:2, w:"potato", a:"potatoes", x:["potatos","potatoies","potato"]},
+    {b:2, w:"woman",  a:"women",    x:["womans","womens","womes"]},
+    {b:2, w:"sheep",  a:"sheep",    x:["sheeps","sheepes","sheepen"]},
+    {b:2, w:"person", a:"people",   x:["persons' ","personses","peoples"]},
+    {b:3, w:"crisis", a:"crises",   x:["crisises","crisis'","crisiss"]},
+    {b:3, w:"cactus", a:"cacti",    x:["cactuses'","cactus","cactusi"]},
+    {b:3, w:"analysis",a:"analyses",x:["analysises","analysis'","analysic"]},
+    {b:3, w:"medium", a:"media",    x:["mediums'","mediumes","medias"]},
+    {b:3, w:"goose",  a:"geese",    x:["gooses","geeses","goosen"]},
+    {b:3, w:"ox",     a:"oxen",     x:["oxes","oxs","ox"]}
+  ];
+
+  /* ---------- animal groups (P3 Diversity) ---------- */
+  var ANIMAL_GROUPS = [
+    {e:"🐯", w:"tiger",     g:"Mammal"},
+    {e:"🐘", w:"elephant",  g:"Mammal"},
+    {e:"🦇", w:"bat",       g:"Mammal"},
+    {e:"🐳", w:"whale",     g:"Mammal"},
+    {e:"🦅", w:"eagle",     g:"Bird"},
+    {e:"🐧", w:"penguin",   g:"Bird"},
+    {e:"🦜", w:"parrot",    g:"Bird"},
+    {e:"🐔", w:"chicken",   g:"Bird"},
+    {e:"🐠", w:"goldfish",  g:"Fish"},
+    {e:"🦈", w:"shark",     g:"Fish"},
+    {e:"🐡", w:"pufferfish",g:"Fish"},
+    {e:"🐍", w:"snake",     g:"Reptile"},
+    {e:"🐢", w:"turtle",    g:"Reptile"},
+    {e:"🦎", w:"lizard",    g:"Reptile"},
+    {e:"🐊", w:"crocodile", g:"Reptile"},
+    {e:"🐸", w:"frog",      g:"Amphibian"},
+    {e:"🐌", w:"snail",     g:"Insect"},
+    {e:"🐝", w:"bee",       g:"Insect"},
+    {e:"🦋", w:"butterfly", g:"Insect"},
+    {e:"🐜", w:"ant",       g:"Insect"},
+    {e:"🐞", w:"ladybird",  g:"Insect"}
+  ];
+
+  /* ---------- word problem ingredients ----------
+     Templates rather than a fixed list, so the sums are new every time and a
+     child cannot learn the answers by heart. The wording follows the phrasing
+     MOE papers use. */
+  var WP_NAMES = ["Kayden","Ellyia","Aisha","Wei Ming","Siti","Ravi","Mei Ling","Daniel","Nurul","Jun Jie"];
+  var WP_THINGS = [
+    {s:"sticker", p:"stickers", e:"⭐"}, {s:"marble", p:"marbles", e:"🔵"},
+    {s:"cookie",  p:"cookies",  e:"🍪"}, {s:"pencil", p:"pencils", e:"✏️"},
+    {s:"balloon", p:"balloons", e:"🎈"}, {s:"apple",  p:"apples",  e:"🍎"},
+    {s:"shell",   p:"shells",   e:"🐚"}, {s:"card",   p:"cards",   e:"🃏"}
+  ];
+
   return {
     PICS: PICS, SPELL: SPELL, QUIZ: QUIZ, ODD: ODD, RHYMES: RHYMES, SORT_ADV: SORT_ADV,
     ANIMAL_CLUES: ANIMAL_CLUES, RIDDLES: RIDDLES,
@@ -578,6 +696,8 @@ window.PC = (function(){
     SHAPES: SHAPES, COLOURS: COLOURS, CODE_LEVELS: CODE_LEVELS, COINS: COINS,
     ZH_CHARS: ZH_CHARS, ZH_NUMBERS: ZH_NUMBERS, ZH_WORDS: ZH_WORDS,
     OPPOSITES: OPPOSITES, GRAMMAR: GRAMMAR, SENTENCES: SENTENCES, PUNCT: PUNCT,
-    MEANINGS: MEANINGS, IDIOMS: IDIOMS, AFFIXES: AFFIXES, PASSAGES: PASSAGES
+    MEANINGS: MEANINGS, IDIOMS: IDIOMS, AFFIXES: AFFIXES, PASSAGES: PASSAGES,
+    SYNONYMS: SYNONYMS, TENSES: TENSES, PLURALS: PLURALS,
+    ANIMAL_GROUPS: ANIMAL_GROUPS, WP_NAMES: WP_NAMES, WP_THINGS: WP_THINGS
   };
 })();
