@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Kayden Bang World Admin</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+  :root{
+    --ink:#14122E; --panel:#1E1B44; --panel-2:#272356; --line:#3A3570;
+    --text:#EFEDFB; --soft:#9C96CF;
+    --go:#35C48F; --warn:#FFC43D; --stop:#FF5D8F; --accent:#9B7BFF;
+    --r:16px;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ink); color:var(--text);
+    font-family:"Nunito",-apple-system,system-ui,sans-serif; font-size:15px; line-height:1.5;
+  }
+  h1,h2,h3{font-family:"Baloo 2",system-ui,sans-serif; font-weight:800; margin:0}
+  button{font-family:inherit; cursor:pointer; border:none; touch-action:manipulation}
+  a{color:var(--accent)}
+  :focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+
+  .wrap{max-width:940px; margin:0 auto; padding:22px 18px 60px}
+  header{display:flex; align-items:center; gap:13px; margin-bottom:24px; flex-wrap:wrap}
+  .mark{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:23px;
+        background:linear-gradient(145deg,#FFC43D,#FF8A5B); flex:none}
+  header .sub{font-size:12.5px; color:var(--soft); font-weight:700; letter-spacing:.7px; text-transform:uppercase}
+  header .spacer{margin-left:auto}
+
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:20px; margin-bottom:18px}
+  .panel h2{font-size:19px; margin-bottom:5px}
+  .panel .note{color:var(--soft); font-size:13.5px; margin-bottom:16px}
+
+  label{display:block; font-size:11.5px; font-weight:800; letter-spacing:.9px; text-transform:uppercase; color:var(--soft); margin-bottom:6px}
+  input, select{
+    width:100%; background:#131130; border:2px solid var(--line); color:var(--text);
+    border-radius:11px; padding:11px 13px; font-family:inherit; font-size:15px; font-weight:600;
+  }
+  input:focus, select:focus{outline:none; border-color:var(--accent)}
+
+  .btn{background:var(--panel-2); color:var(--text); border-radius:11px; padding:11px 17px; font-weight:800; font-size:14.5px;
+       border:1px solid var(--line); transition:filter .15s ease}
+  .btn:hover{filter:brightness(1.22)}
+  .btn-go{background:var(--go); color:#053A2A; border-color:transparent}
+  .btn-stop{background:var(--stop); color:#3E0A1D; border-color:transparent}
+  .btn-sm{padding:7px 12px; font-size:13px; border-radius:9px}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end}
+  .row > *{flex:1; min-width:150px}
+  .row > .fit{flex:0 0 auto; min-width:0}
+
+  .switch{display:flex; align-items:center; gap:16px; background:var(--panel-2); border-radius:var(--r); padding:17px; border:1px solid var(--line)}
+  .switch .txt{flex:1; min-width:0}
+  .switch .tt{font-family:"Baloo 2",sans-serif; font-weight:800; font-size:17px}
+  .switch .td{color:var(--soft); font-size:13.5px}
+  .toggle{position:relative; width:70px; height:38px; border-radius:999px; background:#4A4488; flex:none; transition:background .2s ease}
+  .toggle::after{content:""; position:absolute; top:4px; left:4px; width:30px; height:30px; border-radius:50%; background:#fff; transition:transform .2s ease}
+  .toggle[aria-pressed="true"]{background:var(--go)}
+  .toggle[aria-pressed="true"]::after{transform:translateX(32px)}
+
+  .pill{display:inline-flex; align-items:center; gap:7px; border-radius:999px; padding:6px 13px; font-size:12.5px; font-weight:800}
+  .pill.open{background:rgba(53,196,143,.18); color:#7DE9BE}
+  .pill.closed{background:rgba(255,196,61,.18); color:#FFD98A}
+
+  table{width:100%; border-collapse:collapse; font-size:13.5px}
+  th{text-align:left; font-size:11px; letter-spacing:.9px; text-transform:uppercase; color:var(--soft); padding:9px 10px; border-bottom:2px solid var(--line)}
+  td{padding:10px; border-bottom:1px solid rgba(58,53,112,.55); vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  .tw{overflow-x:auto; -webkit-overflow-scrolling:touch}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px}
+  .tag{font-size:11.5px; font-weight:800; padding:4px 9px; border-radius:7px; background:var(--panel-2); color:var(--soft); white-space:nowrap}
+  .tag.full{background:rgba(53,196,143,.18); color:#7DE9BE}
+  .tag.trial{background:rgba(255,196,61,.18); color:#FFD98A}
+
+  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-bottom:18px}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:15px}
+  .stat .v{font-family:"Baloo 2",sans-serif; font-weight:800; font-size:27px; line-height:1.1}
+  .stat .l{color:var(--soft); font-size:12.5px; font-weight:700; margin-top:2px}
+
+  .keys{background:#131130; border:2px solid var(--line); border-radius:11px; padding:13px; margin-top:13px;
+        font-family:ui-monospace,Menlo,monospace; font-size:14px; line-height:1.9; white-space:pre-wrap; word-break:break-all}
+  .msg{margin-top:12px; font-size:13.5px; font-weight:700; min-height:20px}
+  .msg.ok{color:#7DE9BE} .msg.bad{color:#FF9DBB}
+  .empty{color:var(--soft); padding:18px 0; text-align:center; font-weight:700}
+
+  .gate{max-width:420px; margin:14vh auto; padding:0 18px}
+  .gate .panel{text-align:left}
+  @media (max-width:560px){ .switch{flex-wrap:wrap} .stat .v{font-size:23px} }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="panel">
+    <h2>Kayden Bang World Admin</h2>
+    <p class="note">Enter your admin token. It is the <code>ADMIN_TOKEN</code> set on the server.</p>
+    <label for="tok">Admin token</label>
+    <input id="tok" type="password" autocomplete="off" spellcheck="false">
+    <div class="msg bad" id="gateMsg"></div>
+    <button class="btn btn-go" id="gateGo" style="width:100%; margin-top:12px">Sign in</button>
+  </div>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <header>
+    <div class="mark">🦊</div>
+    <div>
+      <h1>Kayden Bang World Admin</h1>
+      <div class="sub">Access &amp; licences</div>
+    </div>
+    <div class="spacer"></div>
+    <span id="modePill" class="pill closed">—</span>
+    <button class="btn btn-sm" id="signout">Sign out</button>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <section class="panel">
+    <h2>Who can use the app</h2>
+    <p class="note">With open access on, everyone who signs up gets the full app straight away — no trial, no key needed.</p>
+    <div class="switch">
+      <div class="txt">
+        <div class="tt">Open access</div>
+        <div class="td" id="switchNote">Everyone who registers gets full access.</div>
+      </div>
+      <button class="toggle" id="openToggle" aria-pressed="false" aria-label="Toggle open access"></button>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <div>
+        <label for="tier">What they get</label>
+        <select id="tier"></select>
+      </div>
+      <div class="fit">
+        <button class="btn btn-go" id="saveSettings">Save</button>
+      </div>
+    </div>
+    <div class="msg" id="settingsMsg"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Give one person full access</h2>
+    <p class="note">A personal grant always wins, even when open access is off. Use it for a refund, a reviewer, or a friend.</p>
+    <div class="row">
+      <div>
+        <label for="gEmail">Email</label>
+        <input id="gEmail" type="email" placeholder="parent@example.com" spellcheck="false">
+      </div>
+      <div>
+        <label for="gTier">Access</label>
+        <select id="gTier"></select>
+      </div>
+      <div class="fit"><button class="btn btn-go" id="grantGo">Grant</button></div>
+    </div>
+    <div class="msg" id="grantMsg"></div>
+    <div class="tw" style="margin-top:14px"><table id="grantTable"></table></div>
+  </section>
+
+  <section class="panel">
+    <h2>Who has signed up</h2>
+    <p class="note">Newest first. <a href="/api/admin/registrations" id="csvLink">Download as CSV</a></p>
+    <div class="tw"><table id="regTable"></table></div>
+  </section>
+
+  <section class="panel">
+    <h2>Make licence keys</h2>
+    <p class="note">Only needed when open access is off. Serial numbers must never repeat within a tier — keep note of where you stopped.</p>
+    <div class="row">
+      <div><label for="mCount">How many</label><input id="mCount" type="number" value="10" min="1" max="500"></div>
+      <div><label for="mTier">Tier</label><select id="mTier"></select></div>
+      <div><label for="mFrom">Start at serial</label><input id="mFrom" type="number" value="10" min="0"></div>
+      <div class="fit"><button class="btn btn-go" id="mintGo">Mint</button></div>
+    </div>
+    <div class="msg" id="mintMsg"></div>
+    <div class="keys" id="keysOut" hidden></div>
+  </section>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var token = "";
+  try { token = sessionStorage.getItem("pc.admin") || ""; } catch(e){}
+
+  function api(path, opts){
+    opts = opts || {};
+    return fetch(path, {
+      method: opts.method || "GET",
+      headers: Object.assign({ "authorization": "Bearer " + token }, opts.body ? {"content-type":"application/json"} : {}),
+      body: opts.body ? JSON.stringify(opts.body) : undefined
+    }).then(function(r){
+      return r.json().then(function(j){ return {status:r.status, body:j}; },
+                           function(){ return {status:r.status, body:{}}; });
+    });
+  }
+  function say(el, text, ok){
+    el.textContent = text;
+    el.className = "msg " + (ok ? "ok" : "bad");
+    if(text) setTimeout(function(){ if(el.textContent === text) el.textContent = ""; }, 4000);
+  }
+  function esc(v){ return String(v == null ? "" : v); }
+
+  /* ---------- sign in ---------- */
+  function signIn(t){
+    token = t;
+    return api("/api/admin/settings").then(function(res){
+      if(res.status === 200 && res.body.ok){
+        try { sessionStorage.setItem("pc.admin", token); } catch(e){}
+        $("gate").hidden = true;
+        $("app").hidden = false;
+        paint(res.body);
+        loadRegs();
+        return true;
+      }
+      token = "";
+      try { sessionStorage.removeItem("pc.admin"); } catch(e){}
+      return false;
+    });
+  }
+  $("gateGo").addEventListener("click", function(){
+    var v = ($("tok").value || "").trim();
+    if(!v){ say($("gateMsg"), "Enter your token.", false); return; }
+    this.disabled = true;
+    signIn(v).then(function(ok){
+      if(!ok) say($("gateMsg"), "That token was not accepted.", false);
+    })["catch"](function(){
+      say($("gateMsg"), "Could not reach the server.", false);
+    }).then(function(){ $("gateGo").disabled = false; });
+  });
+  $("tok").addEventListener("keydown", function(e){ if(e.key === "Enter") $("gateGo").click(); });
+  $("signout").addEventListener("click", function(){
+    try { sessionStorage.removeItem("pc.admin"); } catch(e){}
+    location.reload();
+  });
+
+  /* ---------- settings ---------- */
+  var state = { settings:{}, grants:{}, tiers:[] };
+
+  function fillTiers(sel, withNone){
+    sel.textContent = "";
+    if(withNone){
+      var o = document.createElement("option");
+      o.value = ""; o.textContent = "Remove access";
+      sel.appendChild(o);
+    }
+    state.tiers.forEach(function(t){
+      var o = document.createElement("option");
+      o.value = t.id; o.textContent = t.name;
+      sel.appendChild(o);
+    });
+  }
+
+  function paint(data){
+    state.settings = data.settings || {};
+    state.grants = data.grants || {};
+    state.tiers = data.tiers || [];
+
+    fillTiers($("tier"), false);
+    fillTiers($("gTier"), true);
+    fillTiers($("mTier"), false);
+    $("tier").value = state.settings.defaultTier || "studio";
+    $("mTier").value = state.settings.defaultTier || "personal";
+    // Granting is the common action here, so do not default to revoking.
+    $("gTier").value = "studio";
+
+    var on = !!state.settings.openAccess;
+    $("openToggle").setAttribute("aria-pressed", on ? "true" : "false");
+    $("modePill").className = "pill " + (on ? "open" : "closed");
+    $("modePill").textContent = on ? "Open to everyone" : "Trial + licence keys";
+    $("switchNote").textContent = on
+      ? "On — everyone who registers gets the full app immediately."
+      : "Off — new sign-ups get a " + (data.trialDays || 7) + "-day trial, then need a key.";
+
+    var regs = data.registrations || {};
+    var stats = [
+      { v: regs.total || 0, l: "sign-ups" },
+      { v: regs.unique || 0, l: "unique emails" },
+      { v: Object.keys(state.grants).length, l: "personal grants" },
+      { v: on ? "Open" : "Keys", l: "access mode" }
+    ];
+    $("stats").textContent = "";
+    stats.forEach(function(s){
+      var d = document.createElement("div");
+      d.className = "stat";
+      d.innerHTML = '<div class="v"></div><div class="l"></div>';
+      d.querySelector(".v").textContent = String(s.v);
+      d.querySelector(".l").textContent = s.l;
+      $("stats").appendChild(d);
+    });
+
+    paintGrants();
+  }
+
+  $("openToggle").addEventListener("click", function(){
+    var now = this.getAttribute("aria-pressed") === "true";
+    this.setAttribute("aria-pressed", now ? "false" : "true");
+  });
+
+  $("saveSettings").addEventListener("click", function(){
+    var body = {
+      openAccess: $("openToggle").getAttribute("aria-pressed") === "true",
+      defaultTier: $("tier").value
+    };
+    this.disabled = true;
+    api("/api/admin/settings", {method:"POST", body:body}).then(function(res){
+      if(res.status === 200 && res.body.ok){
+        say($("settingsMsg"), res.body.saved ? "Saved." : "Applied, but could not be written to disk — it will reset on restart.", res.body.saved);
+        return api("/api/admin/settings").then(function(r2){ if(r2.body.ok) paint(r2.body); });
+      }
+      say($("settingsMsg"), res.body.message || "Could not save.", false);
+    })["catch"](function(){ say($("settingsMsg"), "Could not reach the server.", false); })
+     .then(function(){ $("saveSettings").disabled = false; });
+  });
+
+  /* ---------- grants ---------- */
+  function paintGrants(){
+    var t = $("grantTable");
+    t.textContent = "";
+    var emails = Object.keys(state.grants);
+    if(!emails.length){
+      var e = document.createElement("div");
+      e.className = "empty";
+      e.textContent = "No personal grants yet.";
+      t.parentNode.appendChild(e);
+      t.hidden = true;
+      return;
+    }
+    t.hidden = false;
+    var prev = t.parentNode.querySelector(".empty");
+    if(prev) prev.remove();
+    t.innerHTML = "<tr><th>Email</th><th>Access</th><th></th></tr>";
+    emails.forEach(function(em){
+      var tr = document.createElement("tr");
+      var td1 = document.createElement("td"); td1.className = "mono"; td1.textContent = em;
+      var td2 = document.createElement("td");
+      var tag = document.createElement("span"); tag.className = "tag full"; tag.textContent = state.grants[em];
+      td2.appendChild(tag);
+      var td3 = document.createElement("td"); td3.style.textAlign = "right";
+      var rm = document.createElement("button");
+      rm.className = "btn btn-sm btn-stop"; rm.textContent = "Remove";
+      rm.addEventListener("click", function(){ grant(em, ""); });
+      td3.appendChild(rm);
+      tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+      t.appendChild(tr);
+    });
+  }
+
+  function grant(email, tier){
+    return api("/api/admin/grant", {method:"POST", body:{email:email, tier:tier}}).then(function(res){
+      if(res.status === 200 && res.body.ok){
+        state.grants = res.body.grants || {};
+        paintGrants(); loadRegs();
+        say($("grantMsg"), tier ? ("Granted " + tier + " to " + email) : ("Removed access for " + email), true);
+      } else {
+        say($("grantMsg"), res.body.message || "That did not work.", false);
+      }
+    })["catch"](function(){ say($("grantMsg"), "Could not reach the server.", false); });
+  }
+
+  $("grantGo").addEventListener("click", function(){
+    var em = ($("gEmail").value || "").trim();
+    if(!em){ say($("grantMsg"), "Enter an email.", false); return; }
+    grant(em, $("gTier").value).then(function(){ $("gEmail").value = ""; });
+  });
+
+  /* ---------- registrations ---------- */
+  function loadRegs(){
+    api("/api/admin/registrations?format=json").then(function(res){
+      var t = $("regTable");
+      t.textContent = "";
+      var old = t.parentNode.querySelector(".empty");
+      if(old) old.remove();
+      var rows = (res.body && res.body.rows) || [];
+      if(!rows.length){
+        t.hidden = true;
+        var e = document.createElement("div");
+        e.className = "empty"; e.textContent = "Nobody has signed up yet.";
+        t.parentNode.appendChild(e);
+        return;
+      }
+      t.hidden = false;
+      t.innerHTML = "<tr><th>When</th><th>Name</th><th>Email</th><th>Child</th><th>Access</th><th></th></tr>";
+      rows.forEach(function(r){
+        var tr = document.createElement("tr");
+        function cell(txt, cls){
+          var td = document.createElement("td");
+          if(cls) td.className = cls;
+          td.textContent = esc(txt);
+          return td;
+        }
+        tr.appendChild(cell(String(r.at || "").replace("T"," ").slice(0,16)));
+        tr.appendChild(cell(r.name));
+        tr.appendChild(cell(r.email, "mono"));
+        tr.appendChild(cell(r.child || "—"));
+        var td5 = document.createElement("td");
+        var tag = document.createElement("span");
+        var isTrial = /trial/.test(String(r.access));
+        tag.className = "tag " + (isTrial ? "trial" : "full");
+        tag.textContent = r.access;
+        td5.appendChild(tag);
+        tr.appendChild(td5);
+        var td6 = document.createElement("td"); td6.style.textAlign = "right";
+        var b = document.createElement("button");
+        b.className = "btn btn-sm";
+        b.textContent = "Give full";
+        b.addEventListener("click", function(){ grant(r.email, "studio"); });
+        td6.appendChild(b);
+        tr.appendChild(td6);
+        t.appendChild(tr);
+      });
+    })["catch"](function(){});
+  }
+
+  /* ---------- minting ---------- */
+  $("mintGo").addEventListener("click", function(){
+    var body = {
+      count: Number($("mCount").value) || 1,
+      tier: $("mTier").value,
+      from: Number($("mFrom").value) || 0
+    };
+    this.disabled = true;
+    api("/api/admin/mint", {method:"POST", body:body}).then(function(res){
+      if(res.status === 200 && res.body.ok){
+        var keys = res.body.keys.map(function(k){ return k.key; });
+        $("keysOut").hidden = false;
+        $("keysOut").textContent = keys.join("\n");
+        $("mFrom").value = body.from + body.count;
+        say($("mintMsg"), keys.length + " " + res.body.tier + " keys. Next serial: " + (body.from + body.count), true);
+      } else {
+        say($("mintMsg"), res.body.message || "Could not mint keys.", false);
+      }
+    })["catch"](function(){ say($("mintMsg"), "Could not reach the server.", false); })
+     .then(function(){ $("mintGo").disabled = false; });
+  });
+
+  /* ---------- boot ---------- */
+  if(token){
+    signIn(token)["catch"](function(){});
+  }
+})();
+</script>
+</body>
+</html>

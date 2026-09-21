@@ -3,3 +3,4 @@ node_modules/
 .serials.json
 *.csv
 .DS_Store
+data/

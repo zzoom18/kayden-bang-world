@@ -4,7 +4,7 @@
  *
  *   node bin/keys.js --count 50 --tier personal --from 1
  *   node bin/keys.js --count 10 --tier teacher --csv keys-teacher.csv
- *   node bin/keys.js --check WW-8QD4-K2M7-3XPA
+ *   node bin/keys.js --check KBW-8QD4-K2M7-3XPA
  *
  * Serial numbers must not repeat within a tier, so keep track of the last one
  * you used — the CLI writes it to .serials.json next to the project and picks
@@ -49,7 +49,7 @@ if (!secret) {
 }
 
 if (args.help || args.h) {
-  console.log(`Worksheet Workshop — licence keys
+  console.log(`Kayden Bang World — licence keys
 
   --count N        how many keys to mint (default 1)
   --tier NAME      ${Object.values(TIERS).map((t) => t.id).join(' | ')}  (default personal)

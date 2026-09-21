@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mint, verify, normalize, issueToken, readToken, tierByName, TIERS } from '../lib/keys.js';
+import { mint, verify, normalize, issueToken, readToken, tierByName, TIERS, TRIAL_TIER } from '../lib/keys.js';
 
 const SECRET = 'test-secret-that-is-long-enough-to-use-here';
 const OTHER = 'a-completely-different-secret-value-here!!';
@@ -14,8 +14,8 @@ test('a minted key verifies and carries its tier and serial', () => {
   assert.equal(result.licence.id, 'teacher');
 });
 
-test('keys are printed in the WW-XXXX-XXXX-XXXX shape', () => {
-  assert.match(mint(SECRET, 0, 1), /^WW-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/);
+test('keys are printed in the KBW-XXXX-XXXX-XXXX shape', () => {
+  assert.match(mint(SECRET, 0, 1), /^KBW-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/);
 });
 
 test('every serial produces a distinct key', () => {
@@ -69,7 +69,7 @@ test('spaces, lowercase and a missing prefix are all forgiven', () => {
 });
 
 test('malformed input is rejected without throwing', () => {
-  for (const bad of ['', null, undefined, 'nope', 'WW-----', 'WW-!!!!-????-****', 12345, {}]) {
+  for (const bad of ['', null, undefined, 'nope', 'KBW-----', 'KBW-!!!!-????-****', 12345, {}]) {
     assert.equal(verify(SECRET, bad).ok, false);
   }
 });
@@ -102,7 +102,8 @@ test('tokens are rejected when forged, tampered with, or expired', () => {
 
   const [payload, sig] = token.split('.');
   assert.equal(readToken(SECRET, `${payload}x.${sig}`).ok, false);
-  assert.equal(readToken(SECRET, `${payload}.${sig.slice(0, -1)}A`).ok, false);
+  const flipped = sig.slice(0, -1) + (sig.at(-1) === 'A' ? 'B' : 'A');
+  assert.equal(readToken(SECRET, `${payload}.${flipped}`).ok, false);
   assert.equal(readToken(SECRET, 'garbage').ok, false);
 
   const expired = issueToken(SECRET, { tier: 0, serial: 1, days: -1 });
@@ -122,7 +123,7 @@ test('tier names map to numbers', () => {
   assert.equal(tierByName('personal'), 0);
   assert.equal(tierByName('STUDIO'), 3);
   assert.throws(() => tierByName('gold'), /Unknown tier/);
-  assert.equal(Object.keys(TIERS).length, 4);
+  assert.equal(Object.keys(TIERS).length, 5); // 4 sold + the trial
 });
 
 test('minting rejects out-of-range input', () => {
@@ -135,9 +136,38 @@ test('keys do not look sequential', () => {
   // Buyer #1 should not receive a key that announces it.
   const keys = [];
   for (let i = 1; i <= 6; i++) keys.push(mint(SECRET, 0, i));
-  const prefixes = new Set(keys.map((k) => k.slice(3, 7)));
+  const prefixes = new Set(keys.map((k) => k.slice(4, 8)));
   assert.equal(prefixes.size, keys.length, 'consecutive serials shared a leading block');
-  assert.ok(!keys.some((k) => k.startsWith('WW-0000')), 'a key leaked its serial number');
+  assert.ok(!keys.some((k) => k.startsWith('KBW-0000')), 'a key leaked its serial number');
   // and they still decode back to the right serial
   keys.forEach((k, i) => assert.equal(verify(SECRET, k).serial, i + 1));
+});
+
+test('a trial cannot be obtained as a purchased key', () => {
+  // Someone who worked out the key format must not be able to mint themselves
+  // a trial — trials only ever arrive as a token from /api/register.
+  const key = mint(SECRET, TRIAL_TIER, 1);
+  const result = verify(SECRET, key);
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, 'invalid');
+});
+
+test('trial tokens work, carry the trial licence, and expire', () => {
+  const token = issueToken(SECRET, { tier: TRIAL_TIER, serial: 0, days: 7 });
+  const result = readToken(SECRET, token);
+  assert.equal(result.ok, true);
+  assert.equal(result.licence.id, 'trial');
+  assert.equal(result.licence.trial, true);
+  assert.equal(result.licence.maxPages, 3);
+
+  const stale = issueToken(SECRET, { tier: TRIAL_TIER, serial: 0, days: -1 });
+  assert.equal(readToken(SECRET, stale).reason, 'expired');
+});
+
+test('a trial token cannot be edited into a paid licence', () => {
+  const token = issueToken(SECRET, { tier: TRIAL_TIER, serial: 0, days: 7 });
+  const body = JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString('utf8'));
+  body.t = 3;
+  const forged = Buffer.from(JSON.stringify(body)).toString('base64url') + '.' + token.split('.')[1];
+  assert.equal(readToken(SECRET, forged).ok, false);
 });
