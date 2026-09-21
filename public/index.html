@@ -753,7 +753,7 @@
 </div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 
-<script src="content.js?v=20260921-17"></script>
+<script src="content.js?v=20260921-18"></script>
 <script>
 (function(){
   "use strict";
@@ -785,14 +785,18 @@
 
   /* ---------- sound: short blips, generated on the fly ---------- */
   var actx = null;
-  function beep(freq, dur, type){
+  /* The listening games are asking the child to hear a difference, so their
+     notes are played louder than the tap and tick sounds around them. */
+  var MUSIC_GAME_VOL = 0.34;
+  function beep(freq, dur, type, vol){
+    if(state && state.sound === false) return;
     try{
       if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
       if(actx.state === "suspended") actx.resume();
       var o = actx.createOscillator(), g = actx.createGain();
       o.type = type || "sine"; o.frequency.value = freq;
       g.gain.setValueAtTime(.0001, actx.currentTime);
-      g.gain.exponentialRampToValueAtTime(.16, actx.currentTime + .01);
+      g.gain.exponentialRampToValueAtTime(vol || .16, actx.currentTime + .01);
       g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + dur);
       o.connect(g); g.connect(actx.destination);
       o.start(); o.stop(actx.currentTime + dur);
@@ -870,6 +874,146 @@
       for(i = 0; i < Math.min(n, 5); i++) tone(base * Math.pow(1.122, i * 2), .13, {at:i*.06, vol:.14});
     }
   };
+
+  /* ---------- background music ----------
+   *
+   * Written by the app rather than played from a file: a handful of moods,
+   * each a scale, a chord progression and a tempo, arpeggiated softly under
+   * the game. Nothing to download, it works offline, and it never repeats
+   * exactly — which matters when a child plays the same game for an hour.
+   *
+   * It sits well below the sound effects and the spoken words on purpose. If
+   * you notice it, it is too loud.
+   *
+   * Notes are scheduled ahead on a timer rather than per animation frame, so
+   * a busy game like Harbour Cannon cannot make the music stutter.
+   */
+  var MOODS = {
+    /* root is a frequency; scale and chords are semitone offsets. */
+    calm:    {root:196.00, scale:[0,2,4,7,9],      chords:[[0,4,7],[5,9,12],[3,7,10],[7,11,14]], bpm:62, wave:"sine",     pad:0.030, lead:0.045},
+    bright:  {root:261.63, scale:[0,2,4,6,7,9,11], chords:[[0,4,7],[7,11,14],[5,9,12],[2,5,9]],  bpm:76, wave:"triangle", pad:0.026, lead:0.042},
+    eastern: {root:220.00, scale:[0,2,5,7,9],      chords:[[0,5,9],[2,7,11],[0,4,9],[5,9,14]],   bpm:58, wave:"sine",     pad:0.032, lead:0.048},
+    curious: {root:233.08, scale:[0,2,5,7,10],     chords:[[0,5,10],[3,7,12],[5,10,15],[0,7,12]],bpm:68, wave:"triangle", pad:0.028, lead:0.040},
+    mystery: {root:174.61, scale:[0,3,5,7,10],     chords:[[0,3,7],[5,8,12],[3,7,10],[7,10,14]], bpm:54, wave:"sine",     pad:0.034, lead:0.038},
+    sea:     {root:196.00, scale:[0,2,4,7,9,11],   chords:[[0,4,7],[2,7,11],[5,9,12],[4,7,11]],  bpm:70, wave:"sine",     pad:0.030, lead:0.044},
+    bouncy:  {root:293.66, scale:[0,2,4,7,9],      chords:[[0,4,7],[5,9,12],[7,11,14],[0,4,9]],  bpm:92, wave:"triangle", pad:0.022, lead:0.040},
+    sunny:   {root:246.94, scale:[0,2,4,7,9,11],   chords:[[0,4,7],[7,11,14],[2,5,9],[5,9,12]],  bpm:80, wave:"sine",     pad:0.026, lead:0.042}
+  };
+
+  /* Which mood a subject gets. Related games share one so moving between
+     them does not feel like changing radio station. */
+  var SUBJECT_MOOD = {
+    maths:"calm", english:"bright", chinese:"eastern", think:"curious",
+    science:"sunny", inspect:"mystery", music:"bright", guess:"curious",
+    quick:"bouncy", duo:"bouncy"
+  };
+  /* A few games are distinctive enough to deserve their own. */
+  var GAME_MOOD = { cannon:"sea", homes:"sunny", lifecycle:"sunny", foodchain:"sunny",
+    detective:"mystery", shadow:"mystery", mystery:"mystery", riddle:"curious",
+    duomaths:"bouncy", duoword:"bouncy", reading:"calm" };
+
+  var music = (function(){
+    var master = null, timer = null, mood = null;
+    var step = 0, nextTime = 0, playing = false;
+    var LOOKAHEAD = 0.35, TICK = 90;
+
+    function ctx(){
+      if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      return actx;
+    }
+    function freq(root, semi){ return root * Math.pow(2, semi / 12); }
+
+    function voice(f, at, dur, wave, vol){
+      var c = ctx();
+      var o = c.createOscillator(), g = c.createGain();
+      o.type = wave; o.frequency.setValueAtTime(f, at);
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(vol, at + 0.06);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      o.connect(g); g.connect(master);
+      o.start(at); o.stop(at + dur + 0.05);
+    }
+
+    function schedule(){
+      if(!playing || !mood) return;
+      var c = ctx();
+      var beat = 60 / mood.bpm;
+      while(nextTime < c.currentTime + LOOKAHEAD){
+        var bar = Math.floor(step / 8) % mood.chords.length;
+        var chord = mood.chords[bar];
+        var inBar = step % 8;
+
+        /* A soft pad on the first beat of each bar, long and very quiet. */
+        if(inBar === 0){
+          chord.forEach(function(semi, i){
+            voice(freq(mood.root, semi - 12), nextTime, beat * 7.5,
+              "sine", mood.pad * (i === 0 ? 1 : 0.7));
+          });
+        }
+        /* An arpeggio that wanders rather than repeats: mostly chord tones,
+           sometimes a passing note from the scale, and some beats left silent
+           so it breathes. */
+        if(Math.random() > 0.22){
+          var semi;
+          if(Math.random() < 0.72) semi = chord[Math.floor(Math.random() * chord.length)];
+          else semi = mood.scale[Math.floor(Math.random() * mood.scale.length)];
+          if(Math.random() < 0.3) semi += 12;
+          voice(freq(mood.root, semi), nextTime, beat * 1.7, mood.wave, mood.lead);
+        }
+        nextTime += beat;
+        step++;
+      }
+    }
+
+    return {
+      start: function(key){
+        if(state && (state.sound === false || state.music === false)) return;
+        if(!MOODS[key]) key = "calm";
+        if(playing && mood === MOODS[key]) return;
+        this.stop();
+        try{
+          var c = ctx();
+          if(c.state === "suspended") c.resume();
+          master = c.createGain();
+          master.gain.setValueAtTime(0.0001, c.currentTime);
+          /* Fade in over a couple of seconds so it arrives rather than starts. */
+          master.gain.exponentialRampToValueAtTime(1, c.currentTime + 2.2);
+          master.connect(c.destination);
+          mood = MOODS[key];
+          step = 0;
+          nextTime = c.currentTime + 0.12;
+          playing = true;
+          /* Visible in the DOM so what is playing can be checked without
+             guessing from oscillator counts. */
+          try{ document.body.setAttribute("data-music", key); }catch(e){}
+          schedule();
+          timer = setInterval(schedule, TICK);
+        }catch(e){ playing = false; }
+      },
+      stop: function(){
+        playing = false; mood = null;
+        try{ document.body.removeAttribute("data-music"); }catch(e){}
+        if(timer){ clearInterval(timer); timer = null; }
+        if(master){
+          try{
+            var c = ctx(), m = master;
+            m.gain.cancelScheduledValues(c.currentTime);
+            m.gain.setValueAtTime(Math.max(0.0001, m.gain.value), c.currentTime);
+            m.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.5);
+            setTimeout(function(){ try{ m.disconnect(); }catch(e){} }, 700);
+          }catch(e){}
+          master = null;
+        }
+      },
+      playing: function(){ return playing; }
+    };
+  })();
+
+  function moodFor(world){
+    if(!world) return "calm";
+    return GAME_MOOD[world.id] || SUBJECT_MOOD[world.cat] || "calm";
+  }
+
   /* ---------- speech ----------
      Everything else in here is an oscillator blip, which is fine for "right"
      and "wrong" but cannot say a letter. "Match the sound to a picture" was a
@@ -918,6 +1062,45 @@
       return true;
     }catch(e){ return false; }
   }
+  /* ---------- reading the question out loud ----------
+     Rather than adding a speak() call to each of fifty-odd games — and
+     forgetting it on the next one — this watches the stage and reads whatever
+     question has just appeared. One place, every game, including games not
+     written yet.
+
+     Action games are skipped: a cannon arena has no question to read, and the
+     stage changes on every shot. */
+  var lastSpoken = "";
+  function stageQuestion(stage){
+    if(!stage) return "";
+    if(stage.querySelector(".sea, .arena, .memgrid, .pads, .duo-board, canvas")) return "";
+    var bits = [];
+    var p = stage.querySelector(".prompt");
+    if(p) bits.push(p.textContent.trim());
+    var q = stage.querySelector(".bigq, .sentence, .idiom, .passage");
+    if(q) bits.push(q.textContent.trim());
+    return bits.filter(Boolean).join(". ").replace(/\s+/g, " ").trim();
+  }
+  function readStage(){
+    if(!CAN_SPEAK || (state && state.sound === false) || (state && state.readAloud === false)) return;
+    var stage = document.querySelector(".stage");
+    var text = stageQuestion(stage);
+    /* Chinese games say their own character in Mandarin a moment later, and
+       that call cancels this one, which is the order we want. */
+    if(!text || text === lastSpoken || text.length > 240) return;
+    lastSpoken = text;
+    speak(text);
+  }
+  var readTimer = null;
+  function watchStage(){
+    if(!window.MutationObserver) return;
+    var obs = new MutationObserver(function(){
+      if(readTimer) clearTimeout(readTimer);
+      readTimer = setTimeout(readStage, 320);
+    });
+    obs.observe($("screen"), {childList:true, subtree:true});
+  }
+
   /* A round speaker the child can tap to hear it again. Returns null when the
      device has no voices at all, so callers can leave the layout alone. */
   function sayButton(text, opts){
@@ -1118,7 +1301,7 @@
      settings, and the app also honours the system "reduce motion" setting
      without being asked. */
   var DEFAULT = { name:"", age:5, avatar:"🦊", setup:false, stars:0, streak:0, perfects:0,
-    lastPlayed:"", motion:true, sound:true, progress:{} };
+    lastPlayed:"", motion:true, sound:true, music:true, readAloud:true, progress:{} };
   var state = JSON.parse(JSON.stringify(DEFAULT));
   var licence = null;
   var licenceExp = null;
@@ -1780,7 +1963,7 @@
     var wrap = el("div",{style:"flex:1; min-height:0; display:flex; flex-direction:column"});
     var bar = el("div",{"class":"gamebar"});
     var back = el("button",{"class":"iconbtn","aria-label":"Back to the games", text:"←"});
-    back.addEventListener("click", function(){ sfx.tap(); runStreak = 0; renderHome(); });
+    back.addEventListener("click", function(){ sfx.tap(); runStreak = 0; music.stop(); renderHome(); });
     bar.appendChild(back);
     var dots = el("div",{"class":"dots"});
     for(var i=0;i<total;i++) dots.appendChild(el("div",{"class":"dot"}));
@@ -1809,6 +1992,7 @@
     else if(passed) sfx.levelup();
     if(passed && levelOf(world.id) > beforeLevel) setTimeout(function(){ sfx.levelup(); }, 700);
 
+    music.stop();
     var wrap = el("div",{"class":"result"});
     wrap.appendChild(el("div",{"class":"stars-big", text: stars ? new Array(stars+1).join("⭐") : "💪"}));
     wrap.appendChild(el("div",{"class":"score display", text: correct + " out of " + total}));
@@ -2839,7 +3023,7 @@
 
     function light(i, ms){
       padEls[i].classList.add("lit");
-      beep(pads[i].tone, .22);
+      beep(pads[i].tone, .22, null, MUSIC_GAME_VOL);
       setTimeout(function(){ padEls[i].classList.remove("lit"); }, ms * 0.6);
     }
 
@@ -3993,8 +4177,12 @@
      sound, which is why every round starts with a Listen button. */
   var SCALE = [262, 294, 330, 349, 392, 440, 494, 523];   /* C major, one octave */
 
-  function tone(freq, dur, delay, type){
-    setTimeout(function(){ beep(freq, dur, type); }, delay);
+  /* Used by the listening games to lay notes out in time. Named apart from
+     tone(): two function declarations with the same name in one scope means
+     the last one wins, and this one was silently swallowing every call the
+     sound kit made. */
+  function noteAfter(freq, dur, delay, type){
+    setTimeout(function(){ beep(freq, dur, type, MUSIC_GAME_VOL); }, delay);
   }
   function listenButton(label, play){
     var btn = el("button",{"class":"btn btn-lg btn-go", style:"min-width:200px", text: label || "▶  Listen"});
@@ -4031,8 +4219,8 @@
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Listen to the two notes"}));
       shell.stage.appendChild(el("div",{"class":"bigemo", text:"🎵"}));
       shell.stage.appendChild(listenButton("▶  Listen", function(){
-        tone(first, .5, 0);
-        tone(second, .5, 800);
+        noteAfter(first, .5, 0);
+        noteAfter(second, .5, 800);
         return 1300;
       }));
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Which note was HIGHER?"}));
@@ -4110,9 +4298,9 @@
       shell.stage.appendChild(el("div",{"class":"bigemo", text:"🎶"}));
       shell.stage.appendChild(listenButton("▶  Listen", function(){
         var a = fastFirst ? fast : slow, bb = fastFirst ? slow : fast, k;
-        for(k = 0; k < 4; k++) tone(392, .12, k * a, "triangle");
+        for(k = 0; k < 4; k++) noteAfter(392, .12, k * a, "triangle");
         var pause = 4 * a + 900;
-        for(k = 0; k < 4; k++) tone(392, .12, pause + k * bb, "triangle");
+        for(k = 0; k < 4; k++) noteAfter(392, .12, pause + k * bb, "triangle");
         return pause + 4 * bb;
       }));
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Which pattern was FASTER?"}));
@@ -4158,7 +4346,7 @@
 
     function light(k, ms){
       padEls[k].classList.add("lit");
-      beep(pads[k].tone, .3);
+      beep(pads[k].tone, .3, null, MUSIC_GAME_VOL);
       setTimeout(function(){ padEls[k].classList.remove("lit"); }, ms * .6);
     }
 
@@ -4403,6 +4591,11 @@
   }
 
   function startGame(world){
+    /* The ear-training games are asking a child to hear a difference; music
+       underneath them would be sabotage. Everything else gets a mood. */
+    if(world && world.cat === "music") music.stop();
+    else music.start(moodFor(world));
+    lastSpoken = "";
     if(world.id === "numbers") return runQuestions(world, buildNumbers(levelOf(world.id)), renderNumbers);
     if(world.id === "sounds")  return runQuestions(world, buildSounds(levelOf(world.id)), renderSounds);
     if(world.id === "spell")   return startSpell(world);
@@ -5314,6 +5507,7 @@
   }
 
   function duoFinish(world, names, a, b){
+    music.stop();
     sfx.win();
     var winner = a === b ? null : (a > b ? names[0] : names[1]);
     var wrap = el("div",{"class":"result"});
@@ -5624,11 +5818,15 @@
         save();
         if(key === "sound" && on) sfx.pop();
         if(key === "motion" && on) confettiBurst(18);
+        if(key === "music"){ if(on) music.start("calm"); else music.stop(); }
+        if(key === "readAloud" && on) speak("Reading is on");
       });
       return t;
     }
     togs.appendChild(toggle("🔊  Sound", "sound"));
     togs.appendChild(toggle("✨  Movement", "motion"));
+    togs.appendChild(toggle("🎵  Music", "music"));
+    togs.appendChild(toggle("🗣️  Read aloud", "readAloud"));
     sf.appendChild(togs); box.appendChild(sf);
 
     if(state.setup){
@@ -6048,6 +6246,7 @@
     }, {passive:true});
   }
   armRipples();
+  watchStage();
 
   /* ---------- installing ----------
      The service worker is what makes a browser treat this as an app rather

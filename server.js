@@ -360,6 +360,8 @@ function cleanProgress(raw) {
     lastPlayed: String(raw.lastPlayed || '').slice(0, 10),
     motion: raw.motion !== false,
     sound: raw.sound !== false,
+    music: raw.music !== false,
+    readAloud: raw.readAloud !== false,
     progress: {},
     updatedAt: Math.floor(Date.now() / 1000)
   };
