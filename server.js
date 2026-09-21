@@ -116,7 +116,8 @@ const MIME = {
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
   '.ico': 'image/x-icon',
-  '.woff2': 'font/woff2'
+  '.woff2': 'font/woff2',
+  '.webmanifest': 'application/manifest+json; charset=utf-8'
 };
 
 function clientIp(req) {
@@ -195,7 +196,7 @@ function serveStatic(req, res, urlPath) {
     // script defines. A browser holding yesterday's content.js beside today's
     // HTML gets "PC is not defined" and a dead page, so neither is ever cached.
     // Only truly static assets (images, fonts) get a long life.
-    const mustRevalidate = ext === '.html' || ext === '.js';
+    const mustRevalidate = ext === '.html' || ext === '.js' || ext === '.webmanifest';
     res.writeHead(200, {
       'content-type': MIME[ext] || 'application/octet-stream',
       'cache-control': mustRevalidate ? 'no-cache' : 'public, max-age=86400',
@@ -833,4 +834,22 @@ server.listen(PORT, () => {
   console.log(`  access: ${settings.openAccess ? 'OPEN — everyone gets ' + settings.defaultTier : 'trial then licence key'}`);
   console.log(`  Google sign-in: ${GOOGLE_CLIENT_ID ? 'enabled' : 'off (set GOOGLE_CLIENT_ID)'}`);
   console.log(`  admin page: /admin (sign in as ${ADMIN_EMAILS.join(', ')})`);
+
+  /* Railway, Fly and most container hosts give a fresh, empty filesystem on
+     every deploy. If DATA_DIR sits inside the app directory there, every
+     registration and every child's saved stars disappear the next time the
+     app is deployed — silently, which is the worst way to lose them. A volume
+     has to be mounted and DATA_DIR pointed at it. */
+  const EPHEMERAL_HOST = process.env.RAILWAY_ENVIRONMENT || process.env.FLY_APP_NAME ||
+    process.env.RENDER || process.env.DYNO;
+  if (EPHEMERAL_HOST && DATA_DIR.startsWith(ROOT)) {
+    console.error('');
+    console.error('  ****************************************************************');
+    console.error('  *  DATA_DIR is inside the app directory on a host that wipes   *');
+    console.error(`  *  it on every deploy: ${DATA_DIR}`);
+    console.error('  *  Registrations and saved progress WILL be lost.              *');
+    console.error('  *  Mount a volume and set DATA_DIR to it, e.g. /data           *');
+    console.error('  ****************************************************************');
+    console.error('');
+  }
 });

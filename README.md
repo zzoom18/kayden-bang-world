@@ -227,3 +227,52 @@ public/content.js      every word, question and puzzle, tagged by age band
 public/worksheets.html the printables section (print or save as PDF)
 data/                  registrations.jsonl — created on first signup, git-ignored
 ```
+
+## Deploying on Railway
+
+Railway rebuilds the container on every deploy and gives it an empty
+filesystem, so the one thing that matters here is storage. Registrations,
+grants, settings and every child's saved stars live under `DATA_DIR`. If that
+path is inside the app directory it is wiped on each deploy — silently, which
+is the worst way to lose it. The server prints a loud warning at startup if it
+detects this, but the fix has to be made in Railway:
+
+1. **Add a volume.** Service → Settings → Volumes → mount it at `/data`.
+2. **Set `DATA_DIR=/data`** in the service variables.
+
+Nothing else about the app needs changing: it reads `PORT` from the
+environment, has no dependencies to install, and `railway.json` already points
+the healthcheck at `/api/health`.
+
+### Variables to set
+
+| Variable | Notes |
+| --- | --- |
+| `KEY_SECRET` | **Must be carried over unchanged.** Every licence key ever issued is signed with it; a new value invalidates all of them. |
+| `DATA_DIR` | `/data`, matching the volume mount. |
+| `ADMIN_TOKEN` | Fallback way into `/admin` if Google sign-in is misconfigured. |
+| `ADMIN_EMAILS` | Comma-separated. Defaults to `zzoom18@gmail.com`. |
+| `GOOGLE_CLIENT_ID` | From Google Cloud → Google Auth Platform → Clients. Without it the Google buttons stay hidden and the typed form is used. |
+| `TRIAL_DAYS`, `TOKEN_DAYS` | Optional; sensible defaults apply. |
+| `NODE_ENV` | `production`. |
+
+### Moving the data across
+
+The volume starts empty. To keep the existing sign-ups and progress, copy
+these from the current host's `DATA_DIR` into the volume before pointing the
+domain over:
+
+```
+registrations.jsonl
+settings.json
+grants.json
+progress/          (one file per account)
+```
+
+### The domain
+
+Railway issues its own hostname first. Once the app answers there, add
+`kayden.sg` under Service → Settings → Networking → Custom Domain and follow
+the CNAME it gives you at the registrar. Railway handles the certificate.
+Leave the Hostinger app running until the DNS change has propagated, so the
+site never goes dark.
