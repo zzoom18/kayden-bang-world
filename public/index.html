@@ -225,6 +225,69 @@
     font-size:26px; pointer-events:none}
 
 
+
+  /* ---- shared: a quiet line of explanation under a board ---- */
+  .hintline{max-width:520px; text-align:center; font-weight:800; font-size:14.5px;
+    line-height:1.45; color:var(--ink-soft); text-wrap:balance}
+
+  /* ---- Number Line Leap ---- */
+  .numline{position:relative; width:100%; max-width:560px; height:104px; margin:6px 0 2px}
+  .numline-rail{position:absolute; left:4%; right:4%; top:46px; height:8px; border-radius:6px;
+    background:linear-gradient(90deg,#57C08A,#2FB6E6)}
+  .numline-tick{position:absolute; top:30px; transform:translateX(-50%); width:34px; height:40px;
+    padding:0; border:0; background:none; cursor:pointer; font-family:inherit;
+    -webkit-tap-highlight-color:transparent}
+  .numline-tick::before{content:""; display:block; margin:0 auto; width:4px; height:26px;
+    border-radius:3px; background:rgba(255,255,255,.55)}
+  .numline-tick:active::before{background:#FFD98A}
+  .numline-tick.right::before{background:#57C08A; height:34px; margin-top:-4px}
+  .numline-tick.wrong::before{background:#E8563C; height:34px; margin-top:-4px}
+  .numline-lab{display:block; margin-top:3px; font-size:13px; font-weight:900; color:#fff}
+  .numline-frog{position:absolute; top:0; left:50%; transform:translateX(-50%); font-size:30px;
+    transition:left .4s var(--ease); pointer-events:none}
+  .numline-frog.hop{animation:froghop .45s var(--ease)}
+  @keyframes froghop{0%,100%{margin-top:0} 45%{margin-top:-20px}}
+
+  /* ---- Pattern Train ---- */
+  .train{display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:center;
+    width:100%; max-width:600px; padding:12px 10px; border-radius:20px;
+    background:rgba(0,0,0,.22); border:3px solid rgba(255,255,255,.1)}
+  .train-loco{font-size:32px; flex:none}
+  .train-car{min-width:48px; height:48px; border-radius:11px; display:grid; place-items:center;
+    background:rgba(255,255,255,.2); color:#fff; font-weight:900; font-size:19px; padding:0 8px}
+  .train-car.emo{font-size:27px; background:rgba(255,255,255,.14)}
+  .train-car.gap{background:rgba(255,217,138,.2); border:3px dashed rgba(255,217,138,.75);
+    color:#FFD98A; font-size:25px}
+
+  /* ---- Basket Catch ---- */
+  .catch-arena{position:relative; width:100%; max-width:520px; height:clamp(240px,42vh,340px);
+    border-radius:22px; overflow:hidden; border:3px solid rgba(255,255,255,.12);
+    background:linear-gradient(180deg,#2E2866 0%,#3E3382 58%,#5A4A2E 100%); touch-action:none}
+  .catch-drop{position:absolute; top:-40px; transform:translateX(-50%); min-width:52px; padding:7px 11px;
+    border-radius:13px; background:#FFD166; color:#20143A; font-weight:900; font-size:21px;
+    text-align:center; box-shadow:0 3px 7px rgba(0,0,0,.32)}
+  .catch-drop.caught{animation:caught .4s var(--ease) forwards}
+  @keyframes caught{to{transform:translateX(-50%) scale(1.5); opacity:0}}
+  .catch-basket{position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+    font-size:46px; pointer-events:none; filter:drop-shadow(0 3px 5px rgba(0,0,0,.45))}
+  .catch-arrows{display:flex; gap:12px; margin-top:4px}
+  .catch-arrow{min-width:92px; font-size:22px; padding:10px 0}
+
+  /* ---- Magnet or Not ---- */
+  .magnet-scene{position:relative; display:flex; align-items:center; justify-content:center;
+    gap:26px; width:100%; max-width:380px; height:110px; border-radius:20px;
+    background:rgba(0,0,0,.2); border:3px solid rgba(255,255,255,.1)}
+  .magnet-mag{font-size:46px}
+  .magnet-obj{font-size:42px; transition:transform .5s var(--ease)}
+  .magnet-obj.pulled{transform:translateX(-58px) rotate(-14deg)}
+  .magnet-obj.stuck{animation:magstuck .5s ease}
+  @keyframes magstuck{0%,100%{transform:none} 30%{transform:translateX(-10px)} 60%{transform:translateX(4px)}}
+
+  /* ---- Chinese characters at reading size ---- */
+  .zhbig{font-size:clamp(30px,7.5vw,50px); letter-spacing:.06em}
+  .zhhuge{font-size:clamp(76px,22vw,132px); line-height:1.05; font-weight:800; color:#fff;
+    text-shadow:0 4px 14px rgba(0,0,0,.35)}
+
   /* ---- Slice the Answer ---- */
   .ninja-arena{position:relative; width:100%; max-width:560px; height:clamp(230px,42vh,340px);
     border-radius:22px; overflow:hidden; border:3px solid rgba(255,255,255,.12);
@@ -1372,6 +1435,8 @@
   var MEANINGS = PC.MEANINGS, IDIOMS = PC.IDIOMS, AFFIXES = PC.AFFIXES, PASSAGES = PC.PASSAGES;
   var SYNONYMS = PC.SYNONYMS, TENSES = PC.TENSES, PLURALS = PC.PLURALS;
   var ANIMAL_GROUPS = PC.ANIMAL_GROUPS, WP_NAMES = PC.WP_NAMES, WP_THINGS = PC.WP_THINGS;
+  var HOMOPHONES = PC.HOMOPHONES, ZH_MEASURE = PC.ZH_MEASURE, ZH_STROKES = PC.ZH_STROKES;
+  var MAGNETIC = PC.MAGNETIC;
 
   /* Age bands. Everything a child is shown is chosen against these. */
   var BANDS = [
@@ -1555,15 +1620,15 @@
     /* Number Quest is the backbone of the subject and stays open from day one
        at every age; the two showy games are worth earning. Adding them ahead
        of it quietly pushed the flagship game behind a 35-star gate. */
-    maths:   ["tenframe","numbers","cannon","quest","race","ninja","bonds","shapes","measure","wordprob","tower","sgmoney","money","picgraph","barmodel","fraction","areaperim","balance"],
-    english: ["sounds","spell","rhyme","plural","opposites","synonym","grammar","tenses","sentence","punct","meaning","affix","idiom","reading"],
+    maths:   ["tenframe","numbers","cannon","quest","race","ninja","patterns","bonds","numline","shapes","measure","wordprob","tower","sgmoney","money","picgraph","barmodel","fraction","decimal","areaperim","ratio","balance"],
+    english: ["sounds","spell","rhyme","plural","opposites","synonym","grammar","tenses","homophone","sentence","punct","meaning","affix","idiom","reading"],
     think:   ["odd","sort","code"],
-    science: ["quiz","animals"],
+    science: ["quiz","animals","magnet","lifecycle","plant","matter","circuit"],
     inspect: ["spotdiff","findodd","shadow","detective"],
     music:   ["tune","highlow","beats","tempo"],
     guess:   ["guessnum","guessanimal","mystery","riddle"],
-    quick:   ["bubbles","simon","memory"],
-    chinese: ["zhpic","zhpinyin","zhnum","zhword"],
+    quick:   ["bubbles","catch","simon","memory"],
+    chinese: ["zhpic","zhstroke","zhpinyin","zhnum","zhword","zhmeasure"],
     duo:     ["duomaths","duoword","duosquares","duomemory"]
   };
   var SUBJECTS = [
@@ -1591,7 +1656,14 @@
    * Locked games are shown, not hidden: seeing what is coming is most of the
    * reason to go and earn it.
    */
-  var STAR_GATES = [0, 0, 15, 35, 60, 90, 125, 165, 210, 260, 320];
+  /* The ladder has to be at least as long as the longest subject path, or
+     every game past the end of it shares one gate: maths grew to twenty-odd
+     games and a dozen of them all sat waiting on the same 320 stars, so
+     nothing happened for weeks and then twelve cards opened at once. Beyond
+     320 the steps are a steady 60, which is about two good sittings. */
+  var STAR_GATES = [0, 0, 15, 35, 60, 90, 125, 165, 210, 260, 320,
+                    380, 440, 500, 560, 620, 680, 740, 800, 860, 920, 980,
+                    1040, 1100, 1160, 1220];
   var starGateCache = null, starGateLevel = null;
 
   /* Counted over the games this child can actually see, not the whole path.
@@ -1868,6 +1940,16 @@
     {id:"quest",   nm:"Maths Quest",    sub:"Fight 250 enemies with sums",    emo:"⚔️", bg:"linear-gradient(150deg,#FFB36B,#E8563C)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"cannon",  nm:"Harbour Cannon", sub:"Sink it only if your shell is bigger", emo:"🚢", bg:"linear-gradient(150deg,#6FC6F0,#2E7FC2)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"ninja",   nm:"Slice the Answer", sub:"Slice the right number before it drops", emo:"\ud83d\udde1\ufe0f", bg:"linear-gradient(150deg,#FF9AA2,#C2185B)", ages:"3\u201312", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery \u2013 P6", free:true, cat:"maths", topic:"Numbers & Counting"},
+    {id:"numline", nm:"Number Line Leap", sub:"Land on exactly the right spot", emo:"\ud83d\udccd", bg:"linear-gradient(150deg,#8FE3C8,#1E9E80)", ages:"3\u201312", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery \u2013 P6", free:true, cat:"maths", topic:"Numbers & Counting"},
+    {id:"patterns",nm:"Pattern Train",   sub:"What comes next along the track?", emo:"\ud83d\ude82", bg:"linear-gradient(150deg,#FFC9A3,#E0703C)", ages:"3\u20139", levels:["N","K1","K2","P1","P2","P3"], sg:"Nursery \u2013 P3", free:true, cat:"maths", topic:"Patterns"},
+    {id:"decimal", nm:"Decimal Dash",    sub:"Tenths, hundredths and the point", emo:"\ud83d\udd22", bg:"linear-gradient(150deg,#C3B4FF,#6A4FD6)", ages:"9\u201312", levels:["P4","P5","P6"], sg:"P4 \u2013 P6", free:false, cat:"maths", topic:"Decimals"},
+    {id:"ratio",   nm:"Ratio Rally",     sub:"Ratio, rate and average", emo:"\u2696\ufe0f", bg:"linear-gradient(150deg,#FFB8C6,#C43C63)", ages:"10\u201312", levels:["P5","P6"], sg:"P5 \u2013 P6", free:false, cat:"maths", topic:"Ratio & Proportion"},
+    {id:"catch",   nm:"Basket Catch",    sub:"Catch the right answer as it falls", emo:"\ud83e\uddfa", bg:"linear-gradient(150deg,#FFE083,#E09A1F)", ages:"3\u201312", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery \u2013 P6", free:true, cat:"quick", topic:"Numbers & Counting"},
+    {id:"homophone",nm:"Sound Alike",    sub:"their, there or they\u2019re?", emo:"\ud83d\udc42", bg:"linear-gradient(150deg,#A9D9FF,#3B6FC4)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Spelling & Usage"},
+    {id:"circuit", nm:"Light It Up",     sub:"Will the bulb light?", emo:"\ud83d\udca1", bg:"linear-gradient(150deg,#FFE9A0,#D9A21B)", ages:"9\u201312", levels:["P4","P5","P6"], sg:"P4 \u2013 P6", free:false, cat:"science", topic:"Electricity"},
+    {id:"magnet",  nm:"Magnet or Not",   sub:"Metal is not the same as magnetic", emo:"\ud83e\uddf2", bg:"linear-gradient(150deg,#FFAFAF,#C43030)", ages:"7\u201312", levels:["P3","P4","P5"], sg:"P3 \u2013 P5", free:false, cat:"science", topic:"Magnets"},
+    {id:"zhmeasure",nm:"\u91cf\u8bcd Measure Words", sub:"\u4e00\u53ea\u732b, \u4e00\u672c\u4e66, \u4e00\u6735\u82b1", emo:"\u91cf", bg:"linear-gradient(150deg,#FFB9B9,#C2334E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"chinese", topic:"\u8bed\u6cd5 Grammar"},
+    {id:"zhstroke",nm:"\u7b14\u753b Stroke Count", sub:"How many strokes in the character?", emo:"\u7b14", bg:"linear-gradient(150deg,#FFD9A0,#C4781B)", ages:"3\u201312", levels:["K1","K2","P1","P2","P3","P4"], sg:"K1 \u2013 P4", free:true, cat:"chinese", topic:"\u6c49\u5b57 Characters"},
     {id:"tower",   nm:"Table Tower",    sub:"Stack a block for every table you know", emo:"\ud83c\udfd7\ufe0f", bg:"linear-gradient(150deg,#FFD97D,#E8862F)", ages:"7\u201312", levels:["P2","P3","P4","P5","P6"], sg:"P2 \u2013 P6", free:true, cat:"maths", topic:"Multiplication & Division"},
     {id:"measure", nm:"Measure Up",     sub:"Read the ruler, the jug and the scale", emo:"\ud83d\udccf", bg:"linear-gradient(150deg,#A7E8C4,#22996B)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5"], sg:"K2 \u2013 P5", free:true, cat:"maths", topic:"Measurement"},
     {id:"wordprob",nm:"Word Problems",  sub:"The sum is hidden in the story", emo:"\ud83d\udcdd", bg:"linear-gradient(150deg,#B8B5FF,#5A51C9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Word Problems"},
@@ -4806,6 +4888,16 @@
     if(world.id === "duomaths") return startDuoMaths(world);
     if(world.id === "duoword")  return startDuoWord(world);
     if(world.id === "duosquares")return startDuoSquares(world);
+    if(world.id === "numline")  return startNumberLine(world);
+    if(world.id === "patterns") return startPatterns(world);
+    if(world.id === "decimal")  return startDecimals(world);
+    if(world.id === "ratio")    return startRatio(world);
+    if(world.id === "catch")    return startCatch(world);
+    if(world.id === "homophone")return startHomophones(world);
+    if(world.id === "circuit")  return startCircuit(world);
+    if(world.id === "magnet")   return startMagnet(world);
+    if(world.id === "zhmeasure")return startZhMeasure(world);
+    if(world.id === "zhstroke") return startZhStrokes(world);
     if(world.id === "ninja")    return startNinja(world);
     if(world.id === "tower")    return startTower(world);
     if(world.id === "measure")  return startMeasure(world);
@@ -4823,6 +4915,651 @@
 
 
 
+
+
+  /* ==========================================================================
+     Number Line Leap
+     --------------------------------------------------------------------------
+     A number line with only its ends labelled. The frog has to land on a
+     given number, so the child has to work out the spacing rather than count
+     pictures. At P4 and up the same line carries fractions and decimals,
+     which is where most of the confusion about "which is bigger" lives.
+     ========================================================================== */
+
+  function numberLineRound(b, level){
+    var end, step, marks, want, labelOf;
+    if(b === 0){        end = 10;  step = 1; }
+    else if(b === 1){   end = 20;  step = 1; }
+    else if(b === 2){   end = pick([50, 100]); step = end / 10; }
+    else {              end = pick([1, 10, 100]); step = end / 10; }
+
+    if(b === 3 && end === 1){
+      /* A line from 0 to 1, marked in tenths: the question is whether 0.7 and
+         7/10 land on the same place. */
+      var tenth = ri(1, 9);
+      want = tenth / 10;
+      labelOf = function(v){ return Math.round(v * 10) / 10 === 0 ? "0" : String(Math.round(v * 10) / 10); };
+      marks = 10;
+      var asFrac = tenth + "/10";
+      return {end:1, marks:10, want:want, prompt:"Where does " + asFrac + " go?",
+        a:want, labelOf:labelOf, hint:asFrac};
+    }
+    marks = Math.round(end / step);
+    want = step * ri(1, marks - 1);
+    if(b === 3 && end === 10) want = Math.round(want * 10) / 10;
+    labelOf = function(v){ return String(Math.round(v * 100) / 100); };
+    return {end:end, marks:marks, want:want,
+      prompt:"Where does " + labelOf(want) + " go?", a:want, labelOf:labelOf,
+      hint:labelOf(want)};
+  }
+
+  function startNumberLine(world){
+    var b = band(), rounds = b === 0 ? 5 : b === 1 ? 6 : 8;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0;
+
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var R = numberLineRound(b, levelOf(world.id));
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:R.prompt}));
+      speak(R.prompt);
+
+      var line = el("div",{"class":"numline"});
+      var rail = el("div",{"class":"numline-rail"});
+      line.appendChild(rail);
+      var frog = el("div",{"class":"numline-frog", text:"🐸"});
+      line.appendChild(frog);
+      var locked = false;
+
+      for(var k = 0; k <= R.marks; k++){
+        (function(k){
+          var v = (R.end * k) / R.marks;
+          var tick = el("button",{"class":"numline-tick", "aria-label":R.labelOf(v)});
+          tick.style.left = ((k / R.marks) * 100) + "%";
+          /* Only the two ends carry a number: labelling every tick would turn
+             this into reading rather than working out. */
+          if(k === 0 || k === R.marks)
+            tick.appendChild(el("span",{"class":"numline-lab", text:R.labelOf(v)}));
+          tick.addEventListener("click", function(){
+            if(locked) return;
+            locked = true;
+            var ok = Math.abs(v - R.want) < 1e-9;
+            frog.style.left = ((k / R.marks) * 100) + "%";
+            frog.classList.add("hop");
+            tick.classList.add(ok ? "right" : "wrong");
+            if(!ok){
+              var at = Math.round((R.want / R.end) * R.marks);
+              var real = line.querySelectorAll(".numline-tick")[at];
+              if(real) real.classList.add("right");
+            }
+            setTimeout(function(){
+              if(ok){ correct++; sfx.good(); flash("⭐"); rightAnswer(frog); }
+              else { sfx.bad(); wrongAnswer(); }
+              markDot(shell.dots, i, ok);
+              i++;
+              setTimeout(next, ok ? 700 : 1200);
+            }, 420);
+          });
+          line.appendChild(tick);
+        })(k);
+      }
+      shell.stage.appendChild(line);
+      shell.stage.appendChild(el("div",{"class":"hintline",
+        text:"Tap the mark where " + R.hint + " belongs"}));
+    }
+    next();
+  }
+
+  /* ==========================================================================
+     Pattern Train
+     --------------------------------------------------------------------------
+     Patterns are the first bit of algebra a child meets, years before anyone
+     uses the word. Colours and shapes at nursery; growing number sequences by
+     P2, where the step itself changes.
+     ========================================================================== */
+
+  var PATTERN_CARS = ["🔴","🟡","🔵","🟢","🟣","🟠"];
+  var PATTERN_SHAPES = ["⭐","❤️","⚡","🌸","🍎","🌙"];
+
+  function patternRound(b){
+    if(b <= 1){
+      /* ABAB, AABB or ABC, in colours or shapes. */
+      var set = shuffle((Math.random() < 0.5 ? PATTERN_CARS : PATTERN_SHAPES).slice());
+      var kind = b === 0 ? pick(["AB","ABC"]) : pick(["AB","ABC","AABB","ABB"]);
+      var unit = kind === "AB"   ? [set[0], set[1]]
+               : kind === "ABC"  ? [set[0], set[1], set[2]]
+               : kind === "AABB" ? [set[0], set[0], set[1], set[1]]
+               :                    [set[0], set[1], set[1]];
+      var seq = [], n = 0;
+      while(seq.length < (b === 0 ? 6 : 8)) seq.push(unit[n++ % unit.length]);
+      var a = unit[seq.length % unit.length];
+      var wrongs = set.filter(function(x){ return x !== a; }).slice(0, 3);
+      return {seq:seq, a:a, opts:shuffle([a].concat(wrongs)), emo:true,
+        prompt:"What comes next on the train?"};
+    }
+    /* Numbers, with a step that may itself grow. */
+    var start = ri(1, 12), stepN = ri(2, b === 2 ? 6 : 9), seq2 = [], v = start, i;
+    var growing = b === 3 && Math.random() < 0.45;
+    var grow = ri(1, 3);
+    for(i = 0; i < 5; i++){ seq2.push(v); v += growing ? stepN + grow * i : stepN; }
+    var ans = v;
+    return {seq:seq2.map(String), a:String(ans), emo:false,
+      opts:shuffle(numberOptions(ans, Math.max(2, Math.round(stepN * 1.2)), 4).map(String)),
+      prompt: growing ? "The step grows each time. What comes next?" : "What comes next?"};
+  }
+
+  function startPatterns(world){
+    var b = band(), rounds = b === 0 ? 5 : 7;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0;
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var R = patternRound(b);
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:R.prompt}));
+      speak(R.prompt);
+      var train = el("div",{"class":"train"});
+      train.appendChild(el("div",{"class":"train-loco", text:"🚂"}));
+      R.seq.forEach(function(v){
+        train.appendChild(el("div",{"class":"train-car" + (R.emo ? " emo" : ""), text:String(v)}));
+      });
+      train.appendChild(el("div",{"class":"train-car gap", text:"?"}));
+      shell.stage.appendChild(train);
+      shell.stage.appendChild(choiceGrid(R.opts, R.a, function(ok){
+        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 700 : 1100);
+      }, R.emo));
+    }
+    next();
+  }
+
+  /* ==========================================================================
+     Decimal Dash
+     --------------------------------------------------------------------------
+     P4 to P6 decimals. The four things that actually catch children out:
+     which is bigger when the digits are the same length but the value is not,
+     place value of a named digit, rounding, and the fraction it equals.
+     ========================================================================== */
+
+  function dec(n, dp){ return Number(n.toFixed(dp)); }
+
+  function decimalRound(lvl){
+    var kind = pick(["compare","place","round","convert","add"]);
+    var a, bnum, ans, prompt, opts;
+    if(kind === "compare"){
+      /* The pair is built to look close on paper: same leading digits, and
+         one of them longer, which is where "more digits means bigger" bites. */
+      var whole = ri(1, 9);
+      a = dec(whole + ri(1, 9) / 10, 1);
+      bnum = dec(whole + ri(10, 99) / 100, 2);
+      if(a === bnum) bnum = dec(bnum + 0.01, 2);
+      ans = String(Math.max(a, bnum));
+      return {prompt:"Which is bigger?", a:ans,
+        opts:shuffle([String(a), String(bnum)]), wide:true};
+    }
+    if(kind === "place"){
+      /* The three decimal digits have to differ from each other. When they do
+         not, every choice in the grid is the same digit and the question has
+         no wrong answer to offer. */
+      var digits = shuffle([1,2,3,4,5,6,7,8,9]).slice(0, 4);
+      var d1 = digits[0], d2 = digits[1], d3 = digits[2], spareD = digits[3];
+      var w = ri(10, 99);
+      var num = w + "." + d1 + d2 + d3;
+      var slot = pick([1, 2, 3]);
+      var names = {1:"tenths", 2:"hundredths", 3:"thousandths"};
+      var digit = slot === 1 ? d1 : slot === 2 ? d2 : d3;
+      return {prompt:"In " + num + ", which digit is in the " + names[slot] + " place?",
+        a:String(digit),
+        opts:shuffle([String(d1), String(d2), String(d3), String(spareD)])};
+    }
+    if(kind === "round"){
+      var v = dec(ri(1, 60) + ri(1, 99) / 100, 2);
+      var to = pick([0, 1]);
+      ans = String(dec(Math.round(v * Math.pow(10, to)) / Math.pow(10, to), to));
+      return {prompt:"Round " + v + " to " + (to === 0 ? "the nearest whole number" : "1 decimal place"),
+        a:ans,
+        opts:shuffle([ans, String(dec(Number(ans) + (to ? 0.1 : 1), to)),
+          String(dec(Math.max(0, Number(ans) - (to ? 0.1 : 1)), to)), String(v)]
+          .filter(uniqNum()))};
+    }
+    if(kind === "convert"){
+      var t = ri(1, 9);
+      var asDec = pick([true, false]);
+      if(asDec) return {prompt:"What is " + t + "/10 as a decimal?", a:String(dec(t / 10, 1)),
+        opts:shuffle([String(dec(t / 10, 1)), String(dec(t / 100, 2)), String(t), String(dec(t + 0.1, 1))]
+          .filter(uniqNum()))};
+      var h = ri(11, 99);
+      return {prompt:"What is 0." + h + " as a fraction?", a:h + "/100",
+        opts:shuffle([h + "/100", h + "/10", h + "/1000", (h * 10) + "/100"])};
+    }
+    var x = dec(ri(1, 20) + ri(1, 9) / 10, 1), y = dec(ri(1, 20) + ri(1, 9) / 10, 1);
+    ans = dec(x + y, 1);
+    return {prompt:x + " + " + y + " = ?", a:String(ans),
+      opts:shuffle([String(ans), String(dec(ans + 0.1, 1)), String(dec(ans - 1, 1)),
+        String(dec(ans + 1, 1))].filter(uniqNum()))};
+  }
+
+  function startDecimals(world){
+    runSimple(world, 8, function(){ return decimalRound(levelOf(world.id)); });
+  }
+
+  /* ==========================================================================
+     Ratio Rally
+     --------------------------------------------------------------------------
+     P5 and P6: ratio, rate and average. The wording is the PSLE wording,
+     because half the difficulty of these questions is reading them.
+     ========================================================================== */
+
+  function ratioRound(){
+    var kind = pick(["simplify","share","rate","average","part"]);
+    var n1 = WP_NAMES[Math.floor(Math.random() * WP_NAMES.length)];
+    var th = pick(WP_THINGS);
+    var a, x, y, z, ans;
+    if(kind === "simplify"){
+      var g = pick([2, 3, 4, 5, 6]);
+      x = ri(2, 9); y = ri(2, 9);
+      while(gcd(x, y) !== 1){ x = ri(2, 9); y = ri(2, 9); }
+      ans = x + " : " + y;
+      return {prompt:"Write " + (x * g) + " : " + (y * g) + " in its simplest form", a:ans,
+        opts:shuffle([ans, (x * g) + " : " + y, x + " : " + (y * g), (x + 1) + " : " + y])};
+    }
+    if(kind === "share"){
+      x = ri(2, 5); y = ri(2, 5);
+      var unit = ri(4, 14), total = unit * (x + y);
+      ans = String(unit * x);
+      return {prompt:total + " " + th.p + " are shared between " + n1 + " and a friend in the ratio " +
+        x + " : " + y + ". How many does " + n1 + " get?", a:ans,
+        opts:shuffle(numberOptions(unit * x, Math.max(2, unit), 4).map(String))};
+    }
+    if(kind === "rate"){
+      var per = ri(3, 12), n = ri(3, 9);
+      ans = String(per * n);
+      return {prompt:"A machine makes " + per + " " + th.p + " a minute. How many in " + n + " minutes?",
+        a:ans, opts:shuffle(numberOptions(per * n, Math.max(3, per), 4).map(String))};
+    }
+    if(kind === "average"){
+      var cnt = ri(3, 5), mean = ri(4, 20), vals = [], sum = 0, i;
+      for(i = 0; i < cnt - 1; i++){ var v = mean + ri(-3, 3); vals.push(v); sum += v; }
+      vals.push(cnt * mean - sum);
+      if(vals[vals.length - 1] < 0) vals[vals.length - 1] = 0;
+      var realMean = vals.reduce(function(p, c){ return p + c; }, 0) / cnt;
+      if(realMean !== Math.round(realMean)) return ratioRound();
+      ans = String(realMean);
+      return {prompt:"What is the average of " + vals.join(", ") + "?", a:ans,
+        opts:shuffle(numberOptions(realMean, 4, 4).map(String))};
+    }
+    x = ri(2, 6); y = ri(2, 6);
+    var u = ri(3, 11);
+    ans = String(u * (x + y));
+    return {prompt:n1 + " and a friend share " + th.p + " in the ratio " + x + " : " + y +
+      ". " + n1 + " gets " + (u * x) + ". How many " + th.p + " altogether?", a:ans,
+      opts:shuffle(numberOptions(u * (x + y), Math.max(3, u * 2), 4).map(String))};
+  }
+  function gcd(a, b){ return b ? gcd(b, a % b) : a; }
+
+  function startRatio(world){
+    runSimple(world, 7, ratioRound);
+  }
+
+  /* A prompt, four choices, read aloud. Half the games on this page are that
+     shape; these ones build the round themselves. */
+  function runSimple(world, rounds, build){
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0;
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var R = build();
+      shell.stage.textContent = "";
+      var row = el("div",{"class":"sayrow"});
+      row.appendChild(el("div",{"class":R.prompt.length > 42 ? "wordprob" : "bigq",
+        style: R.prompt.length > 42 ? "" : "font-size:clamp(24px,6vw,40px)", text:R.prompt}));
+      var say = sayButton(R.prompt);
+      if(say) row.appendChild(say);
+      shell.stage.appendChild(row);
+      speak(R.prompt);
+      shell.stage.appendChild(choiceGrid(R.opts, R.a, function(ok){
+        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 700 : 1200);
+      }, false));
+    }
+    next();
+  }
+
+  /* ==========================================================================
+     Basket Catch
+     --------------------------------------------------------------------------
+     Answers fall; slide the basket under the right one. Drag with a finger or
+     use the arrows, because a phone and a laptop want different hands.
+     ========================================================================== */
+
+  function startCatch(world){
+    var b = band(), rounds = b === 0 ? 5 : b === 1 ? 6 : 8;
+    /* Pixels a second. Slow enough at the youngest that a child who reads the
+       sum in time can always get there, brisk enough at the top that a round
+       is over in a few seconds rather than a slow drift down the screen. */
+    var fall = b === 0 ? 72 : b === 1 ? 92 : b === 2 ? 116 : 142;
+
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0, over = false;
+
+    shell.stage.appendChild(el("div",{"class":"prompt",
+      text:"Slide the basket under the right answer"}));
+    var qline = el("div",{"class":"bigq"});
+    shell.stage.appendChild(qline);
+
+    var arena = el("div",{"class":"catch-arena"});
+    var basket = el("div",{"class":"catch-basket", text:"🧺"});
+    arena.appendChild(basket);
+    shell.stage.appendChild(arena);
+
+    var bx = 0.5;                                   /* basket, 0..1 across */
+    function placeBasket(){ basket.style.left = (bx * 100) + "%"; }
+    placeBasket();
+
+    function moveTo(clientX){
+      var r = arena.getBoundingClientRect();
+      bx = Math.max(0.06, Math.min(0.94, (clientX - r.left) / r.width));
+      placeBasket();
+    }
+    function onMove(e){
+      var t = e.touches && e.touches[0];
+      moveTo(t ? t.clientX : e.clientX);
+      if(e.cancelable) e.preventDefault();
+    }
+    arena.addEventListener("pointerdown", onMove);
+    arena.addEventListener("pointermove", function(e){ if(e.buttons) onMove(e); });
+    arena.addEventListener("touchstart", onMove, {passive:false});
+    arena.addEventListener("touchmove", onMove, {passive:false});
+    function onKey(e){
+      if(e.key === "ArrowLeft"){ bx = Math.max(0.06, bx - 0.08); placeBasket(); }
+      if(e.key === "ArrowRight"){ bx = Math.min(0.94, bx + 0.08); placeBasket(); }
+    }
+    document.addEventListener("keydown", onKey);
+
+    var arrows = el("div",{"class":"catch-arrows"});
+    [["◀", -0.1], ["▶", 0.1]].forEach(function(pair){
+      var bt = el("button",{"class":"btn btn-ghost catch-arrow", text:pair[0],
+        "aria-label": pair[1] < 0 ? "Move left" : "Move right"});
+      bt.addEventListener("click", function(){
+        bx = Math.max(0.06, Math.min(0.94, bx + pair[1])); placeBasket();
+      });
+      arrows.appendChild(bt);
+    });
+    shell.stage.appendChild(arrows);
+
+    function next(){
+      if(over) return;
+      if(i >= rounds){
+        over = true;
+        document.removeEventListener("keydown", onKey);
+        finish(world, correct, rounds);
+        return;
+      }
+      Array.prototype.slice.call(arena.querySelectorAll(".catch-drop"))
+        .forEach(function(n){ n.parentNode.removeChild(n); });
+
+      var Q = numberQuestion(b, Math.max(1, levelOf("numbers")));
+      qline.textContent = qLine(Q);
+      speak(Q.prompt ? Q.prompt : qLine(Q));
+
+      var opts = shuffle(Q.opts.slice(0, b === 0 ? 3 : 4));
+      var drops = opts.map(function(v, k){
+        var d = el("div",{"class":"catch-drop", text:String(v)});
+        d.style.left = (((k + 0.5) / opts.length) * 100) + "%";
+        arena.appendChild(d);
+        return {el:d, val:String(v), y: -40 - k * 40, done:false};
+      });
+
+      var last = null, settled = false;
+      function frame(ts){
+        if(over || settled) return;
+        if(!document.body.contains(arena)){ over = true; return; }
+        if(last === null) last = ts;
+        var dt = Math.min(0.04, (ts - last) / 1000); last = ts;
+        var h = arena.clientHeight || 260, w = arena.clientWidth || 320;
+        var caughtAt = h - 62, gone = 0;
+
+        drops.forEach(function(d){
+          if(d.done){ gone++; return; }
+          d.y += fall * dt;
+          d.el.style.top = d.y + "px";
+          if(d.y >= caughtAt && d.y <= caughtAt + 30){
+            /* Caught if the basket is under it when it passes the rim. */
+            var dropX = ((parseFloat(d.el.style.left) || 0) / 100) * w;
+            if(Math.abs(dropX - bx * w) < w * 0.11){
+              d.done = true; settled = true;
+              d.el.classList.add("caught");
+              judge(d.val === String(Q.a), Q);
+              return;
+            }
+          }
+          if(d.y > h + 30){ d.done = true; gone++; }
+        });
+        if(settled) return;
+        if(gone >= drops.length){
+          settled = true;
+          qline.textContent = qLine(Q) + "  " + Q.a;
+          judge(false, Q);
+          return;
+        }
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+
+      function judge(ok, Q){
+        if(ok){ correct++; sfx.pop(); rightAnswer(basket); confettiBurst(22); }
+        else { sfx.bad(); wrongAnswer(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 700 : 1050);
+      }
+    }
+    next();
+  }
+
+  /* ==========================================================================
+     Sound Alike
+     --------------------------------------------------------------------------
+     Homophones, read aloud with the gap spoken as "blank", because hearing
+     the sentence is exactly what does not help here and the child has to look.
+     ========================================================================== */
+
+  function startHomophones(world){
+    var pool = shuffle(forBand(HOMOPHONES, band()).slice());
+    wordRound(world, 8, function(i){
+      var it = pool[i % pool.length];
+      return {prompt:"Which word fits the gap?", subject:it.q, small:true,
+        a:it.a, x:it.x, speak:it.q.replace("___", "blank"),
+        after:it.q.replace("___", it.a)};
+    });
+  }
+
+  /* ==========================================================================
+     Light It Up
+     --------------------------------------------------------------------------
+     P4 electricity, drawn rather than described. A circuit is shown and the
+     child says whether the bulb lights. The four ways it fails are the four
+     the paper asks about: a break, a dead cell, a plastic gap, and a short
+     across the bulb.
+     ========================================================================== */
+
+  var CIRCUIT_FAULTS = [
+    {k:"ok",     lit:true,  why:"A complete loop, a working cell and a metal gap-filler."},
+    {k:"break",  lit:false, why:"There is a break in the wire, so the loop is not complete."},
+    {k:"cell",   lit:false, why:"The cell is dead, so nothing pushes the current round."},
+    {k:"plastic",lit:false, why:"Plastic does not conduct, so the loop is broken."},
+    {k:"metal",  lit:true,  why:"The gap is bridged by metal, which conducts."},
+    {k:"short",  lit:false, why:"The wire goes straight across the bulb, so the current misses it."}
+  ];
+
+  function circuitBoard(f){
+    var g = board(300, 190, 380);
+    var wire = "#4A4370", live = f.lit ? "#FFC53D" : "#8E88B8";
+    /* The loop itself. */
+    g.appendChild(sv("rect",{x:34,y:30,width:232,height:128,rx:12,fill:"none",
+      stroke:wire,"stroke-width":7}));
+    /* Cell on the left edge. */
+    g.appendChild(sv("rect",{x:20,y:74,width:28,height:42,rx:5,
+      fill: f.k === "cell" ? "#6E6890" : "#57C08A", stroke:"#2B2560","stroke-width":3}));
+    g.appendChild(label(34, 130, f.k === "cell" ? "flat" : "1.5V", 11, "#C9C4EE"));
+    /* Bulb at the top. */
+    g.appendChild(sv("circle",{cx:150,cy:30,r:21,fill:live,stroke:"#2B2560","stroke-width":4}));
+    if(f.lit){
+      g.appendChild(sv("circle",{cx:150,cy:30,r:31,fill:"#FFC53D",opacity:"0.28"}));
+      g.appendChild(sv("circle",{cx:150,cy:30,r:41,fill:"#FFC53D",opacity:"0.13"}));
+    }
+    g.appendChild(sv("path",{d:"M141 30 L147 22 L153 38 L159 30",fill:"none",
+      stroke:"#8A5A00","stroke-width":3}));
+    /* Whatever is wrong with it. */
+    if(f.k === "break"){
+      g.appendChild(sv("rect",{x:196,y:150,width:28,height:16,fill:"#1C1840"}));
+      g.appendChild(label(210, 182, "gap", 12, "#FF9AA2"));
+    }
+    if(f.k === "plastic" || f.k === "metal"){
+      g.appendChild(sv("rect",{x:120,y:148,width:60,height:20,rx:5,
+        fill: f.k === "metal" ? "#C9CEDA" : "#E86BA0", stroke:"#2B2560","stroke-width":3}));
+      g.appendChild(label(150, 184, f.k === "metal" ? "steel rod" : "plastic rod", 12, "#C9C4EE"));
+    }
+    if(f.k === "short"){
+      g.appendChild(sv("line",{x1:110,y1:30,x2:190,y2:30,stroke:wire,"stroke-width":7}));
+      g.appendChild(label(150, 66, "wire across the bulb", 11, "#C9C4EE"));
+    }
+    return g;
+  }
+
+  function startCircuit(world){
+    var rounds = 7;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0, order = shuffle(CIRCUIT_FAULTS.slice());
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var f = order[i % order.length];
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"Will the bulb light?"}));
+      speak("Will the bulb light?");
+      var holder = el("div",{"class":"boardwrap"});
+      /* The picture never gives the answer away: the bulb is drawn dark until
+         the child has chosen. */
+      holder.appendChild(circuitBoard({k:f.k, lit:false}));
+      shell.stage.appendChild(holder);
+      shell.stage.appendChild(choiceGrid(["Yes, it lights", "No, it stays dark"],
+        f.lit ? "Yes, it lights" : "No, it stays dark", function(ok){
+          holder.textContent = "";
+          holder.appendChild(circuitBoard(f));
+          shell.stage.appendChild(el("div",{"class":"hintline", text:f.why}));
+          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          markDot(shell.dots, i, ok);
+          i++;
+          setTimeout(next, ok ? 1500 : 2100);
+        }, false));
+    }
+    next();
+  }
+
+  /* ==========================================================================
+     Magnet or Not
+     --------------------------------------------------------------------------
+     One idea, and it is the one P3 gets wrong: metal is not the same as
+     magnetic. A copper coin and an aluminium can are both metal and neither
+     is attracted.
+     ========================================================================== */
+
+  function startMagnet(world){
+    var rounds = 8;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0, order = shuffle(MAGNETIC.slice());
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var it = order[i % order.length];
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt",
+        text:"Will the magnet pick this up?"}));
+      var scene = el("div",{"class":"magnet-scene"});
+      scene.appendChild(el("div",{"class":"magnet-mag", text:"🧲"}));
+      var obj = el("div",{"class":"magnet-obj", text:it.e});
+      scene.appendChild(obj);
+      shell.stage.appendChild(scene);
+      shell.stage.appendChild(el("div",{"class":"bigq",
+        style:"font-size:clamp(20px,5vw,30px)", text:it.w}));
+      speak("Will the magnet pick up the " + it.w + "?");
+      shell.stage.appendChild(choiceGrid(["Yes", "No"], it.m ? "Yes" : "No", function(ok){
+        obj.classList.add(it.m ? "pulled" : "stuck");
+        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 1000 : 1400);
+      }, false));
+    }
+    next();
+  }
+
+  /* ==========================================================================
+     量词 Measure Words and 笔画 Stroke Count
+     ========================================================================== */
+
+  function startZhMeasure(world){
+    var pool = shuffle(forBand(ZH_MEASURE, band()).slice());
+    var all = [];
+    ZH_MEASURE.forEach(function(m){ if(all.indexOf(m.w) < 0) all.push(m.w); });
+    var shell = gameShell(world, 8);
+    var i = 0, correct = 0;
+    function next(){
+      if(i >= 8){ finish(world, correct, 8); return; }
+      var it = pool[i % pool.length];
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"Which measure word fits?"}));
+      shell.stage.appendChild(el("div",{"class":"countrow", text:it.e}));
+      var row = el("div",{"class":"sayrow"});
+      row.appendChild(el("div",{"class":"bigq zhbig", text:"一 ？ " + it.n}));
+      var say = sayButton("一" + it.w + it.n, {lang:"zh-CN"});
+      if(say) row.appendChild(say);
+      shell.stage.appendChild(row);
+      shell.stage.appendChild(el("div",{"class":"hintline", text:it.py + " — " + it.en}));
+      speak(it.n, {lang:"zh-CN"});
+      var wrongs = shuffle(all.filter(function(w){ return w !== it.w; })).slice(0, 3);
+      shell.stage.appendChild(choiceGrid(shuffle([it.w].concat(wrongs)), it.w, function(ok){
+        if(ok){ correct++; sfx.good(); flash("⭐"); speak("一" + it.w + it.n, {lang:"zh-CN"}); }
+        else { sfx.bad(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 900 : 1300);
+      }, false, true));
+    }
+    next();
+  }
+
+  function startZhStrokes(world){
+    var pool = shuffle(forBand(ZH_STROKES, band()).slice());
+    var shell = gameShell(world, 8);
+    var i = 0, correct = 0;
+    function next(){
+      if(i >= 8){ finish(world, correct, 8); return; }
+      var it = pool[i % pool.length];
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt",
+        text:"How many strokes does this character take?"}));
+      var row = el("div",{"class":"sayrow"});
+      row.appendChild(el("div",{"class":"zhhuge", text:it.c}));
+      var say = sayButton(it.c, {lang:"zh-CN"});
+      if(say) row.appendChild(say);
+      shell.stage.appendChild(row);
+      shell.stage.appendChild(el("div",{"class":"hintline", text:it.py + " — " + it.en}));
+      speak(it.c, {lang:"zh-CN"});
+      shell.stage.appendChild(choiceGrid(numberOptions(it.n, 3, 4).filter(function(n){ return n > 0; }),
+        it.n, function(ok){
+          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          markDot(shell.dots, i, ok);
+          i++;
+          setTimeout(next, ok ? 800 : 1200);
+        }, false));
+    }
+    next();
+  }
 
   /* ==========================================================================
      Slice the Answer

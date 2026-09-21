@@ -688,6 +688,115 @@ window.PC = (function(){
     {s:"shell",   p:"shells",   e:"🐚"}, {s:"card",   p:"cards",   e:"🃏"}
   ];
 
+
+  /* ---------- words that sound alike ----------
+     their/there/they're is the single most reliable way to lose a mark in a
+     Singapore English paper, and no amount of reading fixes it by itself. */
+  var HOMOPHONES = [
+    {b:1, q:"I can ___ the bell ringing.",            a:"hear",   x:["here","heir","hair"]},
+    {b:1, q:"Come over ___ and sit down.",            a:"here",   x:["hear","hair","heir"]},
+    {b:1, q:"The dog wagged ___ tail.",               a:"its",    x:["it's","its'","it is'"]},
+    {b:1, q:"___ going to rain later.",               a:"It's",   x:["Its","Its'","It"]},
+    {b:1, q:"We went ___ the market.",                a:"to",     x:["too","two","tow"]},
+    {b:1, q:"That cake is ___ sweet for me.",         a:"too",    x:["to","two","tow"]},
+    {b:2, q:"___ bags are by the door.",              a:"Their",  x:["There","They're","Theirs'"]},
+    {b:2, q:"Please put the box over ___.",           a:"there",  x:["their","they're","theirs"]},
+    {b:2, q:"___ coming to the party tonight.",       a:"They're",x:["Their","There","Theirs"]},
+    {b:2, q:"I ___ my homework on the bus.",          a:"wrote",  x:["rote","rot","wroat"]},
+    {b:2, q:"The wind ___ the door shut.",            a:"blew",   x:["blue","bleu","blewe"]},
+    {b:2, q:"She ___ the whole cake herself.",        a:"ate",    x:["eight","ait","eat"]},
+    {b:2, q:"Turn left at the traffic ___.",          a:"light",  x:["lite","lyte","leit"]},
+    {b:3, q:"He gave me good ___ about the exam.",    a:"advice", x:["advise","advices","advize"]},
+    {b:3, q:"I would ___ you to start early.",        a:"advise", x:["advice","advize","advises"]},
+    {b:3, q:"The ___ of the class stayed behind.",    a:"rest",   x:["wrest","rested","wrest'"]},
+    {b:3, q:"The principal is the ___ of the school.",a:"head",   x:["heed","hed","heade"]},
+    {b:3, q:"Walking every day has a good ___ on you.",a:"effect",x:["affect","affects","efect"]},
+    {b:3, q:"The rain did not ___ our plans.",        a:"affect", x:["effect","effects","afect"]},
+    {b:3, q:"They agreed to ___ the meeting early.",  a:"accept", x:["except","expect","acsept"]},
+    {b:3, q:"Everyone came ___ Ravi.",                a:"except", x:["accept","expect","exept"]},
+    {b:3, q:"The shop is ___ than I remembered.",     a:"farther",x:["father","futher","farthur"]},
+    {b:3, q:"Write your answer on a ___ piece of paper.",a:"loose",x:["lose","loos","louse"]},
+    {b:3, q:"Do not ___ your bus pass again.",        a:"lose",   x:["loose","loos","looze"]}
+  ];
+
+  /* ---------- 量词: Chinese measure words ----------
+     There is no rule for these; they are learnt one noun at a time, which is
+     exactly what a game is for. */
+  var ZH_MEASURE = [
+    {b:1, n:"猫", py:"māo", e:"🐱", w:"只", en:"cat"},
+    {b:1, n:"狗", py:"gǒu", e:"🐶", w:"只", en:"dog"},
+    {b:1, n:"书", py:"shū", e:"📖", w:"本", en:"book"},
+    {b:1, n:"笔", py:"bǐ", e:"✏️", w:"支", en:"pen"},
+    {b:1, n:"花", py:"huā", e:"🌺", w:"朵", en:"flower"},
+    {b:1, n:"鱼", py:"yú", e:"🐟", w:"条", en:"fish"},
+    {b:2, n:"车", py:"chē", e:"🚗", w:"辆", en:"car"},
+    {b:2, n:"衣服", py:"yīfu", e:"👕", w:"件", en:"clothes"},
+    {b:2, n:"纸", py:"zhǐ", e:"📄", w:"张", en:"paper"},
+    {b:2, n:"面包", py:"miànbāo", e:"🍞", w:"块", en:"bread"},
+    {b:2, n:"树", py:"shù", e:"🌳", w:"棵", en:"tree"},
+    {b:2, n:"路", py:"lù", e:"🛣️", w:"条", en:"road"},
+    {b:2, n:"房子", py:"fángzi", e:"🏠", w:"间", en:"house"},
+    {b:3, n:"钢琴", py:"gāngqín", e:"🎹", w:"架", en:"piano"},
+    {b:3, n:"饭", py:"fàn", e:"🍚", w:"碗", en:"rice"},
+    {b:3, n:"电影", py:"diànyǐng", e:"🎬", w:"部", en:"film"},
+    {b:3, n:"课", py:"kè", e:"📚", w:"节", en:"lesson"},
+    {b:3, n:"歌", py:"gē", e:"🎵", w:"首", en:"song"},
+    {b:3, n:"牌子", py:"páizi", e:"🪪", w:"块", en:"sign"}
+  ];
+
+  /* ---------- 笔画: how many strokes ----------
+     Stroke count is the one part of handwriting practice a screen can mark,
+     and it is what a P1 听写 list is built around. */
+  var ZH_STROKES = [
+    {b:0, c:"一", n:1,  py:"yī",    en:"one"},
+    {b:0, c:"二", n:2,  py:"èr",    en:"two"},
+    {b:0, c:"十", n:2,  py:"shí",   en:"ten"},
+    {b:0, c:"人", n:2,  py:"rén",   en:"person"},
+    {b:0, c:"大", n:3,  py:"dà",    en:"big"},
+    {b:0, c:"小", n:3,  py:"xiǎo",  en:"small"},
+    {b:1, c:"口", n:3,  py:"kǒu",   en:"mouth"},
+    {b:1, c:"山", n:3,  py:"shān",  en:"mountain"},
+    {b:1, c:"水", n:4,  py:"shuǐ",  en:"water"},
+    {b:1, c:"火", n:4,  py:"huǒ",   en:"fire"},
+    {b:1, c:"月", n:4,  py:"yuè",   en:"moon"},
+    {b:1, c:"日", n:4,  py:"rì",    en:"sun"},
+    {b:1, c:"手", n:4,  py:"shǒu",  en:"hand"},
+    {b:2, c:"白", n:5,  py:"bái",   en:"white"},
+    {b:2, c:"目", n:5,  py:"mù",    en:"eye"},
+    {b:2, c:"耳", n:6,  py:"ěr",    en:"ear"},
+    {b:2, c:"安", n:6,  py:"ān",    en:"peace"},
+    {b:2, c:"学", n:8,  py:"xué",   en:"study"},
+    {b:2, c:"花", n:7,  py:"huā",   en:"flower"},
+    {b:3, c:"风", n:4,  py:"fēng",  en:"wind"},
+    {b:3, c:"青", n:8,  py:"qīng",  en:"green"},
+    {b:3, c:"飞", n:3,  py:"fēi",   en:"fly"},
+    {b:3, c:"马", n:3,  py:"mǎ",    en:"horse"},
+    {b:3, c:"黑", n:12, py:"hēi",   en:"black"},
+    {b:3, c:"爱", n:10, py:"ài",    en:"love"}
+  ];
+
+  /* ---------- magnets (P3 Magnets) ----------
+     The mistake to break is "metal means magnetic": aluminium foil and a
+     copper coin are metal and are not attracted. */
+  var MAGNETIC = [
+    {e:"🔑", w:"steel key",        m:true},
+    {e:"📎", w:"steel paper clip", m:true},
+    {e:"🔩", w:"iron nail",        m:true},
+    {e:"✂️", w:"steel scissors",   m:true},
+    {e:"🪝", w:"iron hinge",       m:true},
+    {e:"🔨", w:"steel hammer head",m:true},
+    {e:"🪙", w:"copper coin",      m:false},
+    {e:"🥤", w:"plastic cup",      m:false},
+    {e:"📄", w:"sheet of paper",   m:false},
+    {e:"🪵", w:"wooden block",     m:false},
+    {e:"🧊", w:"glass marble",     m:false},
+    {e:"🍎", w:"apple",            m:false},
+    {e:"🧶", w:"woollen scarf",    m:false},
+    {e:"🧃", w:"aluminium can",    m:false},
+    {e:"🪙", w:"gold ring",        m:false},
+    {e:"🧱", w:"clay brick",       m:false}
+  ];
+
   return {
     PICS: PICS, SPELL: SPELL, QUIZ: QUIZ, ODD: ODD, RHYMES: RHYMES, SORT_ADV: SORT_ADV,
     ANIMAL_CLUES: ANIMAL_CLUES, RIDDLES: RIDDLES,
@@ -698,6 +807,8 @@ window.PC = (function(){
     OPPOSITES: OPPOSITES, GRAMMAR: GRAMMAR, SENTENCES: SENTENCES, PUNCT: PUNCT,
     MEANINGS: MEANINGS, IDIOMS: IDIOMS, AFFIXES: AFFIXES, PASSAGES: PASSAGES,
     SYNONYMS: SYNONYMS, TENSES: TENSES, PLURALS: PLURALS,
-    ANIMAL_GROUPS: ANIMAL_GROUPS, WP_NAMES: WP_NAMES, WP_THINGS: WP_THINGS
+    ANIMAL_GROUPS: ANIMAL_GROUPS, WP_NAMES: WP_NAMES, WP_THINGS: WP_THINGS,
+    HOMOPHONES: HOMOPHONES, ZH_MEASURE: ZH_MEASURE, ZH_STROKES: ZH_STROKES,
+    MAGNETIC: MAGNETIC
   };
 })();
