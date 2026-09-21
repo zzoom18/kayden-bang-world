@@ -421,12 +421,163 @@ window.PC = (function(){
     {b:3,a:"晚",z:"上",w:"晚上",p:"wǎnshang",m:"evening",e:"🌃"}
   ];
 
+
+  /* ---------- English, P1 to P6 ----------
+   *
+   * English had three games and none of them went past P4, so a P5 or P6 child
+   * opening the subject found nothing written for them. These follow what the
+   * MOE English syllabus actually asks for at each level: opposites and simple
+   * grammar early, sentence order and punctuation at P1-P3, then word meaning,
+   * prefixes, idioms and short comprehension at P4-P6.
+   *
+   * The wrong answers are the mistakes children make — "is" for a plural
+   * subject, "a" before a vowel, the literal reading of an idiom — so a guess
+   * is a coin toss, not a free mark.
+   */
+  var OPPOSITES = [
+    {b:0,w:"big",o:"small",x:["tall","round"]},      {b:0,w:"hot",o:"cold",x:["wet","loud"]},
+    {b:0,w:"up",o:"down",x:["over","near"]},         {b:0,w:"day",o:"night",x:["week","hour"]},
+    {b:0,w:"happy",o:"sad",x:["sleepy","hungry"]},   {b:0,w:"fast",o:"slow",x:["long",'heavy']},
+    {b:1,w:"open",o:"closed",x:["empty","broken"]},  {b:1,w:"old",o:"new",x:["used","clean"]},
+    {b:1,w:"full",o:"empty",x:["heavy","wide"]},     {b:1,w:"above",o:"below",x:["beside","behind"]},
+    {b:1,w:"early",o:"late",x:["soon","often"]},     {b:1,w:"loud",o:"quiet",x:["sharp","bright"]},
+    {b:2,w:"ancient",o:"modern",x:["famous","rare"]},{b:2,w:"gather",o:"scatter",x:["collect","carry"]},
+    {b:2,w:"brave",o:"cowardly",x:["clever","kind"]},{b:2,w:"arrive",o:"depart",x:["travel","wait"]},
+    {b:2,w:"shallow",o:"deep",x:["narrow","steep"]}, {b:2,w:"polite",o:"rude",x:["shy","calm"]},
+    {b:3,w:"generous",o:"stingy",x:["wealthy","cheerful"]},
+    {b:3,w:"expand",o:"shrink",x:["stretch","float"]},
+    {b:3,w:"permanent",o:"temporary",x:["frequent","reliable"]},
+    {b:3,w:"artificial",o:"natural",x:["valuable","unusual"]},
+    {b:3,w:"conceal",o:"reveal",x:["protect","imagine"]},
+    {b:3,w:"scarce",o:"plentiful",x:["expensive","fragile"]}
+  ];
+
+  /* Grammar, by the rule being tested rather than by word, so a child who gets
+     one wrong can be told which rule it was. */
+  var GRAMMAR = [
+    {b:1,q:"The dog ___ barking.",a:"is",x:["are","were","am"],r:"One dog, so \\u201cis\\u201d."},
+    {b:1,q:"The boys ___ playing.",a:"are",x:["is","was","am"],r:"More than one boy, so \\u201care\\u201d."},
+    {b:1,q:"I would like ___ apple.",a:"an",x:["a","the","some"],r:"\\u201cApple\\u201d starts with a vowel sound."},
+    {b:1,q:"She has ___ book.",a:"a",x:["an","are","of"],r:"\\u201cBook\\u201d starts with a consonant sound."},
+    {b:1,q:"There ___ three cats.",a:"are",x:["is","was","be"],r:"Three cats is plural."},
+    {b:2,q:"He ___ to school yesterday.",a:"walked",x:["walk","walks","walking"],r:"Yesterday means past tense."},
+    {b:2,q:"They ___ happy last night.",a:"were",x:["was","are","is"],r:"\\u201cThey\\u201d takes \\u201cwere\\u201d."},
+    {b:2,q:"My sister ___ her homework every day.",a:"does",x:["do","did","doing"],r:"One sister, present tense."},
+    {b:2,q:"We ___ finished our lunch.",a:"have",x:["has","having","had been"],r:"\\u201cWe\\u201d takes \\u201chave\\u201d."},
+    {b:2,q:"The cake ___ eaten by the children.",a:"was",x:["were","is being","been"],r:"One cake, past tense."},
+    {b:2,q:"Put the book ___ the table.",a:"on",x:["in","at","of"],r:"Things rest \\u201con\\u201d a surface."},
+    {b:3,q:"Neither of the boys ___ ready.",a:"is",x:["are","were","have"],r:"\\u201cNeither\\u201d is singular."},
+    {b:3,q:"If I ___ you, I would apologise.",a:"were",x:["was","am","be"],r:"An imagined situation takes \\u201cwere\\u201d."},
+    {b:3,q:"She is the girl ___ won the prize.",a:"who",x:["which","whom","whose"],r:"\\u201cWho\\u201d is for people doing something."},
+    {b:3,q:"The team ___ training hard this week.",a:"is",x:["are","were","be"],r:"A team is one group."},
+    {b:3,q:"He had ___ the letter before she arrived.",a:"written",x:["wrote","write","writing"],r:"\\u201cHad\\u201d takes the past participle."},
+    {b:3,q:"Each of the pupils ___ a locker.",a:"has",x:["have","are","having"],r:"\\u201cEach\\u201d is singular."},
+    {b:3,q:"I look forward ___ meeting you.",a:"to",x:["for","at","in"],r:"\\u201cLook forward to\\u201d is fixed."}
+  ];
+
+  /* Sentences split into words, to be tapped back into order. */
+  var SENTENCES = [
+    {b:1,s:"The cat sat on the mat"},      {b:1,s:"I like to eat rice"},
+    {b:1,s:"My father drives a car"},      {b:1,s:"The sun is very hot"},
+    {b:1,s:"We play in the park"},         {b:1,s:"She has a red bag"},
+    {b:2,s:"The children ran to the bus stop"},
+    {b:2,s:"My mother cooked dinner for us"},
+    {b:2,s:"Birds build their nests in trees"},
+    {b:2,s:"He carefully opened the heavy door"},
+    {b:2,s:"We visited the zoo last Saturday"},
+    {b:3,s:"The librarian quietly arranged the dusty books"},
+    {b:3,s:"Although it rained we still went outside"},
+    {b:3,s:"Singapore is famous for its delicious food"},
+    {b:3,s:"The scientist carefully recorded every result"},
+    {b:3,s:"Before the exam she revised every chapter"}
+  ];
+
+  /* Which sentence is written correctly: capitals, full stops, commas. */
+  var PUNCT = [
+    {b:1,a:"The dog is big.",x:["the dog is big.","The dog is big","the dog is big"]},
+    {b:1,a:"I live in Singapore.",x:["i live in Singapore.","I live in singapore.","I live in Singapore"]},
+    {b:1,a:"Where is my bag?",x:["Where is my bag.","where is my bag?","Where is my bag"]},
+    {b:2,a:"On Monday, we go to school.",x:["On monday, we go to school.","on Monday we go to school.","On Monday we go to school"]},
+    {b:2,a:"My friends are Ali, Siti and Tan.",x:["My friends are ali, siti and Tan.","My friends are Ali Siti and Tan.","my friends are Ali, Siti and Tan."]},
+    {b:2,a:"Wow, that was amazing!",x:["Wow that was amazing!","wow, that was amazing!","Wow, that was amazing"]},
+    {b:3,a:"\\u201cCome here,\\u201d said Mother.",x:["\\u201cCome here\\u201d said Mother.","\\u201ccome here,\\u201d said Mother.","\\u201cCome here,\\u201d said mother."]},
+    {b:3,a:"Although he was tired, he finished the race.",x:["Although he was tired he finished the race.","although he was tired, he finished the race.","Although he was tired; he finished the race."]},
+    {b:3,a:"The boy's bicycle is new.",x:["The boys bicycle is new.","The boys' bicycle is new.","the boy's bicycle is new."]}
+  ];
+
+  /* Word meaning, in a sentence so the context does the teaching. */
+  var MEANINGS = [
+    {b:2,w:"enormous",s:"The elephant was enormous.",a:"very big",x:["very old","very loud","very fast"]},
+    {b:2,w:"weary",s:"After the march they were weary.",a:"very tired",x:["very happy","very hungry","very angry"]},
+    {b:2,w:"glance",s:"She took a quick glance at the clock.",a:"a short look",x:["a loud shout","a slow walk","a deep breath"]},
+    {b:2,w:"damp",s:"The towel was still damp.",a:"slightly wet",x:["very dirty","very warm","torn"]},
+    {b:3,w:"reluctant",s:"He was reluctant to speak.",a:"unwilling",x:["eager","unable","forgetful"]},
+    {b:3,w:"abundant",s:"Fish were abundant in the river.",a:"plentiful",x:["rare","tiny","dangerous"]},
+    {b:3,w:"fragile",s:"Handle the fragile vase with care.",a:"easily broken",x:["very heavy","very old","very costly"]},
+    {b:3,w:"ponder",s:"She paused to ponder the question.",a:"think carefully",x:["answer quickly","ignore it","write it down"]},
+    {b:3,w:"vivid",s:"He gave a vivid description of the scene.",a:"clear and lively",x:["short and dull","untrue","whispered"]},
+    {b:3,w:"persevere",s:"She had to persevere with her practice.",a:"keep going",x:["give up","start again","take a rest"]},
+    {b:3,w:"immense",s:"The stadium was immense.",a:"huge",x:["crowded","empty","modern"]},
+    {b:3,w:"cautious",s:"He was cautious crossing the road.",a:"careful",x:["careless","cheerful","quick"]}
+  ];
+
+  /* Singapore classrooms teach these by name, so the game does too. */
+  var IDIOMS = [
+    {b:2,i:"under the weather",a:"feeling unwell",x:["standing in the rain","looking at the sky","being very cold"]},
+    {b:2,i:"a piece of cake",a:"very easy",x:["a sweet treat","a small share","a birthday party"]},
+    {b:2,i:"let the cat out of the bag",a:"give away a secret",x:["lose a pet","open a bag","make a mess"]},
+    {b:3,i:"burn the midnight oil",a:"work late into the night",x:["waste money","light a lamp","cook a late dinner"]},
+    {b:3,i:"once in a blue moon",a:"very rarely",x:["every night","at full moon","twice a year"]},
+    {b:3,i:"bite off more than you can chew",a:"take on too much",x:["eat too quickly","be greedy","break a tooth"]},
+    {b:3,i:"the ball is in your court",a:"it is your turn to act",x:["you have won","you play tennis","you dropped it"]},
+    {b:3,i:"turn a blind eye",a:"pretend not to notice",x:["lose your sight","look away shyly","wink at someone"]},
+    {b:3,i:"cost an arm and a leg",a:"be very expensive",x:["be dangerous","hurt badly","take a long time"]}
+  ];
+
+  /* Prefixes and suffixes: build the word that fits the meaning. */
+  var AFFIXES = [
+    {b:2,q:"not happy",a:"unhappy",x:["rehappy","happyless","dishappy"]},
+    {b:2,q:"not possible",a:"impossible",x:["unpossible","depossible","possibleless"]},
+    {b:2,q:"full of care",a:"careful",x:["careless","uncare","recare"]},
+    {b:2,q:"without hope",a:"hopeless",x:["hopeful","unhope","dishope"]},
+    {b:2,q:"do it again",a:"rebuild",x:["unbuild","building","builder"]},
+    {b:3,q:"not agree",a:"disagree",x:["unagree","misagree","agreeless"]},
+    {b:3,q:"read wrongly",a:"misread",x:["unread","disread","rereading"]},
+    {b:3,q:"able to be seen",a:"visible",x:["invisible","seeful","viewless"]},
+    {b:3,q:"one who teaches",a:"teacher",x:["teachful","teaching","teachless"]},
+    {b:3,q:"the state of being kind",a:"kindness",x:["kindly","unkind","kindful"]},
+    {b:3,q:"before the war",a:"pre-war",x:["post-war","anti-war","non-war"]},
+    {b:3,q:"between two nations",a:"international",x:["antinational","subnational","renational"]}
+  ];
+
+  /* Short passages with two questions each — one fact, one inference. */
+  var PASSAGES = [
+    {b:2, t:"The Hawker Stall",
+     p:"Mr Lim opens his noodle stall at six every morning. By seven the queue stretches past the drinks shop. He knows most of his customers by name, and he already knows what they want before they reach the front.",
+     qs:[{q:"What time does Mr Lim open?",a:"Six in the morning",x:["Seven in the morning","Six at night","Before five"]},
+         {q:"Why does he know what customers want?",a:"They come often, so he remembers",x:["They write it down","He only sells one dish","He asks them twice"]}]},
+    {b:2, t:"The Lost Kite",
+     p:"Aisha's kite caught in the tallest tree in the park. She tugged the string until it snapped. A boy she had never met climbed up and passed it down to her. She thanked him, but by the time she looked up again he had gone.",
+     qs:[{q:"Where did the kite get caught?",a:"In the tallest tree",x:["On a fence","In a drain","On a roof"]},
+         {q:"How did Aisha most likely feel at the end?",a:"Grateful but puzzled",x:["Angry with the boy","Bored","Frightened"]}]},
+    {b:3, t:"The Night Garden",
+     p:"Most of the garden sleeps at night, but a few plants do the opposite. The moonflower stays shut all day and opens only after dusk, when its scent carries much further in the cool air. The moths that feed on it never fly by day, so the flower and the moth keep the same unusual hours.",
+     qs:[{q:"When does the moonflower open?",a:"After dusk",x:["At sunrise","At midday","All day long"]},
+         {q:"Why do the flower and the moth suit each other?",a:"They are both active at night",x:["They are the same colour","They both need rain","The moth eats the leaves"]}]},
+    {b:3, t:"The Old Bridge",
+     p:"The bridge had carried the village across the river for ninety years. When engineers finally inspected it they found the stone sound but the iron rusted through. Rather than tear it down they replaced the ironwork piece by piece, so that the bridge people walked over was both new and very old.",
+     qs:[{q:"What was wrong with the bridge?",a:"The ironwork had rusted",x:["The stone had cracked","It was too narrow","The river had dried up"]},
+         {q:"Why is the bridge called both new and old?",a:"Old stone was kept, new iron put in",x:["It was rebuilt twice","Two bridges were joined","It was painted to look old"]}]}
+  ];
+
   return {
     PICS: PICS, SPELL: SPELL, QUIZ: QUIZ, ODD: ODD, RHYMES: RHYMES, SORT_ADV: SORT_ADV,
     ANIMAL_CLUES: ANIMAL_CLUES, RIDDLES: RIDDLES,
     SENSES: SENSES, SENSE_ORGANS: SENSE_ORGANS, HOMES: HOMES, LIFECYCLES: LIFECYCLES,
     FOODCHAINS: FOODCHAINS, STATE_CHANGES: STATE_CHANGES, PLANT_PARTS: PLANT_PARTS,
     SHAPES: SHAPES, COLOURS: COLOURS, CODE_LEVELS: CODE_LEVELS, COINS: COINS,
-    ZH_CHARS: ZH_CHARS, ZH_NUMBERS: ZH_NUMBERS, ZH_WORDS: ZH_WORDS
+    ZH_CHARS: ZH_CHARS, ZH_NUMBERS: ZH_NUMBERS, ZH_WORDS: ZH_WORDS,
+    OPPOSITES: OPPOSITES, GRAMMAR: GRAMMAR, SENTENCES: SENTENCES, PUNCT: PUNCT,
+    MEANINGS: MEANINGS, IDIOMS: IDIOMS, AFFIXES: AFFIXES, PASSAGES: PASSAGES
   };
 })();

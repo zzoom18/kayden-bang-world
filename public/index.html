@@ -191,6 +191,138 @@
     font-family:"Baloo 2",sans-serif; font-weight:800; font-size:clamp(26px,6vw,38px);
     display:grid; place-items:center; padding:14px; transition:transform .14s var(--ease), background .16s ease;
   }
+  /* ---- English games ---- */
+  .sentence{font-size:clamp(19px,4.4vw,27px); font-weight:800; line-height:1.45; max-width:620px}
+  .why{font-size:15px; font-weight:800; color:#8FE3C4; max-width:560px; line-height:1.45}
+  .idiom{font-family:"Baloo 2",sans-serif; font-weight:800; font-size:clamp(24px,5.6vw,40px); line-height:1.25; max-width:620px}
+  .passage{font-size:clamp(15px,3.6vw,18px); font-weight:700; line-height:1.65; max-width:620px;
+    background:rgba(255,255,255,.14); border-radius:20px; padding:16px 18px; text-align:left}
+  .sentline{min-height:64px; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center;
+    max-width:640px; padding:10px 14px; border-radius:18px; background:rgba(255,255,255,.10);
+    border:3px dashed rgba(255,255,255,.20)}
+  .sentghost{color:var(--ink-soft); font-weight:800; font-size:22px}
+  .sentword{font-weight:800; font-size:clamp(17px,4vw,23px)}
+  .sentword.good{color:#8FE3C4}
+  .wordtray{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; max-width:640px}
+  .wordchip{padding:14px 18px; min-height:56px; border-radius:16px; background:rgba(255,255,255,.26);
+    color:#fff; font-family:inherit; font-size:clamp(16px,3.8vw,21px); font-weight:800}
+  .wordchip:active{transform:scale(.94)}
+  .wordchip.used{opacity:.28}
+  .wordchip.bad{background:var(--bad)}
+  .sentchoices{display:flex; flex-direction:column; gap:12px; width:100%; max-width:620px}
+  .sentchoice{padding:16px 18px; min-height:62px; border-radius:18px; background:rgba(255,255,255,.22);
+    color:#fff; font-family:inherit; font-size:clamp(15px,3.6vw,19px); font-weight:800; text-align:left;
+    line-height:1.4; transition:background .16s ease, transform .14s var(--ease)}
+  .sentchoice:active{transform:scale(.98)}
+  .sentchoice.right{background:var(--good)}
+  .sentchoice.wrong{background:var(--bad)}
+  .togrow{display:flex; gap:10px; flex-wrap:wrap}
+  .tog{flex:1; min-width:140px; min-height:56px; border-radius:16px; font-family:inherit;
+    font-size:15px; font-weight:800; background:rgba(255,255,255,.14); color:var(--ink-soft);
+    transition:background .16s ease, color .16s ease, transform .14s var(--ease)}
+  .tog.on{background:linear-gradient(140deg,var(--mint),#2AA87A); color:#fff}
+  .tog:active{transform:scale(.96)}
+  /* ---- My progress ----
+     None of this had a stylesheet, so the screen was rendering as raw markup:
+     white blocks, overlapping labels, stat tiles stacked one word per line. */
+  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:22px}
+  .stat{background:rgba(255,255,255,.16); border-radius:22px; padding:16px 14px; text-align:center;
+    border:2px solid rgba(255,255,255,.10)}
+  .stat .se{font-size:30px; line-height:1}
+  .stat .sv{font-family:"Baloo 2",sans-serif; font-weight:800; font-size:32px; line-height:1.1; margin-top:4px}
+  .stat .sl{font-size:12.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft)}
+
+  /* "Next to unlock": the named game the next stars will open. */
+  .unlocknext{display:flex; gap:16px; align-items:flex-start; margin-bottom:20px;
+    border-radius:var(--r-lg); padding:16px 18px;
+    background:linear-gradient(120deg, rgba(255,196,61,.24), rgba(255,93,143,.24));
+    border:3px solid rgba(255,217,138,.34)}
+  .unlocknext.done{background:linear-gradient(120deg, rgba(53,196,143,.26), rgba(47,182,230,.24));
+    border-color:rgba(143,227,196,.4)}
+  .un-e{font-size:40px; line-height:1; flex:none; filter:brightness(0) opacity(.42)}
+  .unlocknext.done .un-e{filter:none}
+  .un-mid{min-width:0; flex:1}
+  .un-l{font-size:12px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:#FFD98A}
+  .unlocknext.done .un-l{color:#8FE3C4}
+  .un-n{font-family:"Baloo 2",sans-serif; font-weight:800; font-size:21px; line-height:1.2; margin:2px 0 3px}
+  .un-s{font-size:13.5px; font-weight:700; color:#E7E3FF; line-height:1.35}
+  .un-track{height:12px; border-radius:999px; background:rgba(0,0,0,.28); overflow:hidden; margin:11px 0 7px}
+  .un-fill{height:100%; border-radius:999px; background:linear-gradient(90deg,var(--sun),#FF8A5B);
+    transition:width .6s var(--ease)}
+  .un-w{font-size:13px; font-weight:800; color:#FFD98A}
+
+  .track{height:14px; border-radius:999px; background:rgba(0,0,0,.26); overflow:hidden; margin:2px 0 8px}
+  .track .fill{height:100%; border-radius:999px; background:linear-gradient(90deg,var(--sun),var(--mint));
+    transition:width .5s var(--ease); min-width:0}
+  .trackn{font-size:13px; font-weight:800; color:var(--ink-soft); margin-bottom:14px}
+
+  .path{display:grid; grid-template-columns:repeat(auto-fill,minmax(132px,1fr)); gap:12px; margin-bottom:26px}
+  .step{border-radius:20px; padding:14px 12px; text-align:center; color:#fff; font-family:inherit;
+    background:rgba(255,255,255,.14); border:2px solid rgba(255,255,255,.12);
+    display:flex; flex-direction:column; align-items:center; gap:5px; min-height:118px;
+    transition:transform .16s var(--ease), background .16s ease}
+  .step:active{transform:scale(.96)}
+  .step .pe{font-size:30px; line-height:1}
+  .step .pn{font-weight:800; font-size:14px; line-height:1.25}
+  .step .pl{font-size:12px; font-weight:800; color:var(--ink-soft)}
+  .step.done{background:linear-gradient(150deg,rgba(53,196,143,.55),rgba(42,168,122,.55)); border-color:rgba(143,227,196,.45)}
+  .step.done .pe{color:#8FE3C4}
+  .step.done .pl{color:#C9F4E3}
+  .step.doing{background:linear-gradient(150deg,rgba(255,196,61,.42),rgba(255,158,61,.42)); border-color:rgba(255,217,138,.45)}
+  .step.doing .pl{color:#FFE9BC}
+  .step.todo{opacity:.82}
+
+  .step.gatedstep{filter:saturate(.3) brightness(.8); border-style:dashed}
+  .step.gatedstep .pe{filter:brightness(0) opacity(.4)}
+  .step.gatedstep .pl{color:#FFD98A}
+
+  .badges{display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:12px; margin-bottom:8px}
+  .badge{border-radius:20px; padding:14px 10px; text-align:center; background:rgba(255,255,255,.09);
+    border:2px dashed rgba(255,255,255,.16); display:flex; flex-direction:column; align-items:center; gap:6px}
+  .badge .be{font-size:32px; line-height:1; filter:grayscale(1) opacity(.45)}
+  .badge .bn{font-size:12px; font-weight:800; color:var(--ink-soft); line-height:1.3}
+  .badge.has{background:linear-gradient(150deg,rgba(255,196,61,.34),rgba(155,123,255,.34));
+    border-style:solid; border-color:rgba(255,217,138,.5)}
+  .badge.has .be{filter:none}
+  .badge.has .bn{color:#fff}
+
+  /* ---- star-gated games ---- */
+  .world.gated{filter:saturate(.35) brightness(.72); box-shadow:0 8px 0 rgba(0,0,0,.28)}
+  .world.gated .nm{letter-spacing:.22em}
+  .world.gated .sub{opacity:.6}
+  .hidden-emo{filter:brightness(0) opacity(.34); transform:scale(.92)}
+  .gatepill{margin-top:auto; align-self:flex-start; display:inline-flex; align-items:center; gap:7px;
+    background:rgba(0,0,0,.34); color:#FFD98A; border-radius:999px; padding:7px 14px;
+    font-size:13px; font-weight:800}
+  /* ---- celebration ---- */
+  .spark{position:fixed; z-index:36; pointer-events:none; font-size:26px; will-change:transform,opacity;
+    animation:sparkfly .95s cubic-bezier(.2,.7,.3,1) forwards}
+  @keyframes sparkfly{
+    0%{transform:translate(-50%,-50%) scale(.4); opacity:0}
+    20%{opacity:1}
+    100%{transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.15) rotate(40deg); opacity:0}
+  }
+  /* The fox reacts, so the child is not the only one in the room. */
+  .avatar.cheer{animation:cheer .7s var(--ease)}
+  @keyframes cheer{0%,100%{transform:none} 30%{transform:translateY(-12px) scale(1.12) rotate(-8deg)} 60%{transform:translateY(0) scale(1.04) rotate(6deg)}}
+  .avatar.oops{animation:oops .5s ease}
+  @keyframes oops{0%,100%{transform:none} 25%{transform:rotate(-9deg)} 50%{transform:rotate(8deg)} 75%{transform:rotate(-5deg)}}
+  /* A ring that expands from wherever a finger lands. */
+  .ripple{position:fixed; z-index:34; pointer-events:none; border-radius:50%; width:18px; height:18px;
+    margin:-9px 0 0 -9px; background:radial-gradient(circle, rgba(255,255,255,.55), rgba(255,255,255,0) 70%);
+    animation:rippleout .5s ease-out forwards}
+  @keyframes rippleout{from{transform:scale(.3); opacity:.9} to{transform:scale(7); opacity:0}}
+  .streakpill{display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border-radius:999px;
+    font-weight:800; font-size:14px; background:linear-gradient(120deg,#FF8A5B,#FF5D8F); color:#fff;
+    animation:pop .45s var(--ease)}
+  .sayrow{display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap}
+  .saybtn{
+    width:76px; height:76px; border-radius:50%; flex:none; font-size:32px;
+    background:linear-gradient(150deg,#FFD66B,#F2A93B); color:#3B2A00;
+    box-shadow:0 6px 0 rgba(0,0,0,.24); transition:transform .14s var(--ease), box-shadow .14s ease;
+  }
+  .saybtn:active{transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,.24)}
+  .sayhint{font-size:13.5px; font-weight:800; color:var(--ink-soft); letter-spacing:.03em}
   .choice.emo{font-size:clamp(44px,11vw,64px)}
   /* A character at 20px teaches nothing — Chinese is always shown big. */
   /* The card you just played, so your eye lands on it when you come back. */
@@ -533,7 +665,7 @@
 </div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 
-<script src="content.js?v=20260921-6"></script>
+<script src="content.js?v=20260921-11"></script>
 <script>
 (function(){
   "use strict";
@@ -578,12 +710,243 @@
       o.start(); o.stop(actx.currentTime + dur);
     }catch(e){ /* sound is a bonus, never a requirement */ }
   }
+  /* A richer kit than four blips. Everything is still generated on the fly —
+     no audio files to download, which matters on a school wifi — but a rising
+     arpeggio for a right answer and a real fanfare at the end of a round make
+     the app feel alive in a way a single tone never did. */
+  function tone(freq, dur, opts){
+    if(state && state.sound === false) return;
+    opts = opts || {};
+    try{
+      if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      if(actx.state === "suspended") actx.resume();
+      var t0 = actx.currentTime + (opts.at || 0);
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = opts.type || "sine";
+      o.frequency.setValueAtTime(freq, t0);
+      /* A glide makes a swoop or a slide-whistle out of the same oscillator. */
+      if(opts.to) o.frequency.exponentialRampToValueAtTime(opts.to, t0 + dur);
+      var vol = opts.vol == null ? .16 : opts.vol;
+      g.gain.setValueAtTime(.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + .012);
+      g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t0); o.stop(t0 + dur + .02);
+    }catch(e){ /* sound is a bonus, never a requirement */ }
+  }
+  /* Short burst of filtered noise — a shaker, a drum, a pop. */
+  function noise(dur, opts){
+    if(state && state.sound === false) return;
+    opts = opts || {};
+    try{
+      if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      if(actx.state === "suspended") actx.resume();
+      var t0 = actx.currentTime + (opts.at || 0);
+      var n = Math.floor(actx.sampleRate * dur);
+      var buf = actx.createBuffer(1, n, actx.sampleRate), d = buf.getChannelData(0), i;
+      for(i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+      var src = actx.createBufferSource(); src.buffer = buf;
+      var f = actx.createBiquadFilter();
+      f.type = opts.filter || "bandpass";
+      f.frequency.value = opts.freq || 1400;
+      var g = actx.createGain(); g.gain.value = opts.vol == null ? .18 : opts.vol;
+      src.connect(f); f.connect(g); g.connect(actx.destination);
+      src.start(t0);
+    }catch(e){}
+  }
+  function chord(freqs, dur, opts){
+    freqs.forEach(function(f){ tone(f, dur, opts); });
+  }
+
   var sfx = {
-    good: function(){ beep(660,.12); setTimeout(function(){ beep(880,.16); }, 90); },
-    bad:  function(){ beep(180,.22,"triangle"); },
-    win:  function(){ [523,659,784,1046].forEach(function(f,i){ setTimeout(function(){ beep(f,.18); }, i*110); }); },
-    tap:  function(){ beep(440,.05); }
+    good: function(){ [660, 880, 1175].forEach(function(f,i){ tone(f, .16, {at:i*.07, vol:.15}); }); },
+    bad:  function(){ tone(200, .26, {type:"triangle", to:120, vol:.16}); },
+    win:  function(){
+      [523,659,784,1046].forEach(function(f,i){ tone(f, .22, {at:i*.1, vol:.17}); });
+      chord([523,659,784,1046], .9, {at:.45, vol:.09});
+      [0,.12,.24,.36].forEach(function(a){ noise(.16, {at:.45+a, freq:5200, vol:.07}); });
+    },
+    tap:  function(){ tone(520, .05, {vol:.1}); },
+    pop:  function(){ tone(900, .07, {to:1500, vol:.13}); noise(.05, {freq:2600, vol:.08}); },
+    swoosh: function(){ noise(.22, {filter:"highpass", freq:900, vol:.1}); },
+    levelup: function(){
+      [392,523,659,784,1046].forEach(function(f,i){ tone(f, .2, {at:i*.08, vol:.16}); });
+      chord([784,1046,1319], 1.0, {at:.4, vol:.08});
+    },
+    /* A short drum roll, for the moment before a result is shown. */
+    roll: function(){
+      var i; for(i = 0; i < 12; i++) noise(.05, {at:i*.045, freq:320, filter:"lowpass", vol:.09});
+    },
+    streak: function(n){
+      var base = 523, i;
+      for(i = 0; i < Math.min(n, 5); i++) tone(base * Math.pow(1.122, i * 2), .13, {at:i*.06, vol:.14});
+    }
   };
+  /* ---------- speech ----------
+     Everything else in here is an oscillator blip, which is fine for "right"
+     and "wrong" but cannot say a letter. "Match the sound to a picture" was a
+     promise the game did not keep, so the phonics, rhyme, spelling and Chinese
+     games now speak, using the voice already on the device. Nothing to
+     download, and it works in Chinese as well as English.
+
+     iOS will not speak until the page has had a tap, which entering a game
+     always is, and it ignores a second utterance while one is in flight —
+     hence the cancel before each. */
+  var CAN_SPEAK = !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
+  var voices = [];
+  function refreshVoices(){
+    try{ voices = window.speechSynthesis.getVoices() || []; }catch(e){ voices = []; }
+  }
+  if(CAN_SPEAK){
+    refreshVoices();
+    /* Safari fills the list asynchronously, and on a cold load it is empty. */
+    try{ window.speechSynthesis.onvoiceschanged = refreshVoices; }catch(e){}
+  }
+  function voiceFor(lang){
+    if(!voices.length) refreshVoices();
+    var want = lang.toLowerCase();
+    var exact = null, loose = null, i, v, vl;
+    for(i = 0; i < voices.length; i++){
+      v = voices[i]; vl = String(v.lang || "").toLowerCase().replace("_","-");
+      if(vl === want && !exact) exact = v;
+      if(vl.split("-")[0] === want.split("-")[0] && !loose) loose = v;
+    }
+    return exact || loose || null;
+  }
+  function speak(text, opts){
+    if(!CAN_SPEAK || !text) return false;
+    if(state && state.sound === false) return false;
+    opts = opts || {};
+    try{
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(String(text));
+      u.lang = opts.lang || "en-GB";
+      /* Slower than default: these are children hearing a word once. */
+      u.rate = opts.rate || 0.82;
+      u.pitch = opts.pitch || 1.05;
+      var v = voiceFor(u.lang);
+      if(v) u.voice = v;
+      window.speechSynthesis.speak(u);
+      return true;
+    }catch(e){ return false; }
+  }
+  /* A round speaker the child can tap to hear it again. Returns null when the
+     device has no voices at all, so callers can leave the layout alone. */
+  function sayButton(text, opts){
+    if(!CAN_SPEAK) return null;
+    var b = el("button",{"class":"saybtn", "aria-label":"Hear it again", text:"🔊"});
+    b.addEventListener("click", function(e){
+      e.stopPropagation();
+      speak(typeof text === "function" ? text() : text, opts);
+    });
+    return b;
+  }
+
+  /* ---------- confetti ----------
+     Drawn on one full-screen canvas that is created on demand and thrown away
+     when the last piece lands, so there is nothing sitting over the page
+     catching taps the rest of the time. Motion is by delta time, not by frame,
+     so it looks the same on a 60Hz iPad and a 120Hz one. */
+  var confCanvas = null, confCtx = null, confPieces = [], confRAF = null;
+  var CONF_COLOURS = ["#FFC43D","#FF5D8F","#2FB6E6","#35C48F","#9B7BFF","#FF8A5B","#FFFFFF"];
+
+  function confettiBurst(count, originY){
+    /* A child who would rather not have things flying about can turn it off,
+       and anyone who has asked the system for less motion gets none. */
+    if(state.motion === false) return;
+    try{
+      if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    }catch(e){}
+
+    if(!confCanvas){
+      confCanvas = el("canvas",{style:"position:fixed; inset:0; z-index:35; pointer-events:none"});
+      document.body.appendChild(confCanvas);
+      confCtx = confCanvas.getContext("2d");
+    }
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    confCanvas.width = window.innerWidth * dpr;
+    confCanvas.height = window.innerHeight * dpr;
+    confCanvas.style.width = window.innerWidth + "px";
+    confCanvas.style.height = window.innerHeight + "px";
+    confCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    var W = window.innerWidth, H = window.innerHeight;
+    var y0 = originY == null ? H * 0.42 : originY;
+    var i;
+    for(i = 0; i < count; i++){
+      var angle = (Math.PI * 2 * i) / count + Math.random() * .4;
+      var speed = 260 + Math.random() * 420;
+      confPieces.push({
+        x: W / 2 + (Math.random() - .5) * 120,
+        y: y0,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 220,
+        size: 7 + Math.random() * 9,
+        spin: (Math.random() - .5) * 14,
+        rot: Math.random() * 6.3,
+        life: 1.5 + Math.random() * 1.1,
+        age: 0,
+        c: pick(CONF_COLOURS)
+      });
+    }
+    if(!confRAF) confRAF = requestAnimationFrame(confStep);
+  }
+
+  var confLast = 0;
+  function confStep(now){
+    if(!confLast) confLast = now;
+    var dt = Math.min((now - confLast) / 1000, .05);
+    confLast = now;
+    confCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+    var alive = [], i, p;
+    for(i = 0; i < confPieces.length; i++){
+      p = confPieces[i];
+      p.age += dt;
+      if(p.age >= p.life) continue;
+      p.vy += 900 * dt;          // gravity
+      p.vx *= (1 - 1.1 * dt);    // air
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.rot += p.spin * dt;
+      if(p.y > window.innerHeight + 40) continue;
+
+      confCtx.save();
+      confCtx.globalAlpha = Math.max(0, 1 - p.age / p.life);
+      confCtx.translate(p.x, p.y);
+      confCtx.rotate(p.rot);
+      confCtx.fillStyle = p.c;
+      confCtx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+      confCtx.restore();
+      alive.push(p);
+    }
+    confPieces = alive;
+
+    if(confPieces.length){ confRAF = requestAnimationFrame(confStep); }
+    else {
+      confRAF = null; confLast = 0;
+      if(confCanvas && confCanvas.parentNode){ confCanvas.parentNode.removeChild(confCanvas); }
+      confCanvas = null; confCtx = null;
+    }
+  }
+
+  /* A small shower of stars from a spot on the screen — used when a single
+     answer is right, where full confetti would be too much every time. */
+  function sparkle(atEl){
+    if(state.motion === false || !atEl) return;
+    var r = atEl.getBoundingClientRect(), i;
+    for(i = 0; i < 7; i++){
+      var sp = el("div",{"class":"spark", text: pick(["✨","⭐","🌟"])});
+      sp.style.left = (r.left + r.width / 2) + "px";
+      sp.style.top = (r.top + r.height / 2) + "px";
+      sp.style.setProperty("--dx", ((Math.random() - .5) * 180) + "px");
+      sp.style.setProperty("--dy", (-60 - Math.random() * 150) + "px");
+      sp.style.animationDelay = (i * 0.04) + "s";
+      document.body.appendChild(sp);
+      (function(node){ setTimeout(function(){ if(node.parentNode) node.parentNode.removeChild(node); }, 1200); })(sp);
+    }
+  }
+
   function flash(sym){
     var f = $("flash");
     f.textContent = sym; f.classList.remove("show");
@@ -598,7 +961,8 @@
   var NEEDED = ["PICS","SPELL","QUIZ","ODD","SHAPES","COLOURS","CODE_LEVELS","COINS",
     "RHYMES","SORT_ADV","ANIMAL_CLUES","RIDDLES","SENSES","SENSE_ORGANS","HOMES",
     "LIFECYCLES","FOODCHAINS","STATE_CHANGES","PLANT_PARTS",
-    "ZH_CHARS","ZH_NUMBERS","ZH_WORDS"];
+    "ZH_CHARS","ZH_NUMBERS","ZH_WORDS",
+    "OPPOSITES","GRAMMAR","SENTENCES","PUNCT","MEANINGS","IDIOMS","AFFIXES","PASSAGES"];
   var missing = (typeof PC === "undefined" || !PC) ? ["everything"] :
     NEEDED.filter(function(k){ return !PC[k]; });
   if(missing.length){
@@ -620,6 +984,8 @@
   var LIFECYCLES = PC.LIFECYCLES, FOODCHAINS = PC.FOODCHAINS;
   var STATE_CHANGES = PC.STATE_CHANGES, PLANT_PARTS = PC.PLANT_PARTS;
   var ZH_CHARS = PC.ZH_CHARS, ZH_NUMBERS = PC.ZH_NUMBERS, ZH_WORDS = PC.ZH_WORDS;
+  var OPPOSITES = PC.OPPOSITES, GRAMMAR = PC.GRAMMAR, SENTENCES = PC.SENTENCES, PUNCT = PC.PUNCT;
+  var MEANINGS = PC.MEANINGS, IDIOMS = PC.IDIOMS, AFFIXES = PC.AFFIXES, PASSAGES = PC.PASSAGES;
 
   /* Age bands. Everything a child is shown is chosen against these. */
   var BANDS = [
@@ -630,6 +996,15 @@
   ];
   function bandOf(age){ return age <= 4 ? 0 : age <= 6 ? 1 : age <= 8 ? 2 : 3; }
   function band(){ return bandOf(state.age || 5); }
+
+  /* Bands are four broad steps and they stop being enough at the top: P3, P4,
+     P5 and P6 all land in band 3, so a twelve-year-old was being asked the
+     same times tables as a nine-year-old. Where the syllabus actually diverges
+     — ratio, percentage, speed, volume, algebra — the games ask for the exact
+     level instead. */
+  var LEVEL_RANK = {N:0, K1:1, K2:2, P1:3, P2:4, P3:5, P4:6, P5:7, P6:8};
+  function rank(){ return LEVEL_RANK[schoolLevel()] || 0; }
+  function isSenior(){ return rank() >= 7; }   // P5 and P6
 
   /* Difficulty still moves in four broad steps, but which games a child is
      shown follows their exact school level: nine years old means P3, not
@@ -651,7 +1026,11 @@
   }
 
   /* ---------- state ---------- */
-  var DEFAULT = { name:"", age:5, avatar:"🦊", setup:false, stars:0, streak:0, perfects:0, lastPlayed:"", progress:{} };
+  /* motion and sound default to on; a parent can turn either off in the player
+     settings, and the app also honours the system "reduce motion" setting
+     without being asked. */
+  var DEFAULT = { name:"", age:5, avatar:"🦊", setup:false, stars:0, streak:0, perfects:0,
+    lastPlayed:"", motion:true, sound:true, progress:{} };
   var state = JSON.parse(JSON.stringify(DEFAULT));
   var licence = null;
   var licenceExp = null;
@@ -688,7 +1067,7 @@
      in. Mastery is Level 5, which is four successful rounds past the start. */
   var JOURNEY = {
     maths:   ["tenframe","bonds","numbers","shapes","sgmoney","money","picgraph","barmodel","fraction","areaperim","balance"],
-    english: ["sounds","spell","rhyme"],
+    english: ["sounds","spell","rhyme","opposites","grammar","sentence","punct","meaning","affix","idiom","reading"],
     think:   ["odd","sort","code"],
     science: ["quiz"],
     inspect: ["spotdiff","findodd","shadow","detective"],
@@ -712,6 +1091,58 @@
   ];
   var MASTER = 5;
 
+  /* ---------- earning your way in ----------
+   *
+   * Stars open new games. The cost is worked out from a game's place on its
+   * subject's path rather than written on each game, so it stays right as
+   * games are added — and because it is per subject, the first two games of
+   * every subject are always open. A child is never left staring at a wall of
+   * locks, and never runs out of something to play in the subject they like.
+   *
+   * Locked games are shown, not hidden: seeing what is coming is most of the
+   * reason to go and earn it.
+   */
+  var STAR_GATES = [0, 0, 15, 35, 60, 90, 125, 165, 210, 260, 320];
+  var starGateCache = null, starGateLevel = null;
+
+  /* Counted over the games this child can actually see, not the whole path.
+     Ten Frame and Number Bonds sit before Number Quest on the maths journey,
+     but a P3 child is never shown them — so counting the whole path put the
+     first maths game a nine-year-old sees behind fifteen stars, with nothing
+     open above it. Recomputed when the age changes. */
+  function starGates(){
+    var lvl = schoolLevel();
+    if(starGateCache && starGateLevel === lvl) return starGateCache;
+    starGateCache = {}; starGateLevel = lvl;
+
+    var visible = {};
+    WORLDS.filter(suitsAge).forEach(function(w){ visible[w.id] = true; });
+
+    SUBJECTS.forEach(function(sub){
+      var ids = (JOURNEY[sub.k] || []).filter(function(id){ return visible[id]; });
+      ids.forEach(function(id, idx){
+        starGateCache[id] = STAR_GATES[Math.min(idx, STAR_GATES.length - 1)];
+      });
+    });
+    /* Anything not on a path stays open rather than being locked by accident. */
+    WORLDS.forEach(function(w){ if(starGateCache[w.id] == null) starGateCache[w.id] = 0; });
+    return starGateCache;
+  }
+  function starCost(id){ return starGates()[id] || 0; }
+  function starLocked(w){
+    if(played(w.id)) return false;            // never take back a game already met
+    return (state.stars || 0) < starCost(w.id);
+  }
+  function nextUnlock(){
+    var best = null;
+    WORLDS.filter(suitsAge).forEach(function(w){
+      if(!starLocked(w)) return;
+      var c = starCost(w.id);
+      if(!best || c < best.cost) best = {w:w, cost:c};
+    });
+    return best;
+  }
+
   function played(id){ return !!state.progress[id]; }
   function mastered(id){ return levelOf(id) >= MASTER; }
   function worldById(id){
@@ -734,7 +1165,9 @@
       for(j = 0; j < ids.length; j++){
         id = ids[j];
         if(fitIds.indexOf(id) < 0) continue;
-        if(!played(id)) return {w:worldById(id), why:"You haven't tried this one yet."};
+        var cand = worldById(id);
+        if(cand && starLocked(cand)) continue;
+        if(!played(id)) return {w:cand, why:"You haven't tried this one yet."};
         if(!mastered(id)) return {w:worldById(id), why:"You're on Level " + levelOf(id) + ". Reach Level " + MASTER + " to master it."};
       }
     }
@@ -788,6 +1221,41 @@
     });
     pad.appendChild(tiles);
 
+    /* What the next stars actually buy. Knowing a named game is three stars
+       away is a far better reason to play one more round than a number going
+       up on its own. */
+    var up = nextUnlock();
+    if(up){
+      var short = up.cost - (state.stars || 0);
+      var goal = el("div",{"class":"unlocknext"});
+      goal.appendChild(el("div",{"class":"un-e", text:up.w.emo}));
+      var mid = el("div",{"class":"un-mid"});
+      mid.appendChild(el("div",{"class":"un-l", text:"Next to unlock"}));
+      mid.appendChild(el("div",{"class":"un-n", text:up.w.nm}));
+      mid.appendChild(el("div",{"class":"un-s", text:up.w.sub}));
+      var bar = el("div",{"class":"un-track"});
+      var got = el("div",{"class":"un-fill"});
+      /* Measured from the gate before this one, so the bar starts where the
+         last unlock left off rather than always near empty. */
+      var prev = 0;
+      STAR_GATES.forEach(function(g){ if(g < up.cost && g > prev) prev = g; });
+      var span = Math.max(1, up.cost - prev);
+      got.style.width = Math.max(4, Math.min(100, ((state.stars || 0) - prev) / span * 100)) + "%";
+      bar.appendChild(got);
+      mid.appendChild(bar);
+      mid.appendChild(el("div",{"class":"un-w",
+        text: "⭐ " + short + " more star" + (short === 1 ? "" : "s") + " to go"}));
+      goal.appendChild(mid);
+      pad.appendChild(goal);
+    } else if(WORLDS.filter(suitsAge).length){
+      pad.appendChild(el("div",{"class":"unlocknext done"},
+        el("div",{"class":"un-e", text:"🔓"}),
+        el("div",{"class":"un-mid"},
+          el("div",{"class":"un-l", text:"All open"}),
+          el("div",{"class":"un-n", text:"Every game at your level is unlocked"}),
+          el("div",{"class":"un-s", text:"Keep earning stars to fill in the badges."}))));
+    }
+
     var nx = nextStep();
     if(nx){
       var card = el("button",{"class":"nextcard"});
@@ -823,12 +1291,25 @@
       var path = el("div",{"class":"path"});
       ids.forEach(function(id){
         var w = worldById(id);
+        var gatedStep = starLocked(w);
         var state2 = mastered(id) ? "done" : played(id) ? "doing" : "todo";
-        var step = el("button",{"class":"step " + state2});
+        var step = el("button",{"class":"step " + state2 + (gatedStep ? " gatedstep" : "")});
         step.appendChild(el("div",{"class":"pe", text: state2 === "done" ? "✓" : w.emo}));
         step.appendChild(el("div",{"class":"pn", text:w.nm}));
-        step.appendChild(el("div",{"class":"pl", text: played(id) ? ("Lv " + levelOf(id)) : "Not started"}));
-        step.addEventListener("click", function(){ sfx.tap(); startGame(w); });
+        /* The path is the map, so a locked game is named here even though the
+           card on the home screen keeps it a mystery — but it still has to say
+           it is locked, or the two screens contradict each other. */
+        step.appendChild(el("div",{"class":"pl",
+          text: gatedStep ? ("⭐ " + (starCost(id) - (state.stars || 0)) + " more")
+              : played(id) ? ("Lv " + levelOf(id)) : "Not started"}));
+        step.addEventListener("click", function(){
+          sfx.tap();
+          if(gatedStep){
+            banner("⭐ " + (starCost(id) - (state.stars || 0)) + " more to open this one");
+            return;
+          }
+          startGame(w);
+        });
         path.appendChild(step);
       });
       pad.appendChild(path);
@@ -894,6 +1375,17 @@
     /* Two players, one iPad. The head-to-head pair turn the far player's half
        upside down so the tablet can lie flat between two children; the other
        two take turns and are read the right way up by both. */
+    /* English past P4. The subject used to stop at Word Builder, which left a
+       P5 or P6 child with nothing of their own. */
+    {id:"opposites",nm:"Opposites",     sub:"Big and small, fast and slow",   emo:"↔️", bg:"linear-gradient(150deg,#FFB3D9,#FF5D8F)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"english", topic:"Words & Meaning"},
+    {id:"grammar", nm:"Grammar Fix",    sub:"Which word fits the gap?",       emo:"📝", bg:"linear-gradient(150deg,#A8D8FF,#4AA8E8)", ages:"5–12", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 – P6", free:false, cat:"english", topic:"Grammar & Sentences"},
+    {id:"sentence",nm:"Sentence Builder",sub:"Tap the words in order",        emo:"🧩", bg:"linear-gradient(150deg,#C3F0A8,#5DC46B)", ages:"5–12", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 – P6", free:false, cat:"english", topic:"Grammar & Sentences"},
+    {id:"punct",   nm:"Capitals & Full Stops",sub:"Which one is written right?", emo:"✒️", bg:"linear-gradient(150deg,#FFD08A,#FF9E3D)", ages:"6–12", levels:["P1","P2","P3","P4","P5","P6"], sg:"P1 – P6", free:false, cat:"english", topic:"Grammar & Sentences"},
+    {id:"meaning", nm:"Word Meaning",   sub:"Work it out from the sentence",  emo:"📖", bg:"linear-gradient(150deg,#C9B4FF,#8B6BE8)", ages:"7–12", levels:["P1","P2","P3","P4","P5","P6"], sg:"P1 – P6", free:false, cat:"english", topic:"Words & Meaning"},
+    {id:"affix",   nm:"Prefix & Suffix",sub:"un-, re-, -ful, -less",          emo:"🔗", bg:"linear-gradient(150deg,#9FE8F5,#2FB6E6)", ages:"8–12", levels:["P2","P3","P4","P5","P6"], sg:"P2 – P6", free:false, cat:"english", topic:"Words & Meaning"},
+    {id:"idiom",   nm:"Idioms & Sayings",sub:"What does it really mean?",     emo:"💬", bg:"linear-gradient(150deg,#FFB98A,#FF7A3D)", ages:"8–12", levels:["P3","P4","P5","P6"], sg:"P3 – P6", free:false, cat:"english", topic:"Words & Meaning"},
+    {id:"reading", nm:"Reading Detective",sub:"Read it, then answer",         emo:"🔦", bg:"linear-gradient(150deg,#A8E6C9,#3FBF87)", ages:"8–12", levels:["P2","P3","P4","P5","P6"], sg:"P2 – P6", free:false, cat:"english", topic:"Reading & Comprehension"},
+
     /* 华文. A Singapore child meets Chinese from Nursery, so it stands beside
        English rather than inside it. */
     {id:"zhpic",   nm:"认字 Picture & Character", sub:"Match the character to the picture", emo:"汉", bg:"linear-gradient(150deg,#FF8A7A,#E8453C)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"chinese", topic:"认字 Characters"},
@@ -1001,17 +1493,38 @@
     var grid = el("div",{"class":"worlds"});
     function addCards(list, into){
     list.forEach(function(w){
-      var card = el("button",{"class":"world", style:"background:"+w.bg});
-      card.appendChild(el("div",{"class":"emo", text:w.emo}));
-      card.appendChild(el("div",{"class":"nm", text:w.nm}));
-      card.appendChild(el("div",{"class":"sub", text:w.sub}));
-      if(w.sg) card.appendChild(el("div",{"class":"sgtag", text:w.sg}));
-      card.appendChild(el("div",{"class":"lvl", text:"Level " + levelOf(w.id) + (starsOf(w.id) ? "  ·  ⭐ " + starsOf(w.id) : "")}));
-      if(!unlocked(w)) card.appendChild(el("div",{"class":"lock"}, el("span",{text:"🔒  Unlock"})));
+      var gated = starLocked(w);
+      var card = el("button",{"class":"world" + (gated ? " gated" : ""), style:"background:"+w.bg});
+
+      if(gated){
+        /* A shape rather than a blank: the emoji is silhouetted so a child can
+           half-guess what it is, and the cost is the loudest thing on it. */
+        var need = starCost(w.id) - (state.stars || 0);
+        card.appendChild(el("div",{"class":"emo hidden-emo", text:w.emo}));
+        card.appendChild(el("div",{"class":"nm", text:"? ? ?"}));
+        card.appendChild(el("div",{"class":"sub", text:"A new game is waiting in here"}));
+        card.appendChild(el("div",{"class":"gatepill"},
+          el("span",{text:"⭐"}),
+          el("span",{text: need + " more star" + (need === 1 ? "" : "s")})));
+      } else {
+        card.appendChild(el("div",{"class":"emo", text:w.emo}));
+        card.appendChild(el("div",{"class":"nm", text:w.nm}));
+        card.appendChild(el("div",{"class":"sub", text:w.sub}));
+        if(w.sg) card.appendChild(el("div",{"class":"sgtag", text:w.sg}));
+        card.appendChild(el("div",{"class":"lvl", text:"Level " + levelOf(w.id) + (starsOf(w.id) ? "  ·  ⭐ " + starsOf(w.id) : "")}));
+        if(!unlocked(w)) card.appendChild(el("div",{"class":"lock"}, el("span",{text:"🔒  Unlock"})));
+      }
+
       card.setAttribute("data-world", w.id);
       card.addEventListener("click", function(){
         sfx.tap();
         if(!licence){ openWelcome(false); return; }
+        if(gated){
+          var short = starCost(w.id) - (state.stars || 0);
+          banner("⭐ " + short + " more to open this one");
+          foxReact("oops");
+          return;
+        }
         if(!unlocked(w)){ openKey(); return; }
         lastOpened = w.id;
         lastScroll = $("screen").scrollTop;
@@ -1077,7 +1590,7 @@
     var wrap = el("div",{style:"flex:1; min-height:0; display:flex; flex-direction:column"});
     var bar = el("div",{"class":"gamebar"});
     var back = el("button",{"class":"iconbtn","aria-label":"Back to the games", text:"←"});
-    back.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+    back.addEventListener("click", function(){ sfx.tap(); runStreak = 0; renderHome(); });
     bar.appendChild(back);
     var dots = el("div",{"class":"dots"});
     for(var i=0;i<total;i++) dots.appendChild(el("div",{"class":"dot"}));
@@ -1098,8 +1611,13 @@
     var stars = correct === total ? 3 : correct >= Math.ceil(total*0.8) ? 2 : correct >= Math.ceil(total*0.5) ? 1 : 0;
     var passed = correct >= Math.ceil(total * 0.7);
     if(stars === 3) state.perfects = (state.perfects || 0) + 1;
+    var beforeLevel = levelOf(world.id);
     award(world.id, stars, passed);
-    if(stars >= 2) sfx.win();
+    runStreak = 0;
+    if(stars === 3){ sfx.win(); confettiBurst(120, window.innerHeight * 0.3); }
+    else if(stars === 2){ sfx.win(); confettiBurst(50); }
+    else if(passed) sfx.levelup();
+    if(passed && levelOf(world.id) > beforeLevel) setTimeout(function(){ sfx.levelup(); }, 700);
 
     var wrap = el("div",{"class":"result"});
     wrap.appendChild(el("div",{"class":"stars-big", text: stars ? new Array(stars+1).join("⭐") : "💪"}));
@@ -1119,6 +1637,43 @@
     show(wrap);
   }
 
+  /* A run of right answers in a row. It resets on a wrong one and on leaving a
+     game, and it is what drives the rising chime and the "3 in a row!" pill. */
+  var runStreak = 0;
+  function rightAnswer(el2){
+    runStreak++;
+    sfx.good();
+    if(runStreak >= 3) sfx.streak(runStreak);
+    sparkle(el2);
+    foxReact("cheer");
+    if(runStreak === 3 || runStreak === 5 || runStreak === 8 || runStreak >= 10) {
+      confettiBurst(runStreak >= 8 ? 70 : 40);
+      banner(runStreak + " in a row!");
+    }
+  }
+  function wrongAnswer(){
+    runStreak = 0;
+    sfx.bad();
+    foxReact("oops");
+  }
+  function foxReact(cls){
+    var a = document.querySelector(".avatar");
+    if(!a || state.motion === false) return;
+    a.classList.remove("cheer","oops");
+    void a.offsetWidth;
+    a.classList.add(cls);
+    setTimeout(function(){ a.classList.remove(cls); }, 800);
+  }
+  /* A short pill that rises over the stage and goes away by itself. */
+  function banner(text){
+    var host = document.querySelector(".stage") || $("screen");
+    if(!host) return;
+    var b = el("div",{"class":"streakpill", text:"🔥  " + text});
+    b.style.cssText += "position:fixed; left:50%; transform:translateX(-50%); top:84px; z-index:33";
+    document.body.appendChild(b);
+    setTimeout(function(){ if(b.parentNode) b.parentNode.removeChild(b); }, 1500);
+  }
+
   function choiceGrid(options, answer, onDone, emoStyle, zhStyle){
     var grid = el("div",{"class":"choices" + (options.length === 3 ? " three" : "")});
     var locked = false;
@@ -1131,7 +1686,8 @@
         locked = true;
         var ok = value === String(answer);
         b.classList.add(ok ? "right" : "wrong");
-        if(!ok){
+        if(ok){ sparkle(b); }
+        else {
           Array.prototype.forEach.call(grid.children, function(c){
             if(c === b) return;
             if(c.textContent === String(answer)) c.classList.add("right");
@@ -1153,7 +1709,7 @@
       if(i >= questions.length){ finish(world, correct, questions.length); return; }
       shell.stage.textContent = "";
       render(questions[i], shell.stage, function(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
         markDot(shell.dots, i, ok);
         i++;
         setTimeout(next, ok ? 620 : 1050);
@@ -1208,6 +1764,10 @@
       a = ri(2, Math.min(4 + level, 10)); c = ri(2, 10);
       return {q: a + " × " + c, prompt:"What is…", a:a*c, opts:numberOptions(a*c, 9)};
     }
+    /* P4, P5 and P6 each get their own syllabus, not just bigger tables. */
+    if(isSenior()) return seniorQuestion(rank());
+    if(rank() === 6) return p4Question();
+
     kinds = ["times","divide","missing","half"];
     var k3 = pick(kinds);
     if(k3 === "times"){ a = ri(3, 12); c = ri(3, 12); return {q:a+" × "+c, prompt:"What is…", a:a*c, opts:numberOptions(a*c, 12)}; }
@@ -1219,10 +1779,189 @@
     ans = ri(4, 40); a = ans * 2;
     return {q:"Half of " + a, prompt:"What is…", a:ans, opts:numberOptions(ans, 6)};
   }
+
+  /* P5 and P6 maths, straight off the MOE syllabus: fractions of a set,
+     percentage, average and rate at P5; ratio, speed, volume, algebra and
+     circles at P6. The wrong answers are the mistakes children actually make
+     — forgetting to convert minutes, halving instead of doubling, using the
+     diameter where the radius belongs — so guessing does not pay. */
+
+  /* P4: factors and multiples, equivalent fractions, decimals to two places,
+     and multiplying by tens — the year the syllabus leaves whole-number tables
+     behind. P3 keeps the tables, which is where they belong. */
+  function p4Question(){
+    var ans, k = pick(["factor", "multiple", "equivFrac", "decimalPlace", "byTen", "bigAdd"]);
+
+    if(k === "factor"){
+      var n = pick([12, 16, 18, 20, 24, 28, 30, 36, 40, 48]);
+      var facs = [], i;
+      for(i = 2; i < n; i++) if(n % i === 0) facs.push(i);
+      ans = pick(facs);
+      var notFacs = [];
+      for(i = 2; i < n && notFacs.length < 6; i++) if(n % i !== 0) notFacs.push(i);
+      return {q: "Which one is a factor of " + n + "?", prompt:"Factors", a:ans,
+        opts: fourOpts(ans, shuffle(notFacs))};
+    }
+    if(k === "multiple"){
+      var base = pick([3, 4, 6, 7, 8, 9, 11, 12]);
+      ans = base * ri(4, 12);
+      return {q: "Which one is a multiple of " + base + "?", prompt:"Multiples", a:ans,
+        opts: fourOpts(ans, [ans + 1, ans - 1, ans + 2, ans + base - 1])};
+    }
+    if(k === "equivFrac"){
+      var den = pick([2, 3, 4, 5, 6]), num = ri(1, den - 1), mult = ri(2, 5);
+      ans = num * mult;
+      return {q: num + "/" + den + " = ? / " + (den * mult), prompt:"Equivalent fractions", a:ans,
+        opts: fourOpts(ans, [num, num + mult, den * mult - ans, ans + 1])};
+    }
+    if(k === "decimalPlace"){
+      var whole = ri(1, 40), hund = ri(10, 99);
+      var val = Number(whole + "." + hund);
+      ans = Number(String(hund).charAt(0));
+      return {q: "In " + val + ", what digit is in the tenths place?", prompt:"Decimals", a:ans,
+        opts: fourOpts(ans, [Number(String(hund).charAt(1)), whole % 10, ans + 1, ans - 1])};
+    }
+    if(k === "byTen"){
+      var m = ri(12, 99), by = pick([10, 100, 1000]);
+      ans = m * by;
+      return {q: m + " × " + by, prompt:"What is…", a:ans,
+        opts: fourOpts(ans, [m * by * 10, Math.round(m * by / 10), ans + by, m + by])};
+    }
+    var a4 = ri(1200, 8900), b4 = ri(500, 3900);
+    ans = a4 + b4;
+    return {q: a4 + " + " + b4, prompt:"What is…", a:ans,
+      opts: fourOpts(ans, [a4 - b4, ans + 100, ans - 10, ans + 1000])};
+  }
+
+  /* Four options, the answer always among them, never a duplicate. Distractors
+     are tried in order; if a set is too small (small numbers collide) it is
+     topped up with near misses. */
+  function fourOpts(ans, wrongs){
+    var out = [ans], i, w;
+    for(i = 0; i < wrongs.length && out.length < 4; i++){
+      w = wrongs[i];
+      if(w == null || !isFinite(w) || w < 0) continue;
+      if(out.indexOf(w) < 0) out.push(w);
+    }
+    var bump = 1;
+    while(out.length < 4){
+      var alt = Math.round((ans + bump) * 100) / 100;
+      if(alt > 0 && out.indexOf(alt) < 0) out.push(alt);
+      bump = bump > 0 ? -bump : -bump + 1;
+      if(bump > 40) break;
+    }
+    return shuffle(out);
+  }
+
+  function seniorQuestion(r){
+    var a, c, ans, kinds, k;
+
+    if(r === 7){ // P5
+      kinds = ["percentOf", "fractionOf", "average", "decimal", "rate", "areaTri"];
+      k = pick(kinds);
+
+      if(k === "percentOf"){
+        var pc = pick([10, 20, 25, 50, 75, 5]);
+        var whole = pick([40, 60, 80, 120, 200, 240, 300, 400]);
+        ans = whole * pc / 100;
+        return {q: pc + "% of " + whole, prompt:"What is…", a:ans,
+          opts: fourOpts(ans, [whole - ans, Math.round(ans / 10), Math.round(ans * 2), whole])};
+      }
+      if(k === "fractionOf"){
+        var den = pick([2,3,4,5,6,8]);
+        var num = ri(1, den - 1);
+        var set = den * ri(3, 12);
+        ans = set / den * num;
+        return {q: num + "/" + den + " of " + set, prompt:"What is…", a:ans,
+          opts: fourOpts(ans, [set / den, set - ans, ans + set / den, set])};
+      }
+      if(k === "average"){
+        var n = pick([3,4,5]);
+        var vals = [], total = 0, j;
+        for(j = 0; j < n; j++){ var v = ri(4, 40); vals.push(v); total += v; }
+        /* Nudge the last one so the mean comes out whole. */
+        var rem = total % n;
+        if(rem){ vals[n-1] += (n - rem); total += (n - rem); }
+        ans = total / n;
+        return {q: "Average of " + vals.join(", "), prompt:"What is…", a:ans,
+          opts: fourOpts(ans, [total, Math.round(total / (n + 1)), ans + n, ans - n])};
+      }
+      if(k === "decimal"){
+        var x = ri(15, 480) / 10, y = ri(12, 250) / 10;
+        ans = Math.round((x + y) * 10) / 10;
+        return {q: x + " + " + y, prompt:"What is…", a:ans,
+          opts: fourOpts(ans, [Math.round((x - y) * 10) / 10, Math.round((ans + 0.9) * 10) / 10,
+            Math.round((ans + 1) * 10) / 10, Math.round((ans - 0.1) * 10) / 10])};
+      }
+      if(k === "rate"){
+        var per = ri(3, 12), units = ri(4, 12);
+        ans = per * units;
+        return {q: units + " books cost $" + ans + ". One book?", prompt:"What is…", a:per,
+          opts: fourOpts(per, [ans, units, per + units, Math.round(ans / 2)])};
+      }
+      var base = pick([6,8,10,12,14,16,20]), h = pick([5,7,9,10,12,15]);
+      ans = base * h / 2;
+      return {q: "Triangle: base " + base + " cm, height " + h + " cm. Area?", prompt:"In cm²…", a:ans,
+        opts: fourOpts(ans, [base * h, ans / 2, base + h, ans + base])};
+    }
+
+    // P6
+    kinds = ["ratio", "speed", "volume", "algebra", "percentChange", "circle"];
+    k = pick(kinds);
+
+    if(k === "ratio"){
+      var p1 = ri(1, 5), p2 = ri(1, 5);
+      if(p1 === p2) p2 = p1 + 1;
+      var unit = ri(3, 14), total2 = (p1 + p2) * unit;
+      ans = p1 * unit;
+      return {q: "Share $" + total2 + " in the ratio " + p1 + " : " + p2 + ". Bigger share?",
+        prompt:"What is…", a: Math.max(p1, p2) * unit,
+        opts: fourOpts(Math.max(p1,p2) * unit, [Math.min(p1,p2) * unit, total2 / 2, unit, total2])};
+    }
+    if(k === "speed"){
+      var spd = pick([40, 50, 60, 72, 80, 90]);
+      var hrs = pick([2, 3, 4, 1.5, 2.5]);
+      ans = spd * hrs;
+      return {q: "A car goes " + spd + " km/h for " + hrs + " h. Distance?", prompt:"In km…", a:ans,
+        opts: fourOpts(ans, [Math.round(spd / hrs), spd + hrs, Math.round(ans / 2), spd * (hrs + 1)])};
+    }
+    if(k === "volume"){
+      var L = ri(3, 12), W = ri(2, 10), H = ri(2, 9);
+      ans = L * W * H;
+      return {q: "Cuboid " + L + " × " + W + " × " + H + " cm. Volume?", prompt:"In cm³…", a:ans,
+        opts: fourOpts(ans, [2 * (L*W + L*H + W*H), L + W + H, L * W, ans * 2])};
+    }
+    if(k === "algebra"){
+      var m = ri(2, 9), xv = ri(2, 15), cst = ri(1, 20);
+      ans = xv;
+      return {q: m + "x + " + cst + " = " + (m * xv + cst) + ".  x = ?", prompt:"Solve for x", a:ans,
+        opts: fourOpts(xv, [m * xv + cst, Math.round((m * xv + cst) / m), xv + m, cst])};
+    }
+    if(k === "percentChange"){
+      var start = pick([80, 120, 150, 200, 250, 400]);
+      var up = pick([10, 20, 25, 50]);
+      ans = start + start * up / 100;
+      return {q: "$" + start + " increased by " + up + "%", prompt:"What is…", a:ans,
+        opts: fourOpts(ans, [start * up / 100, start - start * up / 100, start + up, start])};
+    }
+    var rad = pick([3,4,5,6,7,10]);
+    ans = Math.round(2 * 3.14 * rad * 100) / 100;
+    return {q: "Circle, radius " + rad + " cm. Circumference? (π = 3.14)", prompt:"In cm…", a:ans,
+      opts: fourOpts(ans, [Math.round(3.14 * rad * rad * 100) / 100,
+        Math.round(3.14 * rad * 100) / 100, Math.round(4 * 3.14 * rad * 100) / 100])};
+  }
+
+  /* "4 + ? = 22" already asks the question; only a bare sum needs "= ?" put on
+     the end. Every screen that shows a number question goes through here. */
+  function qLine(q){
+    if(!q.q) return (q.emoji || "").trim();
+    return (q.q.indexOf("=") >= 0 || q.q.indexOf("?") >= 0) ? q.q : q.q + " = ?";
+  }
+
   function renderNumbers(q, stage, done){
     stage.appendChild(el("div",{"class":"prompt", text:q.prompt || "What is…"}));
     if(q.emoji) stage.appendChild(el("div",{"class":"countrow", text:q.emoji.trim()}));
-    else stage.appendChild(el("div",{"class":"bigq", text:q.q + " = ?"}));
+    else stage.appendChild(el("div",{"class":"bigq", text: qLine(q)}));
     stage.appendChild(choiceGrid(q.opts, q.a, done, false));
   }
 
@@ -1243,6 +1982,7 @@
       qs.push({
         letter: letter,
         end: useEnd,
+        word: right.w,
         answer: right.e,
         opts: shuffle([right].concat(others)).map(function(x){ return {label:x.e, value:x.e}; })
       });
@@ -1251,8 +1991,25 @@
   }
   function renderSounds(q, stage, done){
     stage.appendChild(el("div",{"class":"prompt", text: q.end ? "Which one ENDS with…" : "Which one starts with…"}));
-    stage.appendChild(el("div",{"class":"bigq", text: q.letter.toUpperCase() + " " + q.letter}));
-    stage.appendChild(choiceGrid(q.opts, q.answer, done, true));
+
+    /* The letter is spoken as well as shown — the whole point of the game is
+       the sound, and a child who cannot yet read the letter had nothing to go
+       on before. It says it once on arrival and again on every tap. */
+    var letter = q.letter.toUpperCase();
+    var row = el("div",{"class":"sayrow"});
+    row.appendChild(el("div",{"class":"bigq", text: letter + " " + q.letter}));
+    var say = sayButton(letter);
+    if(say) row.appendChild(say);
+    stage.appendChild(row);
+    if(say) stage.appendChild(el("div",{"class":"sayhint", text:"Tap the speaker to hear it again"}));
+    speak(letter);
+
+    stage.appendChild(choiceGrid(q.opts, q.answer, function(ok){
+      /* Saying the word after a right answer is where the sound and the
+         picture join up: "B… ball". */
+      if(ok && q.word) setTimeout(function(){ speak(q.word); }, 260);
+      done(ok);
+    }, true));
   }
 
   /* ---------- Word Builder ---------- */
@@ -1274,8 +2031,15 @@
       var placed = 0, done = false;
 
       shell.stage.textContent = "";
-      shell.stage.appendChild(el("div",{"class":"bigemo", text:item.e}));
+      var erow = el("div",{"class":"sayrow"});
+      erow.appendChild(el("div",{"class":"bigemo", text:item.e}));
+      /* A picture of a fox does not tell you it is spelt F-O-X unless you know
+         the word is "fox". Now it says so. */
+      var say = sayButton(item.w);
+      if(say) erow.appendChild(say);
+      shell.stage.appendChild(erow);
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Tap the letters in order"}));
+      speak(item.w);
 
       var slots = el("div",{"class":"slots"}), slotEls = [], s;
       for(s=0;s<target.length;s++){
@@ -1501,7 +2265,7 @@
           if(!ok) Array.prototype.forEach.call(grid.children, function(c){
             if(c !== b && c.textContent === q.a) c.classList.add("right");
           });
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok);
           shell.stage.appendChild(el("div",{"class":"fact", text:"💡 " + q.f}));
           i++;
@@ -1581,7 +2345,7 @@
           locked = true;
           var ok = it === target;
           btn.classList.add(ok ? "right" : "wrong");
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok);
           i++;
           setTimeout(next, ok ? 640 : 1050);
@@ -1698,7 +2462,7 @@
         shell.stage.appendChild(choiceGrid(shuffle([right].concat(wrongs)).map(function(t){
           return {label:t, value:t};
         }), right, function(ok){
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok);
           i++; setTimeout(next, ok ? 640 : 1100);
         }, false));
@@ -1725,7 +2489,7 @@
         shell.stage.appendChild(choiceGrid(shuffle(opts).map(function(v){
           return {label: money(v), value: money(v)};
         }), money(total), function(ok){
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok);
           i++; setTimeout(next, ok ? 640 : 1100);
         }, false));
@@ -1971,7 +2735,7 @@
       var ok = items[i].k === kind;
       binEl.classList.add(ok ? "bin-ok" : "bin-no");
       setTimeout(function(){ binEl.classList.remove("bin-ok","bin-no"); }, 420);
-      if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+      if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
       markDot(shell.dots, i, ok);
       i++;
       setTimeout(next, ok ? 420 : 760);
@@ -2006,7 +2770,14 @@
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Which one rhymes with…"}));
       shell.stage.appendChild(el("div",{"class":"bigemo", text:target.e}));
-      shell.stage.appendChild(el("div",{"class":"bigq", style:"font-size:clamp(30px,7vw,48px)", text:target.w}));
+      /* Two words rhyme by sound. Reading them is the hard way round for a
+         K2 child, so the word is spoken and can be replayed. */
+      var row = el("div",{"class":"sayrow"});
+      row.appendChild(el("div",{"class":"bigq", style:"font-size:clamp(30px,7vw,48px)", text:target.w}));
+      var say = sayButton(target.w);
+      if(say) row.appendChild(say);
+      shell.stage.appendChild(row);
+      speak(target.w);
 
       var opts = shuffle([answer].concat(others));
       var grid = el("div",{"class":"choices three", style:"max-width:600px"});
@@ -2019,8 +2790,10 @@
           if(locked) return;
           locked = true;
           var ok = o === answer;
+          /* Hearing the pair back to back is what makes the rhyme land. */
+          speak(ok ? target.w + " … " + o.w : o.w);
           btn.classList.add(ok ? "right" : "wrong");
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok);
           i++;
           setTimeout(next, ok ? 700 : 1150);
@@ -2078,7 +2851,7 @@
       }
       while(wrongs.length < 3) wrongs.push(answer + wrongs.length + 1);
       shell.stage.appendChild(choiceGrid(shuffle([answer].concat(wrongs)), answer, function(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
         markDot(shell.dots, i, ok);
         i++;
         setTimeout(next, ok ? 640 : 1100);
@@ -2116,7 +2889,7 @@
       }
       while(wrongs.length < 3) wrongs.push((wrongs.length + 1) + "/" + (d + 2));
       shell.stage.appendChild(choiceGrid(shuffle([right].concat(wrongs)), right, function(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
         markDot(shell.dots, i, ok);
         i++;
         setTimeout(next, ok ? 640 : 1100);
@@ -2166,7 +2939,7 @@
       }
       while(wrongs.length < 3) wrongs.push(answer + wrongs.length + 1);
       shell.stage.appendChild(choiceGrid(shuffle([answer].concat(wrongs)), answer, function(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
         markDot(shell.dots, i, ok); i++;
         setTimeout(next, ok ? 640 : 1100);
       }, false));
@@ -2205,7 +2978,7 @@
         if(opts.indexOf(d) < 0) opts.push(d);
       }
       shell.stage.appendChild(choiceGrid(shuffle(opts), answer, function(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
         markDot(shell.dots, i, ok); i++;
         setTimeout(next, ok ? 620 : 1050);
       }, false));
@@ -2279,7 +3052,7 @@
       }
       while(wrongs.length < 3) wrongs.push(answer + wrongs.length + 1);
       shell.stage.appendChild(choiceGrid(shuffle([answer].concat(wrongs)), answer, function(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
         markDot(shell.dots, i, ok); i++;
         setTimeout(next, ok ? 700 : 1250);
       }, false));
@@ -2337,7 +3110,7 @@
         opts = shuffle([answer].concat(wrongs));
       }
       shell.stage.appendChild(choiceGrid(opts, answer, function(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
         markDot(shell.dots, i, ok); i++;
         setTimeout(next, ok ? 680 : 1150);
       }, false));
@@ -2406,7 +3179,7 @@
       }
       while(wrongs.length < 3) wrongs.push(answer + wrongs.length + 1);
       shell.stage.appendChild(choiceGrid(shuffle([answer].concat(wrongs)), answer, function(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
         markDot(shell.dots, i, ok); i++;
         setTimeout(next, ok ? 680 : 1200);
       }, false));
@@ -2479,7 +3252,7 @@
       shell.stage.appendChild(choiceGrid(shuffle(opts).map(function(v){
         return {label: sgdText(v), value: sgdText(v)};
       }), sgdText(answer), function(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
         markDot(shell.dots, i, ok); i++;
         setTimeout(next, ok ? 680 : 1150);
       }, false));
@@ -2518,7 +3291,7 @@
           locked = true;
           var ok = o.id === item.a;
           btn.classList.add(ok ? "right" : "wrong");
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok); i++;
           setTimeout(next, ok ? 650 : 1100);
         });
@@ -2557,7 +3330,7 @@
           locked = true;
           var ok = o.hn === item.hn;
           btn.classList.add(ok ? "right" : "wrong");
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok); i++;
           setTimeout(next, ok ? 650 : 1100);
         });
@@ -2613,7 +3386,7 @@
             if(placed === cyc.stages.length){
               done = true;
               var ok = wrongTaps === 0;
-              if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+              if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
               markDot(shell.dots, i, ok); i++;
               setTimeout(next, 1100);
             }
@@ -2664,7 +3437,7 @@
         shell.stage.appendChild(el("div",{"class":"prompt", text:"What is this change called?"}));
         shell.stage.appendChild(el("div",{"class":"story", text:ch.q}));
         shell.stage.appendChild(choiceGrid(shuffle([ch.a].concat(ch.w)), ch.a, function(ok){
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok); i++;
           setTimeout(next, ok ? 680 : 1200);
         }, false));
@@ -2677,7 +3450,7 @@
         shell.stage.appendChild(choiceGrid(
           shuffle([{label:"Solid",value:"solid"},{label:"Liquid",value:"liquid"},{label:"Gas",value:"gas"}]),
           kind, function(ok){
-            if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+            if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
             markDot(shell.dots, i, ok); i++;
             setTimeout(next, ok ? 660 : 1150);
           }, false));
@@ -2734,7 +3507,7 @@
       }
       shell.stage.appendChild(choiceGrid(
         shuffle(PLANT_PARTS.map(function(x){ return x.nm; })), part.nm, function(ok){
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok); i++;
           setTimeout(next, ok ? 660 : 1150);
         }, false));
@@ -2784,7 +3557,7 @@
             if(placed === chain.length){
               done = true;
               var ok = wrongTaps === 0;
-              if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+              if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
               shell.stage.appendChild(el("div",{"class":"fact",
                 text:"💡 " + chain[0].n + " is the producer — it makes its own food. Everything after it is a consumer."}));
               markDot(shell.dots, i, ok); i++;
@@ -2932,7 +3705,7 @@
           done = true;
           var ok = o.a === item.a;
           btn.classList.add(ok ? "right" : "wrong");
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           shell.stage.appendChild(el("div",{"class":"fact",
             text: ok ? ("💡 Guessed it with " + shown + " clue" + (shown === 1 ? "" : "s") + ".")
                      : ("💡 It was the " + item.a.toLowerCase() + ".")}));
@@ -2960,7 +3733,7 @@
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Riddle " + (i+1) + " of " + rounds}));
       shell.stage.appendChild(el("div",{"class":"story", style:"font-size:clamp(17px,4.4vw,22px)", text:r.q}));
       shell.stage.appendChild(choiceGrid(shuffle([r.a].concat(r.w)), r.a, function(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
         markDot(shell.dots, i, ok); i++;
         setTimeout(next, ok ? 900 : 1500);
       }, false));
@@ -3013,7 +3786,7 @@
           var ok = o.w === item.w;
           tiles.forEach(function(t){ t.classList.add("open"); });
           btn.classList.add(ok ? "right" : "wrong");
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok);
           i++; setTimeout(next, 1500);
         });
@@ -3076,7 +3849,7 @@
       shell.stage.appendChild(choiceGrid(
         [{label:"The first ⬆", value:"first"}, {label:"The second ⬆", value:"second"}],
         answer, function(ok){
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok); i++;
           setTimeout(next, ok ? 700 : 1150);
         }, false));
@@ -3122,7 +3895,7 @@
         if(opts.indexOf(d) < 0) opts.push(d);
       }
       shell.stage.appendChild(choiceGrid(shuffle(opts), n, function(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
         markDot(shell.dots, i, ok); i++;
         setTimeout(next, ok ? 700 : 1150);
       }, false));
@@ -3156,7 +3929,7 @@
       shell.stage.appendChild(choiceGrid(
         [{label:"The first 🐇", value:"first"}, {label:"The second 🐇", value:"second"}],
         answer, function(ok){
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok); i++;
           setTimeout(next, ok ? 700 : 1150);
         }, false));
@@ -3276,7 +4049,7 @@
                 var ok = k === oddAt;
                 cell.classList.add(ok ? "right" : "wrong");
                 if(!ok) g.children[oddAt].classList.add("right");
-                if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+                if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
                 markDot(shell.dots, i, ok); i++;
                 setTimeout(next, ok ? 750 : 1350);
               });
@@ -3360,7 +4133,7 @@
           locked = true;
           var ok = o.e === item.e;
           btn.classList.add(ok ? "right" : "wrong");
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok); i++;
           setTimeout(next, ok ? 680 : 1150);
         });
@@ -3426,7 +4199,7 @@
           locked = true;
           var ok = s === culprit;
           btn.classList.add(ok ? "right" : "wrong");
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           shell.stage.appendChild(el("div",{"class":"fact",
             text: ok ? "💡 Case solved!" : ("💡 It was the " + culprit.face + " in " + culprit.col.nm + ", wearing " + culprit.acc.nm + ".")}));
           markDot(shell.dots, i, ok); i++;
@@ -3479,6 +4252,14 @@
     if(world.id === "findodd")  return startFindOdd(world);
     if(world.id === "shadow")   return startShadow(world);
     if(world.id === "detective")return startDetective(world);
+    if(world.id === "opposites")return startOpposites(world);
+    if(world.id === "grammar")  return startGrammar(world);
+    if(world.id === "sentence") return startSentence(world);
+    if(world.id === "punct")    return startPunct(world);
+    if(world.id === "meaning")  return startMeaning(world);
+    if(world.id === "affix")    return startAffix(world);
+    if(world.id === "idiom")    return startIdioms(world);
+    if(world.id === "reading")  return startReading(world);
     if(world.id === "zhpic")    return startZhPic(world);
     if(world.id === "zhpinyin") return startZhPinyin(world);
     if(world.id === "zhnum")    return startZhNumbers(world);
@@ -3490,6 +4271,287 @@
   }
 
 
+
+
+  /* ==========================================================================
+     English, P1 to P6
+
+     The subject had three games and nothing above P4. These seven cover what
+     the MOE syllabus asks for at each level, and between them they reach from
+     K1 opposites to P6 comprehension.
+     ========================================================================== */
+
+  /* ---------- Opposites ---------- */
+  function startOpposites(world){
+    var pool = forBand(OPPOSITES, band()), rounds = 8;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0, order = shuffle(pool.slice());
+
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var it = order[i % order.length];
+      /* One extra distractor is pulled from another pair, so three of the four
+         are real words a child has met. */
+      var extra = pick(pool.filter(function(x){ return x.w !== it.w; }));
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"What is the opposite of…"}));
+      var row = el("div",{"class":"sayrow"});
+      row.appendChild(el("div",{"class":"bigq", style:"font-size:clamp(34px,8vw,56px)", text:it.w}));
+      var say = sayButton(it.w);
+      if(say) row.appendChild(say);
+      shell.stage.appendChild(row);
+      speak(it.w);
+      var wrongs = it.x.slice();
+      if(extra && extra.o !== it.o && wrongs.indexOf(extra.o) < 0) wrongs.push(extra.o);
+      shell.stage.appendChild(choiceGrid(
+        shuffle([it.o].concat(wrongs.slice(0, 3))),
+        it.o, function(ok){
+          if(ok){ correct++; sfx.good(); flash("⭐"); speak(it.w + " … " + it.o); } else { sfx.bad(); }
+          markDot(shell.dots, i, ok);
+          i++;
+          setTimeout(next, ok ? 700 : 1100);
+        }, false));
+    }
+    next();
+  }
+
+  /* ---------- Grammar Fix ---------- */
+  function startGrammar(world){
+    var pool = forBand(GRAMMAR, band()), rounds = 8;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0, order = shuffle(pool.slice());
+
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var it = order[i % order.length];
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"Which word fits the gap?"}));
+      shell.stage.appendChild(el("div",{"class":"sentence", text:it.q}));
+      shell.stage.appendChild(choiceGrid(shuffle([it.a].concat(it.x)), it.a, function(ok){
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
+        /* The rule matters more than the mark, so it is always shown. */
+        shell.stage.appendChild(el("div",{"class":"why", text: it.r}));
+        if(ok) speak(it.q.replace("___", it.a));
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 1100 : 1700);
+      }, false));
+    }
+    next();
+  }
+
+  /* ---------- Sentence Builder ---------- */
+  function startSentence(world){
+    var pool = forBand(SENTENCES, band()), rounds = 5;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0, order = shuffle(pool.slice());
+
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var words = order[i % order.length].s.split(" ");
+      var built = [], wrong = false;
+
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"Tap the words in the right order"}));
+      var line = el("div",{"class":"sentline"});
+      shell.stage.appendChild(line);
+      var tray = el("div",{"class":"wordtray"});
+      shell.stage.appendChild(tray);
+
+      function redraw(){
+        line.textContent = "";
+        if(!built.length) line.appendChild(el("span",{"class":"sentghost", text:"…"}));
+        built.forEach(function(w){ line.appendChild(el("span",{"class":"sentword", text:w})); });
+      }
+      redraw();
+
+      /* Shuffled hard enough that the first word is rarely already first. */
+      var jumbled = shuffle(words.slice());
+      if(jumbled[0] === words[0] && words.length > 2) jumbled = shuffle(jumbled);
+
+      jumbled.forEach(function(w){
+        var chip = el("button",{"class":"wordchip", text:w});
+        chip.addEventListener("click", function(){
+          if(chip.disabled || wrong) return;
+          if(w === words[built.length]){
+            chip.disabled = true; chip.classList.add("used");
+            built.push(w); redraw(); sfx.tap();
+            if(built.length === words.length){
+              correct++; sfx.good(); flash("⭐");
+              speak(words.join(" "));
+              markDot(shell.dots, i, true);
+              i++;
+              setTimeout(next, 1500);
+            }
+          } else {
+            /* One wrong tap ends the round — order is the whole skill. */
+            wrong = true;
+            chip.classList.add("bad"); sfx.bad();
+            line.textContent = "";
+            line.appendChild(el("span",{"class":"sentword good", text: words.join(" ")}));
+            markDot(shell.dots, i, false);
+            i++;
+            setTimeout(next, 1900);
+          }
+        });
+        tray.appendChild(chip);
+      });
+    }
+    next();
+  }
+
+  /* ---------- Punctuation ---------- */
+  function startPunct(world){
+    var pool = forBand(PUNCT, band()), rounds = 6;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0, order = shuffle(pool.slice());
+
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var it = order[i % order.length];
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"Which one is written correctly?"}));
+      var opts = shuffle([it.a].concat(it.x));
+      var grid = el("div",{"class":"sentchoices"});
+      var locked = false;
+      opts.forEach(function(o){
+        var btn = el("button",{"class":"sentchoice", text:o});
+        btn.addEventListener("click", function(){
+          if(locked) return;
+          locked = true;
+          var ok = o === it.a;
+          btn.classList.add(ok ? "right" : "wrong");
+          if(!ok){
+            Array.prototype.forEach.call(grid.children, function(c){
+              if(c.textContent === it.a) c.classList.add("right");
+            });
+            sfx.bad();
+          } else { correct++; sfx.good(); flash("⭐"); }
+          markDot(shell.dots, i, ok);
+          i++;
+          setTimeout(next, ok ? 800 : 1700);
+        });
+        grid.appendChild(btn);
+      });
+      shell.stage.appendChild(grid);
+    }
+    next();
+  }
+
+  /* ---------- Word Meaning ---------- */
+  function startMeaning(world){
+    var pool = forBand(MEANINGS, band()), rounds = 8;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0, order = shuffle(pool.slice());
+
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var it = order[i % order.length];
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"What does the word in bold mean?"}));
+      /* The sentence is given because context is how the syllabus wants these
+         worked out, not a bare dictionary lookup. */
+      shell.stage.appendChild(el("div",{"class":"sentence", text:it.s}));
+      var row = el("div",{"class":"sayrow"});
+      row.appendChild(el("div",{"class":"bigq", style:"font-size:clamp(28px,6.5vw,44px)", text:it.w}));
+      var say = sayButton(it.s);
+      if(say) row.appendChild(say);
+      shell.stage.appendChild(row);
+      speak(it.s);
+      shell.stage.appendChild(choiceGrid(shuffle([it.a].concat(it.x)), it.a, function(ok){
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 750 : 1300);
+      }, false));
+    }
+    next();
+  }
+
+  /* ---------- Idioms ---------- */
+  function startIdioms(world){
+    var pool = forBand(IDIOMS, band()), rounds = 6;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0, order = shuffle(pool.slice());
+
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var it = order[i % order.length];
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"What does this saying mean?"}));
+      var row = el("div",{"class":"sayrow"});
+      row.appendChild(el("div",{"class":"idiom", text:"\u201c" + it.i + "\u201d"}));
+      var say = sayButton(it.i);
+      if(say) row.appendChild(say);
+      shell.stage.appendChild(row);
+      speak(it.i);
+      shell.stage.appendChild(choiceGrid(shuffle([it.a].concat(it.x)), it.a, function(ok){
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 800 : 1400);
+      }, false));
+    }
+    next();
+  }
+
+  /* ---------- Prefix & Suffix ---------- */
+  function startAffix(world){
+    var pool = forBand(AFFIXES, band()), rounds = 8;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0, order = shuffle(pool.slice());
+
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var it = order[i % order.length];
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"Which word means…"}));
+      shell.stage.appendChild(el("div",{"class":"bigq", style:"font-size:clamp(24px,5.5vw,38px)", text:it.q}));
+      shell.stage.appendChild(choiceGrid(shuffle([it.a].concat(it.x)), it.a, function(ok){
+        if(ok){ correct++; sfx.good(); flash("⭐"); speak(it.a); } else { sfx.bad(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 750 : 1200);
+      }, false));
+    }
+    next();
+  }
+
+  /* ---------- Reading Detective ---------- */
+  /* A short passage, then one question about what it says and one about what
+     it means — the two halves of comprehension the syllabus separates. */
+  function startReading(world){
+    var pool = forBand(PASSAGES, band());
+    var piece = pick(pool);
+    var qs = piece.qs;
+    var shell = gameShell(world, qs.length);
+    var i = 0, correct = 0;
+
+    function next(){
+      if(i >= qs.length){ finish(world, correct, qs.length); return; }
+      var q = qs[i];
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text: piece.t}));
+      var prow = el("div",{"class":"sayrow"});
+      prow.appendChild(el("div",{"class":"passage", text: piece.p}));
+      shell.stage.appendChild(prow);
+      var say = sayButton(piece.p);
+      if(say){
+        var sr = el("div",{"class":"sayrow"});
+        sr.appendChild(say);
+        sr.appendChild(el("div",{"class":"sayhint", text:"Tap to hear the passage"}));
+        shell.stage.appendChild(sr);
+      }
+      shell.stage.appendChild(el("div",{"class":"sentence", text: q.q}));
+      shell.stage.appendChild(choiceGrid(shuffle([q.a].concat(q.x)), q.a, function(ok){
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 850 : 1500);
+      }, false));
+    }
+    next();
+  }
 
   /* ==========================================================================
      华文 Chinese
@@ -3531,8 +4593,15 @@
       shell.stage.textContent = "";
       if(charFirst){
         shell.stage.appendChild(el("div",{"class":"prompt", text:"Which picture is this?"}));
-        shell.stage.appendChild(zhCharCard(right.c));
+        /* Chinese is a spoken language first. The device's Mandarin voice
+           reads the character, slowly, and will say it again on tap. */
+        var crow = el("div",{"class":"sayrow"});
+        crow.appendChild(zhCharCard(right.c));
+        var csay = sayButton(right.c, {lang:"zh-CN", rate:0.72});
+        if(csay) crow.appendChild(csay);
+        shell.stage.appendChild(crow);
         shell.stage.appendChild(el("div",{"class":"zh-pinyin", text:right.p}));
+        speak(right.c, {lang:"zh-CN", rate:0.72});
         shell.stage.appendChild(choiceGrid(
           shuffle([right].concat(others)).map(function(x){ return {label:x.e, value:x.e}; }),
           right.e, done, true));
@@ -3546,7 +4615,7 @@
       }
 
       function done(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
         markDot(shell.dots, i, ok);
         if(!ok) say(right.c + "  " + right.p + "  —  " + right.m);
         i++;
@@ -3575,12 +4644,17 @@
 
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:"How do you read this?"}));
-      shell.stage.appendChild(zhCharCard(right.c));
+      var prow = el("div",{"class":"sayrow"});
+      prow.appendChild(zhCharCard(right.c));
+      var psay = sayButton(right.c, {lang:"zh-CN", rate:0.72});
+      if(psay) prow.appendChild(psay);
+      shell.stage.appendChild(prow);
       shell.stage.appendChild(el("div",{"class":"zh-pinyin", text:right.e + "  " + right.m}));
+      speak(right.c, {lang:"zh-CN", rate:0.72});
       shell.stage.appendChild(choiceGrid(
         shuffle([right].concat(others)).map(function(x){ return {label:x.p, value:x.p}; }),
         right.p, function(ok){
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok);
           i++;
           setTimeout(next, ok ? 620 : 1050);
@@ -3605,8 +4679,13 @@
       shell.stage.textContent = "";
       if(toNumber){
         shell.stage.appendChild(el("div",{"class":"prompt", text:"Which number is this?"}));
-        shell.stage.appendChild(zhCharCard(right.c, right.c.length > 2 ? "64px" : ""));
+        var nrow = el("div",{"class":"sayrow"});
+        nrow.appendChild(zhCharCard(right.c, right.c.length > 2 ? "64px" : ""));
+        var nsay = sayButton(right.c, {lang:"zh-CN", rate:0.72});
+        if(nsay) nrow.appendChild(nsay);
+        shell.stage.appendChild(nrow);
         shell.stage.appendChild(el("div",{"class":"zh-pinyin", text:right.p}));
+        speak(right.c, {lang:"zh-CN", rate:0.72});
         shell.stage.appendChild(choiceGrid(
           shuffle([right].concat(others)).map(function(x){ return {label:String(x.n), value:String(x.n)}; }),
           String(right.n), done, false));
@@ -3618,7 +4697,7 @@
           right.c, done, false, true));
       }
       function done(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
         markDot(shell.dots, i, ok);
         i++;
         setTimeout(next, ok ? 620 : 1050);
@@ -3654,8 +4733,11 @@
       shell.stage.appendChild(choiceGrid(
         shuffle([right.z].concat(opts)).map(function(z){ return {label:z, value:z}; }),
         right.z, function(ok){
-          if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok);
+          /* Right or wrong, the whole word is read out — that is the bit
+             worth remembering. */
+          setTimeout(function(){ speak(right.w, {lang:"zh-CN", rate:0.72}); }, 240);
           if(!ok) shell.stage.appendChild(el("div",{"class":"zh-tell", text: right.w + "  " + right.p}));
           i++;
           setTimeout(next, ok ? 620 : 1400);
@@ -3807,9 +4889,7 @@
          the missing-number kind already carries its own "=". A duel needs one
          short line both children can read at a glance, with no second "= ?"
          stuck on the end of one that has one already. */
-      var line = q.q ? (q.q.indexOf("=") >= 0 || q.q.indexOf("?") >= 0 ? q.q : q.q + " = ?")
-                     : (q.emoji || "").trim();
-      return {q: line, a:q.a, opts:q.opts};
+      return {q: qLine(q), a:q.a, opts:q.opts};
     });
   }
 
@@ -3909,9 +4989,7 @@
       var q = numberQuestion(b, level);
       stage.textContent = "";
       stage.appendChild(el("div",{"class":"prompt", text: names[turn] + " — answer to claim it"}));
-      stage.appendChild(el("div",{"class":"bigq",
-        text: q.q ? (q.q.indexOf("=") >= 0 || q.q.indexOf("?") >= 0 ? q.q : q.q + " = ?")
-                  : (q.emoji || "").trim()}));
+      stage.appendChild(el("div",{"class":"bigq", text: qLine(q)}));
       stage.appendChild(choiceGrid(q.opts, q.a, function(ok){
         if(ok){ cells[idx] = turn; sfx.good(); flash(marks[turn]); }
         else { sfx.bad(); }
@@ -4044,6 +5122,28 @@
       avs.appendChild(b);
     });
     af.appendChild(avs); box.appendChild(af);
+
+    /* Two switches a grown-up may want on a long car journey or in a quiet
+       room. Sound off also silences the spoken words, which is the point. */
+    var sf = el("div",{"class":"field"});
+    sf.appendChild(el("label",{text:"Sound and movement"}));
+    var togs = el("div",{"class":"togrow"});
+    function toggle(label, key){
+      var on = state[key] !== false;
+      var t = el("button",{"class":"tog" + (on ? " on" : ""), text:label});
+      t.addEventListener("click", function(){
+        on = !on;
+        t.classList.toggle("on", on);
+        state[key] = on;
+        save();
+        if(key === "sound" && on) sfx.pop();
+        if(key === "motion" && on) confettiBurst(18);
+      });
+      return t;
+    }
+    togs.appendChild(toggle("🔊  Sound", "sound"));
+    togs.appendChild(toggle("✨  Movement", "motion"));
+    sf.appendChild(togs); box.appendChild(sf);
 
     var m = modal(box);
     var go = el("button",{"class":"btn btn-lg btn-go", id:"pc_save", style:"width:100%; margin-top:8px", text:"Save"});
@@ -4312,6 +5412,27 @@
     })["catch"](function(){ return null; });
     return googleReady;
   }
+
+  /* A ring wherever a finger lands, on every button in the app. One listener
+     on the document rather than one per button, and it skips itself when
+     motion is turned off. */
+  function armRipples(){
+    document.addEventListener("pointerdown", function(e){
+      if(state.motion === false) return;
+      var t = e.target;
+      while(t && t !== document.body){
+        if(t.tagName === "BUTTON" || t.getAttribute && t.getAttribute("role") === "button") break;
+        t = t.parentElement;
+      }
+      if(!t || t === document.body) return;
+      var r = el("div",{"class":"ripple"});
+      r.style.left = e.clientX + "px";
+      r.style.top = e.clientY + "px";
+      document.body.appendChild(r);
+      setTimeout(function(){ if(r.parentNode) r.parentNode.removeChild(r); }, 520);
+    }, {passive:true});
+  }
+  armRipples();
 
   function holdHistory(){
     try{

@@ -86,9 +86,13 @@
   .btn-ghost{background:rgba(255,255,255,.6)}
 
   .layout{
-    flex:1; min-height:0; display:grid; grid-template-columns:352px minmax(0,1fr); gap:20px;
+    flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,352px) minmax(0,1fr); gap:20px;
     padding:20px; padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));
   }
+  /* A grid item defaults to min-width:auto, which means it refuses to shrink
+     below its content. On a phone that made the control deck 662px wide inside
+     a 390px screen, and the whole page scrolled sideways. */
+  .deck, .stage{min-width:0}
 
   /* ---------- control deck ---------- */
   .deck{display:flex; flex-direction:column; gap:16px; min-height:0; overflow:auto; padding-right:4px; padding-bottom:8px}
@@ -166,6 +170,10 @@
   .scroller::-webkit-scrollbar-thumb{background:rgba(36,31,77,.16); border-radius:999px}
   .sheet-wrap{display:flex; flex-direction:column; align-items:center; gap:22px}
   .sheet-fit{position:relative}
+  /* fitSheets() scales the sheet down to fit and then sizes this box to the
+     scaled result, so the scale has to grow from the top left corner — from
+     the middle it would sit half outside its own box on a phone. */
+  .sheet-fit > .sheet{transform-origin:top left}
   .sheet{
     width:190mm; height:277mm; background:var(--paper); color:#12102B;
     box-shadow:0 10px 34px rgba(36,31,77,.18); border-radius:5px;
@@ -244,11 +252,28 @@
   }
 
   @media (max-width:900px){
-    .layout{grid-template-columns:1fr; overflow:auto}
+    .layout{grid-template-columns:minmax(0,1fr); overflow-x:hidden}
     .deck{overflow:visible; max-height:none}
     .scroller{overflow:visible}
     .page-tag{display:none}
     .stage{min-height:auto}
+  }
+  /* Phones. The deck becomes one column of full-width cards, the activity
+     picker reflows to whatever fits, and every control keeps a finger-sized
+     target rather than being squeezed to a sliver. */
+  @media (max-width:560px){
+    .layout{padding:12px; gap:14px}
+    .card{padding:14px}
+    .acts{grid-template-columns:repeat(auto-fit,minmax(84px,1fr)); gap:8px}
+    .act{padding:10px 4px 8px}
+    .act .ico{width:34px; height:34px}
+    .act .nm{font-size:10.2px}
+    .seg{flex-wrap:wrap}
+    .seg button{flex:1 1 auto; min-height:46px}
+    .stage-bar{gap:8px}
+    .stage-title{font-size:16px; width:100%}
+    .input, .stepper button{min-height:48px}
+    .topbar{padding:10px 12px}
   }
   @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
 

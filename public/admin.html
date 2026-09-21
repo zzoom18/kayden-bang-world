@@ -96,11 +96,17 @@
 <div class="gate" id="gate">
   <div class="panel">
     <h2>Kayden Bang World Admin</h2>
-    <p class="note">Enter your admin token. It is the <code>ADMIN_TOKEN</code> set on the server.</p>
-    <label for="tok">Admin token</label>
-    <input id="tok" type="password" autocomplete="off" spellcheck="false">
+    <p class="note">Sign in with the Google account that owns this site.</p>
+    <div id="gsi" style="display:flex; justify-content:center; min-height:44px; margin:18px 0 6px"></div>
     <div class="msg bad" id="gateMsg"></div>
-    <button class="btn btn-go" id="gateGo" style="width:100%; margin-top:12px">Sign in</button>
+    <!-- The token is still accepted, and is the way back in if Google sign-in
+         is ever misconfigured. It stays out of the way until it is needed. -->
+    <details id="tokfall" style="margin-top:20px">
+      <summary style="cursor:pointer; color:#8E88C4; font-weight:700; font-size:14px">Use an admin token instead</summary>
+      <label for="tok" style="margin-top:12px">Admin token</label>
+      <input id="tok" type="password" autocomplete="off" spellcheck="false">
+      <button class="btn btn-go" id="gateGo" style="width:100%; margin-top:12px">Sign in with token</button>
+    </details>
   </div>
 </div>
 
@@ -215,6 +221,48 @@
       return false;
     });
   }
+  /* ---------- Google sign-in ---------- */
+  function startGoogleGate(){
+    fetch("/api/config").then(function(r){ return r.json(); }).then(function(cfg){
+      if(!(cfg && cfg.ok && cfg.googleClientId)){
+        /* No client id configured: the token is the only way in, so open it. */
+        $("tokfall").open = true;
+        $("gsi").innerHTML = '<div class="note">Google sign-in is not configured yet.</div>';
+        return;
+      }
+      var sc = document.createElement("script");
+      sc.src = "https://accounts.google.com/gsi/client";
+      sc.async = true; sc.defer = true;
+      sc.onload = function(){
+        try{
+          google.accounts.id.initialize({
+            client_id: cfg.googleClientId,
+            callback: function(resp){
+              say($("gateMsg"), "", true);
+              fetch("/api/admin/login", {
+                method:"POST", headers:{"content-type":"application/json"},
+                body: JSON.stringify({credential: resp.credential})
+              }).then(function(r){ return r.json().then(function(j){ return {status:r.status, body:j}; }); })
+                .then(function(res){
+                  if(res.status === 200 && res.body.ok) return signIn(res.body.token);
+                  say($("gateMsg"), res.body.message || "That sign-in was not accepted.", false);
+                })["catch"](function(){ say($("gateMsg"), "Could not reach the server.", false); });
+            }
+          });
+          google.accounts.id.renderButton($("gsi"), {
+            theme:"filled_blue", size:"large", shape:"pill", text:"signin_with", width:300
+          });
+        }catch(e){ $("tokfall").open = true; }
+      };
+      sc.onerror = function(){
+        $("tokfall").open = true;
+        $("gsi").innerHTML = '<div class="note">Could not load Google sign-in.</div>';
+      };
+      document.head.appendChild(sc);
+    })["catch"](function(){ $("tokfall").open = true; });
+  }
+  startGoogleGate();
+
   $("gateGo").addEventListener("click", function(){
     var v = ($("tok").value || "").trim();
     if(!v){ say($("gateMsg"), "Enter your token.", false); return; }

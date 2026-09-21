@@ -542,18 +542,91 @@ async function handleVerify(req, res) {
   });
 }
 
+/* Who may open /admin. Signing in with one of these Google accounts is the
+   normal way in; the long ADMIN_TOKEN still works as a way back in if Google
+   is ever misconfigured, which would otherwise lock the owner out of his own
+   site. */
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'zzoom18@gmail.com')
+  .split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+const ADMIN_SESSION_HOURS = 12;
+
+function sameString(a, b) {
+  const x = Buffer.from(String(a));
+  const y = Buffer.from(String(b));
+  // timingSafeEqual throws on a length mismatch, and the length itself is not
+  // worth hiding here, so it is checked first.
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
+}
+
+function adminSign(payload) {
+  return crypto.createHmac('sha256', KEY_SECRET)
+    .update(`admin1:${payload}`).digest('base64url').slice(0, 43);
+}
+
+function adminSession(email) {
+  const body = Buffer.from(JSON.stringify({
+    e: email, x: Math.floor(Date.now() / 1000) + ADMIN_SESSION_HOURS * 3600
+  })).toString('base64url');
+  return `${body}.${adminSign(body)}`;
+}
+
+function readAdminSession(token) {
+  const parts = String(token || '').split('.');
+  if (parts.length !== 2) return null;
+  if (!sameString(parts[1], adminSign(parts[0]))) return null;
+  let claims;
+  try { claims = JSON.parse(Buffer.from(parts[0], 'base64url').toString('utf8')); }
+  catch { return null; }
+  if (!claims || Number(claims.x) <= Math.floor(Date.now() / 1000)) return null;
+  // Re-checked on every request, so removing an address from ADMIN_EMAILS ends
+  // that person's session immediately rather than in twelve hours.
+  if (ADMIN_EMAILS.indexOf(String(claims.e || '').toLowerCase()) < 0) return null;
+  return claims;
+}
+
 function requireAdmin(req, res) {
-  if (!ADMIN_TOKEN) {
-    sendJson(req, res, 404, { ok: false, error: 'not_found' });
-    return false;
-  }
   const auth = req.headers.authorization || '';
   const given = auth.startsWith('Bearer ') ? auth.slice(7) : '';
-  if (given.length !== ADMIN_TOKEN.length || !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(ADMIN_TOKEN))) {
-    sendJson(req, res, 401, { ok: false, error: 'unauthorized' });
-    return false;
+
+  if (given && readAdminSession(given)) return true;
+  if (ADMIN_TOKEN && given && sameString(given, ADMIN_TOKEN)) return true;
+
+  sendJson(req, res, 401, { ok: false, error: 'unauthorized' });
+  return false;
+}
+
+/* Sign in to the admin page with Google. The ID token is verified exactly as a
+   parent's is; the only extra step is checking the address is on the list. */
+async function handleAdminLogin(req, res) {
+  if (!GOOGLE_CLIENT_ID) {
+    return sendJson(req, res, 503, {
+      ok: false, error: 'google_not_configured',
+      message: 'Google sign-in is not set up yet. Use the admin token for now.'
+    });
   }
-  return true;
+
+  let body;
+  try { body = await readBody(req); } catch { return sendJson(req, res, 400, { ok: false, error: 'bad_request' }); }
+
+  let claims;
+  try {
+    claims = verifyGoogleToken(body.credential, { keys: await googleKeys(), clientId: GOOGLE_CLIENT_ID });
+  } catch (err) {
+    console.error('[admin] rejected a Google sign-in:', err.message);
+    return sendJson(req, res, 401, { ok: false, error: 'google_rejected', message: 'Google could not confirm that sign-in.' });
+  }
+
+  const email = String(claims.email).toLowerCase();
+  if (ADMIN_EMAILS.indexOf(email) < 0) {
+    console.error(`[admin] ${email} is not on the admin list`);
+    return sendJson(req, res, 403, {
+      ok: false, error: 'not_an_admin',
+      message: 'That account is not an administrator of this site.'
+    });
+  }
+
+  console.log(`[admin] signed in as ${email}`);
+  return sendJson(req, res, 200, { ok: true, token: adminSession(email), email });
 }
 
 async function handleMint(req, res) {
@@ -604,6 +677,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (url.pathname === '/api/register' && req.method === 'POST') return await handleRegister(req, res);
     if (url.pathname === '/api/google' && req.method === 'POST') return await handleGoogle(req, res);
+    if (url.pathname === '/api/admin/login' && req.method === 'POST') return await handleAdminLogin(req, res);
     if (url.pathname === '/api/activate' && req.method === 'POST') return await handleActivate(req, res);
     if (url.pathname === '/api/verify' && req.method === 'POST') return await handleVerify(req, res);
     if (url.pathname === '/api/admin/mint' && req.method === 'POST') return await handleMint(req, res);
@@ -629,5 +703,5 @@ server.listen(PORT, () => {
   console.log(`  sample access: ${TRIAL_DAYS} days, registrations saved to ${REGISTRATIONS}`);
   console.log(`  access: ${settings.openAccess ? 'OPEN — everyone gets ' + settings.defaultTier : 'trial then licence key'}`);
   console.log(`  Google sign-in: ${GOOGLE_CLIENT_ID ? 'enabled' : 'off (set GOOGLE_CLIENT_ID)'}`);
-  console.log(`  admin page: /admin`);
+  console.log(`  admin page: /admin (sign in as ${ADMIN_EMAILS.join(', ')})`);
 });
