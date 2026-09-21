@@ -10,11 +10,12 @@ COPY server.js ./
 
 ENV NODE_ENV=production
 
-# DATA_DIR must be pointed at a mounted volume in production. The default here
-# is inside the image, which a container host throws away on every deploy, so
-# the app prints a warning at startup if it finds itself in that position.
+# DATA_DIR must point at a volume mounted by the host. Railway rejects a
+# docker VOLUME instruction outright — volumes there are attached to the
+# service, not declared in the image — so this only names the path the mount
+# is expected at. The app warns loudly at startup if it finds itself writing
+# somewhere the host will throw away.
 ENV DATA_DIR=/data
-VOLUME ["/data"]
 
 # The host supplies PORT; 3000 is only the fallback the app uses locally.
 EXPOSE 3000
