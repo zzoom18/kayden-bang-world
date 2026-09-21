@@ -201,6 +201,29 @@
     font-family:"Baloo 2",sans-serif; font-weight:800; font-size:clamp(26px,6vw,38px);
     display:grid; place-items:center; padding:14px; transition:transform .14s var(--ease), background .16s ease;
   }
+  /* ---- Number Rally ---- */
+  .track-r{position:relative; width:100%; max-width:700px; border-radius:22px; padding:12px 12px 12px 0;
+    background:linear-gradient(180deg,#3B3480,#2A2560); border:3px solid rgba(255,255,255,.12);
+    display:flex; flex-direction:column; gap:9px}
+  .lane-r{display:flex; align-items:center; gap:9px}
+  .lane-name{width:64px; flex:none; text-align:right; font-size:11.5px; font-weight:800;
+    color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .lane-r.mine .lane-name{color:#FFD98A}
+  .lane-strip{position:relative; flex:1; height:38px; border-radius:12px;
+    background:repeating-linear-gradient(90deg, rgba(255,255,255,.07) 0 26px, rgba(255,255,255,0) 26px 52px),
+               rgba(0,0,0,.26)}
+  .lane-r.mine .lane-strip{background:repeating-linear-gradient(90deg, rgba(255,217,138,.13) 0 26px, rgba(255,255,255,0) 26px 52px), rgba(0,0,0,.3);
+    box-shadow:inset 0 0 0 2px rgba(255,217,138,.3)}
+  .lane-car{position:absolute; top:50%; transform:translateY(-50%); left:0; font-size:26px;
+    transition:left .45s var(--ease)}
+  .lane-r.mine .lane-car{font-size:30px}
+  .lane-car.zoom{animation:zoomcar .45s var(--ease)}
+  @keyframes zoomcar{0%,100%{filter:none} 40%{filter:drop-shadow(-10px 0 6px rgba(255,217,138,.8)) brightness(1.3)}}
+  .lane-car.skid{animation:skidcar .45s ease}
+  @keyframes skidcar{0%,100%{transform:translateY(-50%)} 30%{transform:translateY(-50%) rotate(-18deg)} 60%{transform:translateY(-50%) rotate(10deg)}}
+  .finishline{position:absolute; right:8px; top:0; bottom:0; display:flex; align-items:center;
+    font-size:26px; pointer-events:none}
+
   /* ---- Maths Quest ---- */
   .questStage{gap:14px; justify-content:flex-start; padding-top:10px}
   .herogrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(104px,1fr)); gap:11px; margin:6px 0 4px}
@@ -802,7 +825,7 @@
 </div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 
-<script src="content.js?v=20260921-19"></script>
+<script src="content.js?v=20260921-20"></script>
 <script>
 (function(){
   "use strict";
@@ -958,7 +981,7 @@
     quick:"bouncy", duo:"bouncy"
   };
   /* A few games are distinctive enough to deserve their own. */
-  var GAME_MOOD = { quest:"heroic", cannon:"sea", homes:"sunny", lifecycle:"sunny", foodchain:"sunny",
+  var GAME_MOOD = { quest:"heroic", race:"bouncy", cannon:"sea", homes:"sunny", lifecycle:"sunny", foodchain:"sunny",
     detective:"mystery", shadow:"mystery", mystery:"mystery", riddle:"curious",
     duomaths:"bouncy", duoword:"bouncy", reading:"calm" };
 
@@ -1487,7 +1510,10 @@
   var JOURNEY = {
     /* Harbour Cannon sits second so it is open from the first day at every
        age: it is the game a child will want to show someone. */
-    maths:   ["tenframe","cannon","quest","bonds","numbers","shapes","sgmoney","money","picgraph","barmodel","fraction","areaperim","balance"],
+    /* Number Quest is the backbone of the subject and stays open from day one
+       at every age; the two showy games are worth earning. Adding them ahead
+       of it quietly pushed the flagship game behind a 35-star gate. */
+    maths:   ["tenframe","numbers","cannon","quest","race","bonds","shapes","sgmoney","money","picgraph","barmodel","fraction","areaperim","balance"],
     english: ["sounds","spell","rhyme","opposites","grammar","sentence","punct","meaning","affix","idiom","reading"],
     think:   ["odd","sort","code"],
     science: ["quiz"],
@@ -1796,6 +1822,7 @@
     /* Two players, one iPad. The head-to-head pair turn the far player's half
        upside down so the tablet can lie flat between two children; the other
        two take turns and are read the right way up by both. */
+    {id:"race",    nm:"Number Rally",   sub:"Answer fast, beat three rivals",  emo:"🏎️", bg:"linear-gradient(150deg,#7FD8FF,#2F7FD6)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"quest",   nm:"Maths Quest",    sub:"Fight 250 enemies with sums",    emo:"⚔️", bg:"linear-gradient(150deg,#FFB36B,#E8563C)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"cannon",  nm:"Harbour Cannon", sub:"Sink it only if your shell is bigger", emo:"🚢", bg:"linear-gradient(150deg,#6FC6F0,#2E7FC2)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
 
@@ -2733,8 +2760,12 @@
     return e;
   }
   function board(vbW, vbH, maxPx){
+    /* height is a CSS property here, not an SVG geometry attribute: the
+       attribute only accepts a length, so height="auto" was rejected and
+       logged an error on every board we drew. The style below is what
+       actually keeps the aspect ratio. */
     var g = sv("svg",{viewBox:"0 0 " + vbW + " " + vbH, width:"100%",
-      height:"auto", "font-family":"Baloo 2, Nunito, sans-serif"});
+      "font-family":"Baloo 2, Nunito, sans-serif"});
     g.setAttribute("style","width:100%; max-width:" + (maxPx || 460) + "px; height:auto; display:block");
     return g;
   }
@@ -4707,6 +4738,7 @@
     if(world.id === "findodd")  return startFindOdd(world);
     if(world.id === "shadow")   return startShadow(world);
     if(world.id === "detective")return startDetective(world);
+    if(world.id === "race")     return startRace(world);
     if(world.id === "quest")    return startQuest(world);
     if(world.id === "cannon")   return startCannon(world);
     if(world.id === "opposites")return startOpposites(world);
@@ -4731,6 +4763,157 @@
 
 
 
+
+
+  /* ==========================================================================
+     Number Rally
+     --------------------------------------------------------------------------
+     A race where the accelerator is arithmetic. Three rivals drive at a steady
+     pace down the track; your car only moves when you answer correctly. Get
+     one wrong and you skid and lose a little ground.
+
+     The rivals' pace is set from how long a child of that age actually needs
+     to read a question and tap an answer, so the race is close rather than
+     hopeless or free. A child who answers most questions right wins; one who
+     guesses does not.
+     ========================================================================== */
+
+  var RIVALS = [
+    {e:"🚙", nm:"Blue",   c:"#4AA8E8"},
+    {e:"🚕", nm:"Yellow", c:"#F2A93B"},
+    {e:"🚓", nm:"Black",  c:"#6B6799"}
+  ];
+  var MY_CARS = ["🏎️","🚗","🚐","🛻"];
+
+  function startRace(world){
+    var b = band();
+    var toWin = b === 0 ? 6 : b === 1 ? 8 : 10;      /* correct answers to finish */
+    /* Seconds a rival takes to cross. Built from a realistic time per question
+       for that age, with enough slack that thinking is not punished. */
+    var perQ = b === 0 ? 9 : b === 1 ? 8 : b === 2 ? 7 : 6.5;
+    var raceSecs = toWin * perQ * 1.25;
+
+    var shell = gameShell(world, toWin);
+    var mine = 0, asked = 0, correct = 0, over = false;
+    var myCar = MY_CARS[Math.floor(Math.random() * MY_CARS.length)];
+
+    shell.stage.appendChild(el("div",{"class":"prompt",
+      text:"Answer to drive. Every right answer moves you on!"}));
+
+    var track = el("div",{"class":"track-r"});
+    var lanes = [];
+
+    /* Your lane first, so the child's eye starts there. */
+    function lane(carEmoji, name, isMine){
+      var l = el("div",{"class":"lane-r" + (isMine ? " mine" : "")});
+      l.appendChild(el("div",{"class":"lane-name", text:name}));
+      var strip = el("div",{"class":"lane-strip"});
+      var car = el("div",{"class":"lane-car", text:carEmoji});
+      strip.appendChild(car);
+      l.appendChild(strip);
+      track.appendChild(l);
+      return {el:l, car:car, strip:strip, at:0};
+    }
+    var me = lane(myCar, (state.name || "You"), true);
+    RIVALS.forEach(function(r){ lanes.push(lane(r.e, r.nm, false)); });
+
+    var flag = el("div",{"class":"finishline", text:"🏁"});
+    track.appendChild(flag);
+    shell.stage.appendChild(track);
+
+    var qbox = el("div",{"class":"qbox"});
+    shell.stage.appendChild(qbox);
+
+    function place(l, frac){
+      /* The strip is the road; the car sits along it by percentage, with room
+         at the right so it never overruns the flag. */
+      l.car.style.left = (Math.max(0, Math.min(1, frac)) * 88) + "%";
+    }
+    function redraw(){
+      place(me, mine / toWin);
+      lanes.forEach(function(l){ place(l, l.at); });
+    }
+    redraw();
+
+    var last = null, elapsed = 0;
+    function frame(ts){
+      if(over) return;
+      if(!document.body.contains(track)){ over = true; return; }
+      if(last === null) last = ts;
+      var dt = Math.min(0.05, (ts - last) / 1000);
+      last = ts;
+      elapsed += dt;
+      /* Rivals drive at slightly different speeds so the pack spreads out and
+         there is always someone to chase. */
+      lanes.forEach(function(l, i){
+        l.at = Math.min(1, (elapsed / raceSecs) * (0.86 + i * 0.12));
+      });
+      redraw();
+      var leader = Math.max.apply(null, lanes.map(function(l){ return l.at; }));
+      if(leader >= 1){ over = true; finishRace(false); return; }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    function nextQuestion(){
+      if(over) return;
+      qbox.textContent = "";
+      var Q = numberQuestion(b, Math.max(1, levelOf("numbers")));
+      asked++;
+      qbox.appendChild(el("div",{"class":"prompt", text: Q.prompt || "What is…"}));
+      if(Q.emoji) qbox.appendChild(el("div",{"class":"countrow", text:Q.emoji.trim()}));
+      else qbox.appendChild(el("div",{"class":"bigq", text: qLine(Q)}));
+      qbox.appendChild(choiceGrid(Q.opts, Q.a, function(ok){
+        if(over) return;
+        if(ok){
+          correct++; mine++;
+          me.car.classList.add("zoom");
+          setTimeout(function(){ me.car.classList.remove("zoom"); }, 420);
+          sfx.pop();
+          rightAnswer(me.car);
+          markDot(shell.dots, Math.min(mine, toWin) - 1, true);
+        } else {
+          /* A skid costs a little ground but never all of it. */
+          mine = Math.max(0, mine - 0.5);
+          me.car.classList.add("skid");
+          setTimeout(function(){ me.car.classList.remove("skid"); }, 420);
+          wrongAnswer();
+        }
+        redraw();
+        if(mine >= toWin){ over = true; setTimeout(function(){ finishRace(true); }, 600); return; }
+        setTimeout(nextQuestion, ok ? 420 : 800);
+      }, false));
+    }
+
+    function finishRace(won){
+      music.stop();
+      var beaten = lanes.filter(function(l){ return l.at < 1; }).length;
+      var placeN = won ? 1 : (4 - beaten);
+      if(won){ sfx.win(); confettiBurst(90); }
+      else sfx.bad();
+
+      var box = el("div",{"class":"result"});
+      box.appendChild(el("div",{"class":"stars-big", text: won ? "🏆" : "🏁"}));
+      box.appendChild(el("div",{"class":"score display",
+        text: won ? "First place!" : (placeN === 2 ? "Second place" : placeN === 3 ? "Third place" : "Fourth place")}));
+      box.appendChild(el("div",{style:"font-weight:800; color:#C9C4EE; font-size:16px",
+        text: correct + " right out of " + asked + (won ? "" : " — a bit quicker next time and you have them")}));
+
+      /* Scored on the driving, not only the winning: getting them right is the
+         point, and a child who answers well but reads slowly still earns. */
+      var score = Math.min(toWin, Math.round(correct));
+      award(world.id, won ? 3 : score >= toWin * 0.7 ? 2 : score >= toWin * 0.4 ? 1 : 0, won || score >= toWin * 0.7);
+
+      var again = el("button",{"class":"btn btn-lg btn-go", style:"min-width:240px", text:"Race again"});
+      again.addEventListener("click", function(){ sfx.tap(); startRace(world); });
+      var home = el("button",{"class":"btn btn-lg btn-ghost", style:"min-width:240px", text:"Choose another game"});
+      home.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+      box.appendChild(again); box.appendChild(home);
+      show(box);
+    }
+
+    nextQuestion();
+  }
 
   /* ==========================================================================
      Maths Quest
