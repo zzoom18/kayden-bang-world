@@ -427,7 +427,9 @@ async function handleProgress(req, res) {
 
   const merged = mergeProgress(stored, incoming);
   const saved = writeProgress(result.email, merged);
-  return sendJson(req, res, 200, { ok: true, saved, state: merged });
+  // The page shows "signed in as", so it needs the address back on every
+  // reply, not only on the read-only branch.
+  return sendJson(req, res, 200, { ok: true, saved, state: merged, email: result.email });
 }
 
 /* ---------- Sign in with Google ----------

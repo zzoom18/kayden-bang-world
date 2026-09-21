@@ -628,6 +628,27 @@
   .field{margin-bottom:13px}
   .savednote{font-size:13px; font-weight:800; color:#8FE3C4; line-height:1.5;
     background:rgba(53,196,143,.14); border-radius:14px; padding:10px 13px; margin:-6px 0 14px}
+  /* ---- sign in / account ---- */
+  .seg2{display:flex; gap:8px; margin-bottom:16px; background:rgba(0,0,0,.22); padding:5px; border-radius:16px}
+  .seg2b{flex:1; min-height:48px; border-radius:12px; font-family:inherit; font-size:14.5px; font-weight:800;
+    background:transparent; color:var(--ink-soft); transition:background .16s ease, color .16s ease}
+  .seg2b.on{background:linear-gradient(140deg,var(--grape),#7B5BE0); color:#fff}
+  .checkrow{display:flex; align-items:center; gap:11px; width:100%; text-align:left; min-height:52px;
+    padding:8px 4px; background:none; font-family:inherit}
+  .ckbox{width:26px; height:26px; flex:none; border-radius:9px; display:grid; place-items:center;
+    border:3px solid rgba(255,255,255,.3); font-size:15px; font-weight:800; color:#04382A;
+    background:transparent; transition:background .16s ease, border-color .16s ease}
+  .checkrow.on .ckbox{background:var(--mint); border-color:var(--mint)}
+  .cklabel{font-size:14px; font-weight:700; color:#C9C4EE; line-height:1.35}
+  .account{border-radius:20px; padding:15px 16px; margin:-6px 0 16px;
+    background:rgba(255,255,255,.12); border:2px solid rgba(255,255,255,.14)}
+  .acc-top{display:flex; gap:13px; align-items:flex-start}
+  .acc-e{font-size:28px; line-height:1; flex:none}
+  .acc-mid{min-width:0; flex:1}
+  .acc-l{font-size:11.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft)}
+  .acc-n{font-weight:800; font-size:15.5px; margin:2px 0 4px; word-break:break-all}
+  .acc-s{font-size:12.5px; font-weight:700; color:#C9C4EE; line-height:1.45}
+  .acc-out{width:100%; margin-top:13px; min-height:50px; font-size:15px}
   .fieldnote{font-size:12.5px; font-weight:700; color:#8FE3C4; margin:-3px 0 7px}
   .field label{display:block; font-size:12px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:7px}
   .field input{
@@ -728,7 +749,7 @@
 </div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 
-<script src="content.js?v=20260921-14"></script>
+<script src="content.js?v=20260921-16"></script>
 <script>
 (function(){
   "use strict";
@@ -1105,6 +1126,48 @@
      so a run of right answers is one request rather than ten. */
   var pushTimer = null, accountEmail = null;
 
+  /* ---------- staying signed in ----------
+     Two stores, deliberately. localStorage is the "keep me signed in" box:
+     it survives closing the app, which is what a family iPad wants.
+     sessionStorage is the other answer — it is forgotten the moment the tab
+     closes, which is what a shared or borrowed device wants. Reads check
+     both, so nothing else in the app has to care which was used. */
+  function getToken(){
+    try{ return localStorage.getItem("papercub.token") || sessionStorage.getItem("papercub.token"); }
+    catch(e){ return null; }
+  }
+  function setToken(tok, remember){
+    try{
+      if(remember === false){
+        sessionStorage.setItem("papercub.token", tok);
+        localStorage.removeItem("papercub.token");
+      } else {
+        localStorage.setItem("papercub.token", tok);
+        sessionStorage.removeItem("papercub.token");
+      }
+    }catch(e){}
+  }
+  function clearToken(){
+    try{ localStorage.removeItem("papercub.token"); }catch(e){}
+    try{ sessionStorage.removeItem("papercub.token"); }catch(e){}
+  }
+  function rememberedHere(){
+    try{ return !!localStorage.getItem("papercub.token"); }catch(e){ return false; }
+  }
+
+  /* Signing out leaves the device clean: a borrowed iPad should not hand the
+     next child someone else's stars. The account copy on the server is
+     untouched, so signing back in brings it all back. */
+  function signOut(){
+    clearToken();
+    try{ localStorage.removeItem("papercub.player"); }catch(e){}
+    try{ localStorage.removeItem("papercub.noinstall"); }catch(e){}
+    accountEmail = null;
+    licence = null; licenceExp = null;
+    state = JSON.parse(JSON.stringify(DEFAULT));
+    location.reload();
+  }
+
   function save(){
     try{ localStorage.setItem("papercub.player", JSON.stringify(state)); }catch(e){}
     schedulePush();
@@ -1119,7 +1182,7 @@
   function pushProgress(){
     pushTimer = null;
     var token = null;
-    try{ token = localStorage.getItem("papercub.token"); }catch(e){}
+    token = getToken();
     if(!token) return;
     api("/api/progress", {token:token, state:state})["catch"](function(){
       /* Offline or the server is down: the local copy still holds everything,
@@ -1132,15 +1195,17 @@
      those stars here this afternoon. */
   function syncProgress(then){
     var token = null;
-    try{ token = localStorage.getItem("papercub.token"); }catch(e){}
+    token = getToken();
     if(!token){ if(then) then(); return; }
     api("/api/progress", {token:token, state:state}).then(function(res){
+      if(res.status === 200 && res.body.ok){
+        accountEmail = res.body.email || null;
+      }
       if(res.status === 200 && res.body.ok && res.body.state){
         var incoming = res.body.state;
         var k;
         for(k in DEFAULT) if(incoming[k] !== undefined) state[k] = incoming[k];
         state.progress = incoming.progress || {};
-        accountEmail = res.body.email || null;
         try{ localStorage.setItem("papercub.player", JSON.stringify(state)); }catch(e){}
       }
     })["catch"](function(){})
@@ -5575,6 +5640,20 @@
     setTimeout(function(){ inp.focus(); }, 80);
   }
 
+  /* Used where an action clears something. Cheaper than a browser confirm(),
+     and it matches the rest of the app. */
+  function confirmSheet(title, body, okText, onOk){
+    var box = el("div");
+    box.appendChild(el("h2",{"class":"display", text:title}));
+    box.appendChild(el("p",{text:body}));
+    var m = modal(box);
+    var ok = el("button",{"class":"btn btn-lg btn-go", style:"width:100%", text:okText});
+    ok.addEventListener("click", function(){ m.close(); onOk(); });
+    var no = el("button",{"class":"btn btn-lg btn-ghost", style:"width:100%; margin-top:10px", text:"Cancel"});
+    no.addEventListener("click", m.close);
+    box.appendChild(ok); box.appendChild(no);
+  }
+
   function openAbout(){
     var box = el("div");
     box.appendChild(el("div",{"class":"aboutmark", text:"🦊"}));
@@ -5613,10 +5692,34 @@
     box.appendChild(el("h2",{"class":"display", text:"Grown-up corner"}));
     box.appendChild(el("p",{text:"How " + (state.name || "your child") + " is getting on, at age " + (state.age||5)
       + " (" + BANDS[band()].label + ")."}));
-    box.appendChild(el("div",{"class":"savednote",
-      text: accountEmail
-        ? "💾  Saved to " + accountEmail + " — sign in with that address on any device and everything follows."
-        : "💾  Progress is kept on this device. Sign in to save it to your account."}));
+    /* The account, said plainly. Until now the app never showed who was
+       signed in, never offered a way out, and remembered people silently. */
+    var acc = el("div",{"class":"account"});
+    var accTop = el("div",{"class":"acc-top"});
+    accTop.appendChild(el("div",{"class":"acc-e", text: accountEmail ? "👤" : "💾"}));
+    var accMid = el("div",{"class":"acc-mid"});
+    accMid.appendChild(el("div",{"class":"acc-l", text: accountEmail ? "Signed in as" : "Not signed in"}));
+    accMid.appendChild(el("div",{"class":"acc-n", text: accountEmail || "This device only"}));
+    accMid.appendChild(el("div",{"class":"acc-s", text: accountEmail
+      ? (rememberedHere()
+          ? "Stars are saved to this account. Sign in with this address on any device and everything follows."
+          : "Signed in for this session only — closing the app will sign you out.")
+      : "Stars are kept in this browser. Clear it, or move to another device, and they are gone."}));
+    accTop.appendChild(accMid);
+    acc.appendChild(accTop);
+
+    if(accountEmail){
+      var out = el("button",{"class":"btn btn-ghost acc-out", text:"Sign out"});
+      out.addEventListener("click", function(){
+        sfx.tap();
+        confirmSheet("Sign out?",
+          "Your stars stay safe on the account — signing in again with " + accountEmail +
+          " brings everything back. This device will be cleared.",
+          "Sign out", signOut);
+      });
+      acc.appendChild(out);
+    }
+    box.appendChild(acc);
     var list = el("div",{"class":"grownup"});
     WORLDS.forEach(function(w){
       list.appendChild(el("div",{"class":"prow"},
@@ -5679,6 +5782,16 @@
     gsiWrap.style.display = "none"; orLine.style.display = "none";
     box.appendChild(gsiWrap); box.appendChild(orLine);
 
+    /* Two ways in, said out loud. The sheet used to be a sign-up form with a
+       note under the email hoping a returning parent would read it; most did
+       not, and there was no word "sign in" anywhere in the app. */
+    var mode = "new";
+    var seg = el("div",{"class":"seg2"});
+    var segNew = el("button",{"class":"seg2b on", text:"I'm new here"});
+    var segBack = el("button",{"class":"seg2b", text:"I've played before"});
+    seg.appendChild(segNew); seg.appendChild(segBack);
+    box.appendChild(seg);
+
     var fn = el("div",{"class":"field"});
     fn.appendChild(el("label",{text:"Your name", "for":"pc_reg_name"}));
     var nameI = el("input",{type:"text", id:"pc_reg_name", maxlength:"60", autocomplete:"name"});
@@ -5686,8 +5799,9 @@
 
     var fe = el("div",{"class":"field"});
     fe.appendChild(el("label",{text:"Email", "for":"pc_reg_email"}));
-    fe.appendChild(el("div",{"class":"fieldnote",
-      text:"Played before? Use the same email and your stars come back."}));
+    var mailNote = el("div",{"class":"fieldnote",
+      text:"We use this to save your stars so they follow you to any device."});
+    fe.appendChild(mailNote);
     var mailI = el("input",{type:"email", id:"pc_reg_email", maxlength:"254", autocomplete:"email", spellcheck:"false"});
     fe.appendChild(mailI); box.appendChild(fe);
 
@@ -5696,9 +5810,41 @@
     var kidI = el("input",{type:"text", id:"pc_reg_child", maxlength:"40"});
     fc.appendChild(kidI); box.appendChild(fc);
 
+    /* Default on, because the usual case is a family iPad. Off puts the
+       sign-in in sessionStorage instead, so a borrowed device forgets on
+       close — which is the whole reason to offer the choice. */
+    var rememberMe = true;
+    var rem = el("button",{"class":"checkrow on", "aria-pressed":"true"});
+    rem.appendChild(el("span",{"class":"ckbox", text:"✓"}));
+    rem.appendChild(el("span",{"class":"cklabel", text:"Keep me signed in on this device"}));
+    rem.addEventListener("click", function(){
+      rememberMe = !rememberMe;
+      rem.classList.toggle("on", rememberMe);
+      rem.setAttribute("aria-pressed", rememberMe ? "true" : "false");
+      rem.firstChild.textContent = rememberMe ? "✓" : "";
+    });
+    box.appendChild(rem);
+
     var err = el("div",{"class":"err"}); box.appendChild(err);
     var go = el("button",{"class":"btn btn-lg btn-go", id:"pc_reg_go", style:"width:100%", text:"Start playing"});
     box.appendChild(go);
+
+    function setMode(m){
+      mode = m;
+      segNew.classList.toggle("on", m === "new");
+      segBack.classList.toggle("on", m === "back");
+      /* Signing back in needs the email and nothing else — the name and the
+         child are already on the account. */
+      fn.hidden = fc.hidden = (m === "back");
+      go.textContent = m === "back" ? "Sign in" : "Start playing";
+      mailNote.textContent = m === "back"
+        ? "The address you used before. Everything you earned comes back."
+        : "We use this to save your stars so they follow you to any device.";
+      err.textContent = "";
+      setTimeout(function(){ (m === "back" ? mailI : nameI).focus(); }, 40);
+    }
+    segNew.addEventListener("click", function(){ sfx.tap(); setMode("new"); });
+    segBack.addEventListener("click", function(){ sfx.tap(); setMode("back"); });
 
     box.appendChild(el("div",{"class":"byline", text:"Made by a dad in Singapore for his two children, Kayden and Ellyia."}));
 
@@ -5720,7 +5866,7 @@
        for on the player setup sheet that follows either way. */
     function signedIn(res, who){
       if(res.status === 200 && res.body.ok){
-        try{ localStorage.setItem("papercub.token", res.body.token); }catch(e){}
+        setToken(res.body.token, rememberMe);
         applyLicence(res.body.licence, Math.floor(Date.now()/1000) + (res.body.trialDays || 7) * 86400);
         var kid = (kidI.value||"").trim();
         m.close();
@@ -5764,14 +5910,27 @@
     hk.addEventListener("click", function(){ m.close(); openKey(); });
     go.addEventListener("click", function(){
       var name = (nameI.value||"").trim(), email = (mailI.value||"").trim(), kid = (kidI.value||"").trim();
+      if(!email){
+        err.textContent = mode === "back"
+          ? "Which email did you use before?"
+          : "We need an email to save your stars.";
+        mailI.focus(); return;
+      }
+      /* Signing back in, the server already knows the name; sending the
+         address twice keeps the request valid without asking for it again. */
+      if(mode === "back" && !name) name = email.split("@")[0];
       if(!name){ err.textContent = "Please tell us your name."; nameI.focus(); return; }
-      if(!email){ err.textContent = "We need an email to set up your account."; mailI.focus(); return; }
-      go.disabled = true; go.textContent = "Setting up…"; err.textContent = "";
+      go.disabled = true;
+      go.textContent = mode === "back" ? "Signing in…" : "Setting up…";
+      err.textContent = "";
       api("/api/register", {name:name, email:email, child:kid}).then(function(res){
         signedIn(res, "form");
       })["catch"](function(){
         err.textContent = "Couldn't reach the server. Check your connection.";
-      }).then(function(){ go.disabled = false; go.textContent = "Start playing"; });
+      }).then(function(){
+        go.disabled = false;
+        go.textContent = mode === "back" ? "Sign in" : "Start playing";
+      });
     });
     setTimeout(function(){ nameI.focus(); }, 80);
   }
@@ -5957,8 +6116,7 @@
     renderHome();
     if(!state.setup) openProfile();
   } else {
-    var token = null;
-    try{ token = localStorage.getItem("papercub.token"); }catch(e){}
+    var token = getToken();
     if(!token){
       openWelcome(false);
     } else {
@@ -5966,7 +6124,7 @@
         if(res.status === 200 && res.body.ok){
           /* The server hands back a new token when access has been widened
              since this browser last checked. */
-          if(res.body.token){ try{ localStorage.setItem("papercub.token", res.body.token); }catch(e){} }
+          if(res.body.token){ setToken(res.body.token, rememberedHere()); }
           applyLicence(res.body.licence, res.body.expiresAt);
           /* Draw only once the account's stars are in, or the home screen
              would show this device's total and then quietly change. */
@@ -5975,7 +6133,7 @@
             if(!state.setup) openProfile();
           });
         } else {
-          try{ localStorage.removeItem("papercub.token"); }catch(e){}
+          clearToken();
           openWelcome(res.body && res.body.error === "expired");
         }
       })["catch"](function(){ openWelcome(false); });
