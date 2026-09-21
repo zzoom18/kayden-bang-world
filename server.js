@@ -584,22 +584,156 @@ function countRegistrations() {
   return { total: readRegistrations().length, unique: seen.size };
 }
 
+/* A rough read of the user-agent, enough for an admin to recognise a device.
+   Deliberately not a UA-parsing library: this only has to answer "which iPad
+   was that" well enough to be useful. */
+function describeDevice(ua) {
+  const s = String(ua || '');
+  if (!s) return '';
+  let os = '';
+  if (/iPad/.test(s)) os = 'iPad';
+  else if (/iPhone/.test(s)) os = 'iPhone';
+  else if (/Android/.test(s)) os = /Mobile/.test(s) ? 'Android phone' : 'Android tablet';
+  else if (/Windows NT/.test(s)) os = 'Windows';
+  else if (/Mac OS X/.test(s)) os = 'Mac';
+  else if (/CrOS/.test(s)) os = 'Chromebook';
+  else if (/Linux/.test(s)) os = 'Linux';
+
+  let br = '';
+  if (/Edg\//.test(s)) br = 'Edge';
+  else if (/OPR\//.test(s)) br = 'Opera';
+  else if (/SamsungBrowser/.test(s)) br = 'Samsung';
+  else if (/Firefox\//.test(s)) br = 'Firefox';
+  else if (/Chrome\//.test(s)) br = 'Chrome';
+  else if (/Safari\//.test(s)) br = 'Safari';
+
+  return [os, br].filter(Boolean).join(' · ');
+}
+
+/* One row per account rather than one per sign-up, because the same family
+   signing in from a phone and a tablet is one account, not two people. */
+function accountRows() {
+  const byEmail = new Map();
+
+  readRegistrations().forEach((r) => {
+    const email = String(r.email || '').toLowerCase();
+    if (!email) return;
+    let a = byEmail.get(email);
+    if (!a) {
+      a = { email, name: '', child: '', first: r.at, last: r.at, signIns: 0, ips: new Set(), ua: '', via: 'email' };
+      byEmail.set(email, a);
+    }
+    a.signIns++;
+    if (r.name) a.name = r.name;
+    if (r.child) a.child = r.child;
+    if (r.at && (!a.first || r.at < a.first)) a.first = r.at;
+    if (r.at && (!a.last || r.at > a.last)) a.last = r.at;
+    if (r.ip) a.ips.add(r.ip);
+    if (r.ua) a.ua = r.ua;
+    if (r.via) a.via = r.via;
+    a.lastIp = r.ip || a.lastIp || '';
+  });
+
+  return [...byEmail.values()].map((a) => {
+    const prog = readProgress(a.email);
+    const games = prog && prog.progress ? Object.keys(prog.progress).length : 0;
+    return {
+      email: a.email,
+      name: a.name,
+      child: a.child,
+      first: a.first,
+      last: a.last,
+      signIns: a.signIns,
+      ip: a.lastIp || '',
+      ipCount: a.ips.size,
+      device: describeDevice(a.ua),
+      via: a.via,
+      access: grants[a.email] || (settings.openAccess ? settings.defaultTier + ' (open)' : 'trial'),
+      stars: prog ? (Number(prog.stars) || 0) : 0,
+      games,
+      childAge: prog ? (Number(prog.age) || null) : null,
+      playedAt: prog && prog.updatedAt ? new Date(prog.updatedAt * 1000).toISOString() : null
+    };
+  }).sort((x, y) => String(y.last || '').localeCompare(String(x.last || '')));
+}
+
+/* Removing an account means removing all of it: the sign-up lines, the saved
+   progress and any personal grant. Anything left behind would quietly come
+   back the next time that address signed in. */
+function deleteAccount(email) {
+  const target = String(email || '').toLowerCase();
+  if (!target) return { ok: false, error: 'no_email' };
+
+  let removedRows = 0;
+  try {
+    const kept = readRegistrations().filter((r) => {
+      const match = String(r.email || '').toLowerCase() === target;
+      if (match) removedRows++;
+      return !match;
+    });
+    const body = kept.map((r) => JSON.stringify(r)).join('\n');
+    fs.writeFileSync(REGISTRATIONS, body ? body + '\n' : '');
+  } catch (err) {
+    console.error('[admin] could not rewrite registrations:', err.message);
+    return { ok: false, error: 'write_failed' };
+  }
+
+  let removedProgress = false;
+  try {
+    fs.unlinkSync(progressFile(target));
+    removedProgress = true;
+  } catch { /* nothing saved for this account */ }
+
+  let removedGrant = false;
+  if (grants[target]) { delete grants[target]; removedGrant = true; persist(GRANTS_FILE, grants); }
+
+  console.log(`[admin] deleted ${target} (${removedRows} sign-ups, progress=${removedProgress}, grant=${removedGrant})`);
+  return { ok: true, removedRows, removedProgress, removedGrant };
+}
+
+async function handleAccount(req, res) {
+  if (!requireAdmin(req, res)) return;
+
+  let body;
+  try { body = await readBody(req); }
+  catch { return sendJson(req, res, 400, { ok: false, error: 'bad_request' }); }
+
+  const email = String(body.email || '').trim().toLowerCase();
+  if (!email) return sendJson(req, res, 400, { ok: false, error: 'no_email' });
+
+  if (body.action === 'delete') {
+    const out = deleteAccount(email);
+    return sendJson(req, res, out.ok ? 200 : 500, out);
+  }
+  if (body.action === 'reset') {
+    // Wipe what the child has earned but keep the account and its sign-ups.
+    let done = false;
+    try { fs.unlinkSync(progressFile(email)); done = true; } catch {}
+    console.log(`[admin] reset progress for ${email} (had progress: ${done})`);
+    return sendJson(req, res, 200, { ok: true, reset: done });
+  }
+  return sendJson(req, res, 400, { ok: false, error: 'unknown_action' });
+}
+
 async function handleRegistrations(req, res) {
   if (!requireAdmin(req, res)) return;
   const rows = readRegistrations();
 
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  const accounts = accountRows();
+
   if (url.searchParams.get('format') === 'json') {
-    // newest first, and say what each person currently gets
-    const out = rows.slice().reverse().slice(0, 500).map((r) => ({
-      at: r.at, name: r.name, email: r.email, child: r.child,
-      access: grants[r.email] || (settings.openAccess ? settings.defaultTier + ' (open)' : 'trial')
-    }));
-    return sendJson(req, res, 200, { ok: true, rows: out, total: rows.length });
+    return sendJson(req, res, 200, {
+      ok: true, rows: accounts.slice(0, 500), total: rows.length, accounts: accounts.length
+    });
   }
 
-  const csv = 'registered_at,name,email,child\n' + rows.map((r) =>
-    [r.at, r.name, r.email, r.child || ''].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')
+  const cols = ['email', 'name', 'child', 'child_age', 'first_seen', 'last_seen', 'sign_ins',
+    'last_ip', 'distinct_ips', 'device', 'signed_up_via', 'access', 'stars', 'games_played', 'last_played'];
+  const csv = cols.join(',') + '\n' + accounts.map((a) =>
+    [a.email, a.name, a.child, a.childAge || '', a.first, a.last, a.signIns,
+     a.ip, a.ipCount, a.device, a.via, a.access, a.stars, a.games, a.playedAt || '']
+      .map((v) => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`).join(',')
   ).join('\n');
   res.writeHead(200, {
     'content-type': 'text/csv; charset=utf-8',
@@ -816,6 +950,7 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/admin/registrations' && req.method === 'GET') return await handleRegistrations(req, res);
     if (url.pathname === '/api/admin/settings') return await handleSettings(req, res);
     if (url.pathname === '/api/admin/grant' && req.method === 'POST') return await handleGrant(req, res);
+    if (url.pathname === '/api/admin/account' && req.method === 'POST') return await handleAccount(req, res);
     if (url.pathname.startsWith('/api/')) return sendJson(req, res, 404, { ok: false, error: 'not_found' });
 
     if (req.method !== 'GET' && req.method !== 'HEAD') {

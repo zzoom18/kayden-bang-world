@@ -640,6 +640,10 @@
     background:transparent; transition:background .16s ease, border-color .16s ease}
   .checkrow.on .ckbox{background:var(--mint); border-color:var(--mint)}
   .cklabel{font-size:14px; font-weight:700; color:#C9C4EE; line-height:1.35}
+  .miniacc{display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:14px;
+    background:rgba(255,255,255,.12)}
+  .ma-e{font-size:21px; line-height:1; flex:none}
+  .ma-n{font-size:14px; font-weight:800; word-break:break-all; min-width:0}
   .account{border-radius:20px; padding:15px 16px; margin:-6px 0 16px;
     background:rgba(255,255,255,.12); border:2px solid rgba(255,255,255,.14)}
   .acc-top{display:flex; gap:13px; align-items:flex-start}
@@ -749,7 +753,7 @@
 </div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 
-<script src="content.js?v=20260921-16"></script>
+<script src="content.js?v=20260921-17"></script>
 <script>
 (function(){
   "use strict";
@@ -5626,6 +5630,28 @@
     togs.appendChild(toggle("🔊  Sound", "sound"));
     togs.appendChild(toggle("✨  Movement", "motion"));
     sf.appendChild(togs); box.appendChild(sf);
+
+    if(state.setup){
+      var af = el("div",{"class":"field"});
+      af.appendChild(el("label",{text:"Account"}));
+      var arow = el("div",{"class":"miniacc"});
+      arow.appendChild(el("div",{"class":"ma-e", text: accountEmail ? "👤" : "💾"}));
+      arow.appendChild(el("div",{"class":"ma-n",
+        text: accountEmail || "Not signed in — this device only"}));
+      af.appendChild(arow);
+      if(accountEmail){
+        var so = el("button",{"class":"btn btn-ghost", style:"width:100%; margin-top:9px; min-height:50px", text:"Sign out"});
+        so.addEventListener("click", function(){
+          sfx.tap();
+          confirmSheet("Sign out?",
+            "Your stars stay safe on the account — signing in again with " + accountEmail +
+            " brings everything back. This device will be cleared.",
+            "Sign out", signOut);
+        });
+        af.appendChild(so);
+      }
+      box.appendChild(af);
+    }
 
     var m = modal(box);
     var go = el("button",{"class":"btn btn-lg btn-go", id:"pc_save", style:"width:100%; margin-top:8px", text:"Save"});

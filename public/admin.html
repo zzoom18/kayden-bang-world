@@ -71,6 +71,10 @@
   tr:last-child td{border-bottom:none}
   .tw{overflow-x:auto; -webkit-overflow-scrolling:touch}
   .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px}
+  .sub{font-size:12px; color:#8E88C4; font-weight:600; margin-top:2px}
+  td{vertical-align:top}
+  .btn-sm.danger{background:#FFE4EA; color:#B0164A; border-color:#F6B8C8}
+  .btn-sm.danger:hover{background:#FFD2DE}
   .tag{font-size:11.5px; font-weight:800; padding:4px 9px; border-radius:7px; background:var(--panel-2); color:var(--soft); white-space:nowrap}
   .tag.full{background:rgba(53,196,143,.18); color:#7DE9BE}
   .tag.trial{background:rgba(255,196,61,.18); color:#FFD98A}
@@ -162,7 +166,7 @@
 
   <section class="panel">
     <h2>Who has signed up</h2>
-    <p class="note">Newest first. <a href="/api/admin/registrations" id="csvLink">Download as CSV</a></p>
+    <p class="note">One row per account, most recently seen first. The CSV carries everything shown here plus first and last seen, every distinct address count, and the device. <a href="/api/admin/registrations" id="csvLink">Download as CSV</a></p>
     <div class="tw"><table id="regTable"></table></div>
   </section>
 
@@ -407,6 +411,18 @@
   });
 
   /* ---------- registrations ---------- */
+  function when(iso){
+    if(!iso) return "—";
+    var d = new Date(iso);
+    if(isNaN(d)) return String(iso).replace("T"," ").slice(0,16);
+    var mins = Math.round((Date.now() - d.getTime()) / 60000);
+    if(mins < 1) return "just now";
+    if(mins < 60) return mins + "m ago";
+    if(mins < 1440) return Math.round(mins/60) + "h ago";
+    if(mins < 43200) return Math.round(mins/1440) + "d ago";
+    return String(iso).slice(0,10);
+  }
+
   function loadRegs(){
     api("/api/admin/registrations?format=json").then(function(res){
       var t = $("regTable");
@@ -422,19 +438,51 @@
         return;
       }
       t.hidden = false;
-      t.innerHTML = "<tr><th>When</th><th>Name</th><th>Email</th><th>Child</th><th>Access</th><th></th></tr>";
+      /* One row per account rather than per sign-up: the same family on a
+         phone and a tablet is one account, not two people. */
+      t.innerHTML = "<tr><th>Account</th><th>Child</th><th>Activity</th><th>Where from</th>" +
+                    "<th>Access</th><th></th></tr>";
+
       rows.forEach(function(r){
         var tr = document.createElement("tr");
-        function cell(txt, cls){
-          var td = document.createElement("td");
-          if(cls) td.className = cls;
-          td.textContent = esc(txt);
-          return td;
-        }
-        tr.appendChild(cell(String(r.at || "").replace("T"," ").slice(0,16)));
-        tr.appendChild(cell(r.name));
-        tr.appendChild(cell(r.email, "mono"));
-        tr.appendChild(cell(r.child || "—"));
+
+        var who = document.createElement("td");
+        who.appendChild(Object.assign(document.createElement("div"),
+          {className:"mono", textContent: esc(r.email)}));
+        who.appendChild(Object.assign(document.createElement("div"),
+          {className:"sub", textContent: esc(r.name || "—") +
+            (r.via === "google" ? "  ·  Google" : "")}));
+        who.appendChild(Object.assign(document.createElement("div"),
+          {className:"sub", textContent: "Joined " + when(r.first) +
+            "  ·  " + r.signIns + (r.signIns === 1 ? " sign-in" : " sign-ins")}));
+        tr.appendChild(who);
+
+        var kid = document.createElement("td");
+        kid.appendChild(Object.assign(document.createElement("div"),
+          {textContent: esc(r.child || "—")}));
+        if(r.childAge) kid.appendChild(Object.assign(document.createElement("div"),
+          {className:"sub", textContent:"age " + r.childAge}));
+        tr.appendChild(kid);
+
+        var act = document.createElement("td");
+        act.appendChild(Object.assign(document.createElement("div"),
+          {textContent: "⭐ " + (r.stars || 0) + "  ·  " + (r.games || 0) +
+            (r.games === 1 ? " game" : " games")}));
+        act.appendChild(Object.assign(document.createElement("div"),
+          {className:"sub", textContent: r.playedAt ? "played " + when(r.playedAt) : "never played"}));
+        act.appendChild(Object.assign(document.createElement("div"),
+          {className:"sub", textContent: "seen " + when(r.last)}));
+        tr.appendChild(act);
+
+        var frm = document.createElement("td");
+        frm.appendChild(Object.assign(document.createElement("div"),
+          {className:"mono", textContent: esc(r.ip || "—")}));
+        if(r.ipCount > 1) frm.appendChild(Object.assign(document.createElement("div"),
+          {className:"sub", textContent: r.ipCount + " addresses"}));
+        frm.appendChild(Object.assign(document.createElement("div"),
+          {className:"sub", textContent: esc(r.device || "—")}));
+        tr.appendChild(frm);
+
         var td5 = document.createElement("td");
         var tag = document.createElement("span");
         var isTrial = /trial/.test(String(r.access));
@@ -442,16 +490,63 @@
         tag.textContent = r.access;
         td5.appendChild(tag);
         tr.appendChild(td5);
-        var td6 = document.createElement("td"); td6.style.textAlign = "right";
-        var b = document.createElement("button");
-        b.className = "btn btn-sm";
-        b.textContent = "Give full";
-        b.addEventListener("click", function(){ grant(r.email, "studio"); });
-        td6.appendChild(b);
+
+        var td6 = document.createElement("td");
+        td6.style.textAlign = "right";
+        td6.style.whiteSpace = "nowrap";
+
+        if(isTrial){
+          var g = document.createElement("button");
+          g.className = "btn btn-sm";
+          g.textContent = "Give full";
+          g.addEventListener("click", function(){ grant(r.email, "full"); });
+          td6.appendChild(g);
+        }
+
+        var rs = document.createElement("button");
+        rs.className = "btn btn-sm";
+        rs.style.marginLeft = "6px";
+        rs.textContent = "Reset stars";
+        rs.addEventListener("click", function(){
+          if(!confirm("Reset progress for " + r.email + "?\n\nStars, levels and badges go back to zero. The account and its sign-ins are kept.")) return;
+          account(r.email, "reset");
+        });
+        td6.appendChild(rs);
+
+        var del = document.createElement("button");
+        del.className = "btn btn-sm danger";
+        del.style.marginLeft = "6px";
+        del.textContent = "Delete";
+        del.addEventListener("click", function(){
+          /* Two steps, because this cannot be undone and the rows look alike. */
+          if(!confirm("Delete the account " + r.email + "?\n\nThis removes the sign-up record, the saved progress and any access you granted. It cannot be undone.")) return;
+          var typed = prompt("Type the email to confirm:", "");
+          if(String(typed || "").trim().toLowerCase() !== r.email){
+            if(typed !== null) alert("That did not match. Nothing was deleted.");
+            return;
+          }
+          account(r.email, "delete");
+        });
+        td6.appendChild(del);
+
         tr.appendChild(td6);
         t.appendChild(tr);
       });
     })["catch"](function(){});
+  }
+
+  function account(email, action){
+    api("/api/admin/account", {method:"POST", body:{email:email, action:action}})
+      .then(function(res){
+        if(res.status === 200 && res.body.ok){
+          say($("grantMsg"), action === "delete"
+            ? "Deleted " + email + "."
+            : "Progress reset for " + email + ".", true);
+          loadRegs();
+          return api("/api/admin/settings").then(function(r2){ if(r2.body.ok) paint(r2.body); });
+        }
+        say($("grantMsg"), (res.body && res.body.error) || "That did not work.", false);
+      })["catch"](function(){ say($("grantMsg"), "Could not reach the server.", false); });
   }
 
   /* ---------- minting ---------- */
