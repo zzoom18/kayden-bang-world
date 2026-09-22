@@ -432,6 +432,24 @@
     25%{opacity:1; transform:translate(-50%,-10px) scale(1.15)}
     100%{opacity:0; transform:translate(-50%,-46px) scale(1)}}
   .qbox{display:flex; flex-direction:column; align-items:center; gap:14px; width:100%}
+
+  /* ---- Number Quest: the winding path ---- */
+  .nq-path{position:relative; display:flex; align-items:center; justify-content:center;
+    flex-wrap:wrap; gap:clamp(10px,3vw,20px) clamp(10px,3vw,20px); width:100%; max-width:560px;
+    margin:38px 0 14px; padding:0 6px}
+  .nq-flag{font-size:24px; line-height:1; flex:none}
+  .nq-stone{flex:none; width:30px; height:30px; border-radius:50%;
+    background:rgba(255,255,255,.14); border:2px solid rgba(255,255,255,.22);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:13px; color:#fff; transition:background .25s,border-color .25s,transform .25s}
+  .nq-stone.right{background:#57C08A; border-color:#57C08A; transform:scale(1.08)}
+  .nq-stone.wrong{background:#E8563C; border-color:#E8563C}
+  .nq-traveler{position:absolute; top:-34px; left:0; font-size:26px; line-height:1;
+    transform:translate(-50%,0); transition:left .45s var(--ease); filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
+  .nq-traveler.hop{animation:nqhop .45s ease}
+  @keyframes nqhop{0%,100%{transform:translate(-50%,0)} 45%{transform:translate(-50%,-16px)}}
+  .nq-stumble{animation:nqstumble .4s ease}
+  @keyframes nqstumble{0%,100%{transform:translate(-50%,0) rotate(0)} 30%{transform:translate(-50%,0) rotate(-14deg)} 60%{transform:translate(-50%,0) rotate(10deg)}}
   .gearwin{display:flex; align-items:center; gap:11px; justify-content:center;
     background:linear-gradient(120deg, rgba(255,196,61,.28), rgba(155,123,255,.28));
     border:3px solid rgba(255,217,138,.4); border-radius:18px; padding:11px 15px;
@@ -2292,7 +2310,7 @@
        two take turns and are read the right way up by both. */
     {id:"race",    nm:"Number Rally",   sub:"Answer fast, beat three rivals",  emo:"🏎️", bg:"linear-gradient(150deg,#7FD8FF,#2F7FD6)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"quest",   nm:"Maths Quest",    sub:"Fight 250 enemies with sums",    emo:"⚔️", bg:"linear-gradient(150deg,#FFB36B,#E8563C)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
-    {id:"cannon",  nm:"Harbour Cannon", sub:"Sink it only if your shell is bigger", emo:"🚢", bg:"linear-gradient(150deg,#6FC6F0,#2E7FC2)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
+    {id:"cannon",  nm:"Harbour Cannon", sub:"Sink it only if your shell is bigger", emo:"🚢", bg:"linear-gradient(150deg,#6FC6F0,#2E7FC2)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Fun Education Fun"},
     {id:"numline", nm:"Number Line Leap", sub:"Land on exactly the right spot", emo:"\ud83d\udccd", bg:"linear-gradient(150deg,#8FE3C8,#1E9E80)", ages:"3\u201312", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery \u2013 P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"patterns",nm:"Pattern Train",   sub:"What comes next along the track?", emo:"\ud83d\ude82", bg:"linear-gradient(150deg,#FFC9A3,#E0703C)", ages:"3\u20139", levels:["N","K1","K2","P1","P2","P3"], sg:"Nursery \u2013 P3", free:true, cat:"maths", topic:"Patterns"},
     {id:"decimal", nm:"Decimal Dash",    sub:"Tenths, hundredths and the point", emo:"\ud83d\udd22", bg:"linear-gradient(150deg,#C3B4FF,#6A4FD6)", ages:"9\u201312", levels:["P4","P5","P6"], sg:"P4 \u2013 P6", free:false, cat:"maths", topic:"Decimals, Ratio & Proportion"},
@@ -2304,7 +2322,7 @@
     {id:"zhmeasure",nm:"\u91cf\u8bcd Measure Words", sub:"\u4e00\u53ea\u732b, \u4e00\u672c\u4e66, \u4e00\u6735\u82b1", emo:"\u91cf", bg:"linear-gradient(150deg,#FFB9B9,#C2334E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"chinese", topic:"\u6570\u5b57\u4e0e\u91cf\u8bcd Numbers & Measure Words"},
     {id:"zhstroke",nm:"\u7b14\u753b Stroke Count", sub:"\u8fd9\u4e2a\u5b57\u6709\u51e0\u753b\uff1f", emo:"\u7b14", bg:"linear-gradient(150deg,#FFD9A0,#C4781B)", ages:"3\u201312", levels:["K1","K2","P1","P2","P3","P4"], sg:"K1 \u2013 P4", free:true, cat:"chinese", topic:"\u8ba4\u5b57\u4e0e\u8bcd\u8bed Characters & Words"},
     {id:"tower",   nm:"Table Tower",    sub:"Stack a block for every table you know", emo:"\ud83c\udfd7\ufe0f", bg:"linear-gradient(150deg,#FFD97D,#E8862F)", ages:"7\u201312", levels:["P2","P3","P4","P5","P6"], sg:"P2 \u2013 P6", free:true, cat:"maths", topic:"Multiplication & Division"},
-    {id:"joyboss", nm:"Joystick Boss Battle", sub:"Answer to aim, dodge to survive \u2014 by Kayden Bang, Mee Toh Primary School", emo:"\ud83c\udfae", bg:"linear-gradient(150deg,#B9A2FF,#6A2FC9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Numbers & Counting"},
+    {id:"joyboss", nm:"Joystick Boss Battle", sub:"Answer to aim, dodge to survive \u2014 by Kayden Bang, Mee Toh Primary School", emo:"\ud83c\udfae", bg:"linear-gradient(150deg,#B9A2FF,#6A2FC9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Fun Education Fun"},
     {id:"measure", nm:"Measure Up",     sub:"Read the ruler, the jug and the scale", emo:"\ud83d\udccf", bg:"linear-gradient(150deg,#A7E8C4,#22996B)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5"], sg:"K2 \u2013 P5", free:true, cat:"maths", topic:"Measurement & Data"},
     {id:"wordprob",nm:"Word Problems",  sub:"The sum is hidden in the story", emo:"\ud83d\udcdd", bg:"linear-gradient(150deg,#B8B5FF,#5A51C9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Fractions & Problem Solving"},
     {id:"synonym", nm:"Same Meaning",   sub:"A better word than the one you used", emo:"\ud83d\udd01", bg:"linear-gradient(150deg,#FFC4E1,#C2478E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Reading & Vocabulary"},
@@ -3115,6 +3133,65 @@
     if(q.emoji) stage.appendChild(el("div",{"class":"countrow", text:q.emoji.trim()}));
     else stage.appendChild(el("div",{"class":"bigq", text: qLine(q)}));
     stage.appendChild(choiceGrid(q.opts, q.a, done, false));
+  }
+
+  /* A winding path turns "answer eight questions in a row" into a journey:
+     the child's own chosen avatar hops one stepping stone for every right
+     answer, stumbles in place on a wrong one, and reaches the treasure at
+     the end. The questions themselves are unchanged — same numberQuestion()
+     pool the plain quiz used — only the presentation is new. */
+  function startNumberQuest(world){
+    var questions = buildNumbers(levelOf(world.id));
+    var shell = gameShell(world, questions.length);
+    var i = 0, correct = 0;
+    var traveler = state.avatar || "🦊";
+
+    var path = el("div",{"class":"nq-path"});
+    path.appendChild(el("div",{"class":"nq-flag", text:"🏁"}));
+    var stones = [];
+    questions.forEach(function(_, idx){
+      var stone = el("div",{"class":"nq-stone", text:String(idx + 1)});
+      stones.push(stone);
+      path.appendChild(stone);
+    });
+    var endFlag = el("div",{"class":"nq-flag", text:"🏆"});
+    path.appendChild(endFlag);
+    var travelerEl = el("div",{"class":"nq-traveler", text:traveler});
+    path.appendChild(travelerEl);
+    shell.stage.appendChild(path);
+
+    var card = el("div",{"class":"qbox"});
+    shell.stage.appendChild(card);
+
+    function placeTraveler(){
+      var target = i < stones.length ? stones[i] : endFlag;
+      var pathRect = path.getBoundingClientRect();
+      var tRect = target.getBoundingClientRect();
+      if(!pathRect.width || !tRect.width) return;
+      travelerEl.style.left = (tRect.left - pathRect.left + tRect.width / 2) + "px";
+    }
+
+    function next(){
+      if(i >= questions.length){
+        confettiBurst(70);
+        finish(world, correct, questions.length);
+        return;
+      }
+      card.textContent = "";
+      renderNumbers(questions[i], card, function(ok){
+        stones[i].classList.add(ok ? "right" : "wrong");
+        travelerEl.classList.add(ok ? "hop" : "nq-stumble");
+        setTimeout(function(){ travelerEl.classList.remove("hop", "nq-stumble"); }, 450);
+        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        placeTraveler();
+        setTimeout(next, ok ? 620 : 1050);
+      });
+    }
+    setTimeout(placeTraveler, 0);
+    window.addEventListener("resize", placeTraveler);
+    next();
   }
 
   /* ---------- Letter Sounds ---------- */
@@ -5453,7 +5530,7 @@
     if(world && world.cat === "music") music.stop();
     else music.start(moodFor(world));
     lastSpoken = "";
-    if(world.id === "numbers") return runQuestions(world, buildNumbers(levelOf(world.id)), renderNumbers);
+    if(world.id === "numbers") return startNumberQuest(world);
     if(world.id === "sounds")  return runQuestions(world, buildSounds(levelOf(world.id)), renderSounds);
     if(world.id === "spell")   return startSpell(world);
     if(world.id === "memory")  return startMemory(world);
