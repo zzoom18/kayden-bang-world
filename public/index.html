@@ -340,6 +340,11 @@
   .zhbig{font-size:clamp(30px,7.5vw,50px); letter-spacing:.06em}
   .zhhuge{font-size:clamp(76px,22vw,132px); line-height:1.05; font-weight:800; color:#fff;
     text-shadow:0 4px 14px rgba(0,0,0,.35)}
+  .strokecount{display:flex; flex-wrap:wrap; gap:7px; justify-content:center; max-width:320px; margin-top:4px}
+  .strokebadge{width:30px; height:30px; border-radius:50%; background:#FFD98A; color:#3A2361;
+    font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center;
+    animation:strokepop .28s ease}
+  @keyframes strokepop{from{transform:scale(0); opacity:0} to{transform:scale(1); opacity:1}}
 
   /* ---- Table Tower ---- */
   .tower-scene{position:relative; width:100%; max-width:420px; height:clamp(210px,34vh,320px);
@@ -1953,7 +1958,7 @@
        every other science game answers to. */
     science: ["homes","senses","quiz","animals","magnet","lifecycle","plant","matter","circuit","foodchain"],
     inspect: ["spotdiff","findodd","shadow","detective"],
-    music:   ["tune","highlow","beats","tempo"],
+    music:   ["tune","musicmaker","highlow","beats","tempo"],
     guess:   ["guessnum","guessanimal","mystery","riddle","flags"],
     quick:   ["bubbles","catch","simon","memory"],
     chinese: ["zhpic","zhstroke","zhpinyin","zhnum","zhword","zhmeasure"],
@@ -2298,6 +2303,7 @@
     {id:"mystery", nm:"Mystery Picture",sub:"Peek, then guess what it is",   emo:"🔎", bg:"linear-gradient(150deg,#9FD8FF,#4AA8E8)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:false, cat:"guess", topic:"Guess & Riddles"},
     {id:"flags",   nm:"World Flags",  sub:"Which country is this flag from?", emo:"🌍", bg:"linear-gradient(150deg,#7FE3FF,#2F8FE6)", ages:"5–12", levels:["K1","K2","P1","P2","P3","P4","P5","P6"], sg:"K1 – P6", free:true, cat:"guess", topic:"Guess & Riddles"},
     {id:"tune",    nm:"Copy the Tune",  sub:"Hear the melody, play it back",  emo:"🎹", bg:"linear-gradient(150deg,#FFB3D9,#FF5D8F)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"music", topic:"Listening & Rhythm"},
+    {id:"musicmaker",nm:"Music Maker",  sub:"Tap the pads and make your own tune",  emo:"🎼", bg:"linear-gradient(150deg,#9FD8FF,#5BA8FF)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"music", topic:"Listening & Rhythm"},
     {id:"highlow", nm:"High or Low",    sub:"Which note was higher?",         emo:"🎵", bg:"linear-gradient(150deg,#C9B4FF,#8B6BE8)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"music", topic:"Listening & Rhythm"},
     {id:"beats",   nm:"Count the Beats",sub:"How many drum beats?",           emo:"🥁", bg:"linear-gradient(150deg,#FFD08A,#FF9E3D)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:false, cat:"music", topic:"Listening & Rhythm"},
     {id:"tempo",   nm:"Fast or Slow",   sub:"Which pattern was faster?",      emo:"🎶", bg:"linear-gradient(150deg,#A8E6C9,#3FBF87)", ages:"4–12", levels:["K1","K2","P1","P2","P3","P4","P5","P6"], sg:"K1 – P6", free:false, cat:"music", topic:"Listening & Rhythm"},
@@ -5371,6 +5377,85 @@
     setTimeout(playRound, 600);
   }
 
+  /* ---------- Music Maker ----------
+     Every other music game grades listening; this one is the odd one out on
+     purpose — no rounds, no right answer, just the same eight pads free to
+     tap, record and play back. A star for the first tune actually finished
+     is the only nod to the star economy the rest of the app runs on. */
+  function startMusicMaker(world){
+    var pads = [
+      {nm:"do",  hex:"#FF5D8F"}, {nm:"re",  hex:"#FFC43D"}, {nm:"mi",  hex:"#35C48F"},
+      {nm:"fa",  hex:"#2FB6E6"}, {nm:"so",  hex:"#9B7BFF"}, {nm:"la",  hex:"#FF8A5B"},
+      {nm:"ti",  hex:"#FF5D8F"}, {nm:"do'", hex:"#FFD166"}
+    ];
+    var shell = gameShell(world, 0);
+    shell.stage.appendChild(el("div",{"class":"prompt", text:"Tap the pads to play — press Record to save your tune!"}));
+
+    var row = el("div",{"class":"tunepads"});
+    var padEls = pads.map(function(pd){
+      var e = el("button",{"class":"tunepad", style:"background:"+pd.hex, "aria-label":pd.nm},
+        el("span",{text:pd.nm}));
+      row.appendChild(e);
+      return e;
+    });
+    shell.stage.appendChild(row);
+
+    var controls = el("div",{style:"display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:16px"});
+    var recBtn = el("button",{"class":"btn btn-lg btn-go", text:"⏺️ Record"});
+    var playBtn = el("button",{"class":"btn btn-lg btn-ghost", text:"▶️ Play back"});
+    var clearBtn = el("button",{"class":"btn btn-lg btn-ghost", text:"🗑️ Clear"});
+    playBtn.disabled = true;
+    controls.appendChild(recBtn); controls.appendChild(playBtn); controls.appendChild(clearBtn);
+    shell.stage.appendChild(controls);
+
+    var recording = false, recStart = 0, tape = [], awarded = false;
+
+    function light(k){
+      padEls[k].classList.add("lit");
+      beep(SCALE[k], .35, null, MUSIC_GAME_VOL);
+      setTimeout(function(){ if(padEls[k]) padEls[k].classList.remove("lit"); }, 260);
+    }
+
+    padEls.forEach(function(e, idx){
+      e.addEventListener("click", function(){
+        light(idx);
+        if(recording) tape.push({idx:idx, t: Date.now() - recStart});
+      });
+    });
+
+    recBtn.addEventListener("click", function(){
+      sfx.tap();
+      if(recording){
+        recording = false;
+        recBtn.textContent = "⏺️ Record";
+        playBtn.disabled = tape.length === 0;
+        if(tape.length >= 4 && !awarded){ awarded = true; award(world.id, 1, true); save(); }
+        return;
+      }
+      tape = [];
+      recording = true;
+      recStart = Date.now();
+      recBtn.textContent = "⏹️ Stop";
+      playBtn.disabled = true;
+    });
+
+    playBtn.addEventListener("click", function(){
+      if(!tape.length) return;
+      sfx.tap();
+      tape.forEach(function(note){
+        setTimeout(function(){
+          if(document.body.contains(row)) light(note.idx);
+        }, note.t);
+      });
+    });
+
+    clearBtn.addEventListener("click", function(){
+      sfx.tap();
+      tape = [];
+      playBtn.disabled = true;
+    });
+  }
+
   /* ---------- Inspector games ---------- */
 
   /* Spot the Difference — two panels, one cell is not the same */
@@ -5610,6 +5695,7 @@
     if(world.id === "beats")    return startBeats(world);
     if(world.id === "tempo")    return startTempo(world);
     if(world.id === "tune")     return startTune(world);
+    if(world.id === "musicmaker") return startMusicMaker(world);
     if(world.id === "spotdiff") return startSpotDiff(world);
     if(world.id === "findodd")  return startFindOdd(world);
     if(world.id === "shadow")   return startShadow(world);
@@ -5999,8 +6085,10 @@
     var b = band(), rounds = b === 0 ? 5 : b === 1 ? 6 : 8;
     /* Pixels a second. Slow enough at the youngest that a child who reads the
        sum in time can always get there, brisk enough at the top that a round
-       is over in a few seconds rather than a slow drift down the screen. */
-    var fall = b === 0 ? 72 : b === 1 ? 92 : b === 2 ? 116 : 142;
+       is over in a few seconds rather than a slow drift down the screen.
+       Lowered across every band after it was reported too fast to actually
+       work the sum out before the basket had to move. */
+    var fall = b === 0 ? 54 : b === 1 ? 70 : b === 2 ? 88 : 108;
 
     var shell = gameShell(world, rounds);
     var i = 0, correct = 0, over = false;
@@ -6605,7 +6693,15 @@
          whatever was heard so far, rather than waiting on the browser. */
       rec.continuous = false;
       rec.interimResults = true;
-      var done = false, listening = false;
+      var done = false, listening = false, watchdog = null;
+
+      /* stop()/abort() asking the browser to end listening is not the same
+         as the browser actually doing it — some browsers never fire 'end'
+         (or any event at all) afterwards, which used to leave the mic stuck
+         showing "stop" forever with no way back. Every path that starts or
+         stops listening now also arms a plain timer that forces the button
+         back to a tappable state if the browser stays silent too long. */
+      function clearWatchdog(){ if(watchdog){ clearTimeout(watchdog); watchdog = null; } }
 
       function setListening(on){
         listening = on;
@@ -6615,6 +6711,7 @@
       }
 
       function finishRound(score){
+        clearWatchdog();
         if(done) return;
         done = true;
         mic.disabled = true; skip.disabled = true;
@@ -6630,20 +6727,34 @@
       mic.addEventListener("click", function(){
         if(mic.disabled) return;
         sfx.tap();
-        if(listening){ try{ rec.stop(); }catch(e){} return; }
+        clearWatchdog();
+        if(listening){
+          try{ rec.stop(); }catch(e){}
+          watchdog = setTimeout(function(){ setListening(false); status.textContent = "Tap the mic to try again."; }, 1500);
+          return;
+        }
         setListening(true);
         status.textContent = "Listening… tap again when you're done";
-        try{ rec.start(); }
+        try{
+          rec.start();
+          watchdog = setTimeout(function(){
+            try{ rec.abort(); }catch(e){}
+            setListening(false);
+            status.textContent = "Didn't catch that — tap the mic and try again.";
+          }, 12000);
+        }
         catch(e){ setListening(false); status.textContent = "Couldn't start listening — tap the mic to try again."; }
       });
       rec.addEventListener("result", function(e){
         var last = e.results[e.results.length - 1];
         var heard = last[0].transcript;
         if(!last.isFinal){ status.textContent = "Hearing: " + heard; return; }
+        clearWatchdog();
         setListening(false);
         finishRound(scoreReading(target, heard, opts.lang === "zh-CN"));
       });
       rec.addEventListener("error", function(e){
+        clearWatchdog();
         setListening(false);
         if(done) return;
         status.textContent = e.error === "not-allowed" || e.error === "service-not-allowed"
@@ -6652,9 +6763,10 @@
           : "Something went wrong listening — tap the mic to try again.";
       });
       rec.addEventListener("end", function(){
+        clearWatchdog();
         setListening(false);
       });
-      skip.addEventListener("click", function(){ sfx.tap(); try{ rec.abort(); }catch(e){} finishRound(0); });
+      skip.addEventListener("click", function(){ sfx.tap(); clearWatchdog(); try{ rec.abort(); }catch(e){} finishRound(0); });
     }
     next();
   }
@@ -6694,6 +6806,24 @@
     next();
   }
 
+  /* Counts out loud, one badge per stroke, so a wrong guess still leaves the
+     child having actually counted to the real number rather than just being
+     told it. Ticks fast enough that even a 12-stroke character doesn't feel
+     like a stall — about 2s at most before the short "N strokes" line and
+     the next character. */
+  function revealStrokeCount(stage, n, onDone){
+    var wrap = el("div",{"class":"strokecount"});
+    stage.appendChild(wrap);
+    var k = 0, stepMs = n > 8 ? 150 : 210;
+    var timer = setInterval(function(){
+      k++;
+      wrap.appendChild(el("div",{"class":"strokebadge", text:String(k)}));
+      if(k >= n){
+        clearInterval(timer);
+        setTimeout(onDone, 500);
+      }
+    }, stepMs);
+  }
   function startZhStrokes(world){
     var pool = dealBand(world.id, ZH_STROKES, 8);
     var shell = gameShell(world, 8);
@@ -6711,12 +6841,19 @@
       shell.stage.appendChild(row);
       shell.stage.appendChild(el("div",{"class":"hintline", text:it.py + " — " + it.en}));
       speak(it.c, {lang:"zh-CN"});
-      shell.stage.appendChild(choiceGrid(numberOptions(it.n, 3, 4).filter(function(n){ return n > 0; }),
+      var qbox = el("div",{"class":"qbox"});
+      shell.stage.appendChild(qbox);
+      qbox.appendChild(choiceGrid(numberOptions(it.n, 3, 4).filter(function(n){ return n > 0; }),
         it.n, function(ok){
           if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
           markDot(shell.dots, i, ok);
           i++;
-          setTimeout(next, ok ? 800 : 1200);
+          qbox.appendChild(el("div",{"class":"hintline", text:"Let's count together:"}));
+          revealStrokeCount(qbox, it.n, function(){
+            qbox.appendChild(el("div",{style:"font-weight:800; color:#FFD98A; margin-top:2px",
+              text: it.c + " has " + it.n + " strokes"}));
+            setTimeout(next, 900);
+          });
         }, false));
     }
     next();
