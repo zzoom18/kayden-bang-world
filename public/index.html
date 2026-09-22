@@ -341,21 +341,6 @@
   .zhhuge{font-size:clamp(76px,22vw,132px); line-height:1.05; font-weight:800; color:#fff;
     text-shadow:0 4px 14px rgba(0,0,0,.35)}
 
-  /* ---- Slice the Answer ---- */
-  .ninja-arena{position:relative; width:100%; max-width:560px; height:clamp(230px,42vh,340px);
-    border-radius:22px; overflow:hidden; border:3px solid rgba(255,255,255,.12);
-    background:linear-gradient(180deg,#2B2560 0%,#4A2A66 62%,#1C1840 100%)}
-  .fruit{position:absolute; top:0; left:0; width:58px; height:58px; padding:0; border:0;
-    background:none; cursor:pointer; will-change:transform; -webkit-tap-highlight-color:transparent;
-    display:grid; place-items:center; font-family:inherit}
-  .fruit-skin{grid-area:1/1; font-size:52px; line-height:1; filter:drop-shadow(0 3px 5px rgba(0,0,0,.4))}
-  .fruit-num{grid-area:1/1; font-weight:900; font-size:21px; color:#20143A;
-    text-shadow:0 1px 0 rgba(255,255,255,.75)}
-  .fruit.hit{animation:fruithit .4s var(--ease) forwards}
-  @keyframes fruithit{to{transform:scale(2.1); opacity:0}}
-  .fruit.miss{animation:fruitmiss .4s ease}
-  @keyframes fruitmiss{0%,100%{filter:none} 50%{filter:grayscale(1) brightness(.5)}}
-
   /* ---- Table Tower ---- */
   .tower-scene{position:relative; width:100%; max-width:420px; height:clamp(210px,34vh,320px);
     border-radius:22px; border:3px solid rgba(255,255,255,.12);
@@ -374,6 +359,21 @@
     font-size:26px; transition:bottom .34s var(--ease); z-index:2}
   .tower-scene.wobble{animation:towerwobble .5s ease}
   @keyframes towerwobble{0%,100%{transform:none} 25%{transform:rotate(-1.6deg)} 70%{transform:rotate(1.2deg)}}
+
+  /* ---- Toy Stick Showdown ---- */
+  .toystick-scene{display:flex; align-items:center; justify-content:center; gap:22px;
+    width:100%; max-width:460px; margin:8px 0}
+  .toystick-fighter{display:flex; flex-direction:column; align-items:center; gap:6px; width:120px}
+  .toystick-face{font-size:52px; filter:drop-shadow(0 4px 8px rgba(0,0,0,.3)); transition:transform .2s var(--ease)}
+  .toystick-fighter.hit .toystick-face{animation:toystickhit .4s var(--ease)}
+  @keyframes toystickhit{0%,100%{transform:none} 40%{transform:scale(.82) rotate(-6deg)}}
+  .toystick-name{font-weight:800; font-size:14px; color:var(--ink-soft)}
+  .toystick-weapon{font-size:40px; animation:toystickswing 1.6s ease-in-out infinite}
+  @keyframes toystickswing{0%,100%{transform:rotate(-14deg)} 50%{transform:rotate(14deg)}}
+  .hpbar{width:100%; height:12px; border-radius:8px; background:rgba(255,255,255,.15); overflow:hidden}
+  .hpbar-fill{height:100%; border-radius:8px; transition:width .3s var(--ease)}
+  .hpbar-fill.dal{background:linear-gradient(90deg,#FF5D8F,#C2185B)}
+  .hpbar-fill.you{background:linear-gradient(90deg,#35C48F,#1E9E80)}
 
   /* ---- Measure Up, Word Problems ---- */
   .boardwrap{display:flex; justify-content:center; width:100%; margin:4px 0 2px}
@@ -1031,6 +1031,9 @@
 
   @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
 </style>
+<!-- Loads once per page, regardless of how many ad breaks a session shows —
+     required before any <ins class="adsbygoogle"> on the page can serve. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3599555620047432" crossorigin="anonymous"></script>
 </head>
 <body>
 <div class="sky-bg"></div>
@@ -1912,7 +1915,7 @@
     /* Number Quest is the backbone of the subject and stays open from day one
        at every age; the two showy games are worth earning. Adding them ahead
        of it quietly pushed the flagship game behind a 35-star gate. */
-    maths:   ["tenframe","numbers","cannon","quest","race","ninja","patterns","bonds","numline","shapes","measure","wordprob","tower","sgmoney","money","picgraph","barmodel","fraction","decimal","areaperim","ratio","balance"],
+    maths:   ["tenframe","numbers","cannon","quest","race","patterns","bonds","numline","shapes","measure","wordprob","tower","toystick","sgmoney","money","picgraph","barmodel","fraction","decimal","areaperim","ratio","balance"],
     english: ["sounds","spell","rhyme","plural","opposites","synonym","grammar","tenses","homophone","sentence","punct","meaning","affix","idiom","reading"],
     think:   ["odd","sort","code"],
     /* Five Senses and Animal Homes suit the very youngest and open the
@@ -2281,7 +2284,6 @@
     {id:"race",    nm:"Number Rally",   sub:"Answer fast, beat three rivals",  emo:"🏎️", bg:"linear-gradient(150deg,#7FD8FF,#2F7FD6)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"quest",   nm:"Maths Quest",    sub:"Fight 250 enemies with sums",    emo:"⚔️", bg:"linear-gradient(150deg,#FFB36B,#E8563C)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"cannon",  nm:"Harbour Cannon", sub:"Sink it only if your shell is bigger", emo:"🚢", bg:"linear-gradient(150deg,#6FC6F0,#2E7FC2)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
-    {id:"ninja",   nm:"Slice the Answer", sub:"Slice the right number before it drops", emo:"\ud83d\udde1\ufe0f", bg:"linear-gradient(150deg,#FF9AA2,#C2185B)", ages:"3\u201312", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery \u2013 P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"numline", nm:"Number Line Leap", sub:"Land on exactly the right spot", emo:"\ud83d\udccd", bg:"linear-gradient(150deg,#8FE3C8,#1E9E80)", ages:"3\u201312", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery \u2013 P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"patterns",nm:"Pattern Train",   sub:"What comes next along the track?", emo:"\ud83d\ude82", bg:"linear-gradient(150deg,#FFC9A3,#E0703C)", ages:"3\u20139", levels:["N","K1","K2","P1","P2","P3"], sg:"Nursery \u2013 P3", free:true, cat:"maths", topic:"Patterns"},
     {id:"decimal", nm:"Decimal Dash",    sub:"Tenths, hundredths and the point", emo:"\ud83d\udd22", bg:"linear-gradient(150deg,#C3B4FF,#6A4FD6)", ages:"9\u201312", levels:["P4","P5","P6"], sg:"P4 \u2013 P6", free:false, cat:"maths", topic:"Decimals, Ratio & Proportion"},
@@ -2293,6 +2295,7 @@
     {id:"zhmeasure",nm:"\u91cf\u8bcd Measure Words", sub:"\u4e00\u53ea\u732b, \u4e00\u672c\u4e66, \u4e00\u6735\u82b1", emo:"\u91cf", bg:"linear-gradient(150deg,#FFB9B9,#C2334E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"chinese", topic:"\u6570\u5b57\u4e0e\u91cf\u8bcd Numbers & Measure Words"},
     {id:"zhstroke",nm:"\u7b14\u753b Stroke Count", sub:"\u8fd9\u4e2a\u5b57\u6709\u51e0\u753b\uff1f", emo:"\u7b14", bg:"linear-gradient(150deg,#FFD9A0,#C4781B)", ages:"3\u201312", levels:["K1","K2","P1","P2","P3","P4"], sg:"K1 \u2013 P4", free:true, cat:"chinese", topic:"\u8ba4\u5b57\u4e0e\u8bcd\u8bed Characters & Words"},
     {id:"tower",   nm:"Table Tower",    sub:"Stack a block for every table you know", emo:"\ud83c\udfd7\ufe0f", bg:"linear-gradient(150deg,#FFD97D,#E8862F)", ages:"7\u201312", levels:["P2","P3","P4","P5","P6"], sg:"P2 \u2013 P6", free:true, cat:"maths", topic:"Multiplication & Division"},
+    {id:"toystick",nm:"Toy Stick Showdown", sub:"Answer sums to fight Dal \u2014 by Kayden Bang, Mee Toh Primary School", emo:"\ud83e\ude93", bg:"linear-gradient(150deg,#B9A2FF,#6A2FC9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"measure", nm:"Measure Up",     sub:"Read the ruler, the jug and the scale", emo:"\ud83d\udccf", bg:"linear-gradient(150deg,#A7E8C4,#22996B)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5"], sg:"K2 \u2013 P5", free:true, cat:"maths", topic:"Measurement & Data"},
     {id:"wordprob",nm:"Word Problems",  sub:"The sum is hidden in the story", emo:"\ud83d\udcdd", bg:"linear-gradient(150deg,#B8B5FF,#5A51C9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Fractions & Problem Solving"},
     {id:"synonym", nm:"Same Meaning",   sub:"A better word than the one you used", emo:"\ud83d\udd01", bg:"linear-gradient(150deg,#FFC4E1,#C2478E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Reading & Vocabulary"},
@@ -2669,17 +2672,32 @@
 
   /* A round finished every time this fires, across every game, so it is the
      one place that can count "every 10th round" without each game having to
-     know about ads at all. No ad network is wired in yet — the box below is
-     a clearly-labelled placeholder standing in for one. Once a Google
-     AdSense/Ad Manager account is approved for this domain, the slot div's
-     contents are the only thing that needs replacing with the real
-     <ins class="adsbygoogle"> tag and its script; the counting, the timing
-     and the per-account on/off switch all stay exactly as they are. */
+     know about ads at all. The AdSense loader script (in <head>) is already
+     wired to the real publisher account; ADSENSE_SLOT_ID is the one thing
+     still missing, from creating a Display ad unit at
+     adsense.google.com -> Ads -> By ad unit -> Display ads. Until that's
+     set, a clearly-labelled placeholder stands in so the break, the timing
+     and the on/off switches can all be built and tested without it. */
+  var ADSENSE_CLIENT_ID = "ca-pub-3599555620047432";
+  var ADSENSE_SLOT_ID = "";
   function showAdBreak(onDone){
     var box = el("div",{style:"text-align:center"});
     box.appendChild(el("div",{style:"font-weight:800; color:#8E88C4; font-size:13px; letter-spacing:.04em; text-transform:uppercase", text:"Advertisement"}));
     var slot = el("div",{style:"margin:18px 0; min-height:200px; border-radius:var(--r-lg); background:rgba(255,255,255,.07); display:flex; align-items:center; justify-content:center; color:#8E88C4; font-weight:700"});
-    slot.appendChild(el("div",{text:"Ad space"}));
+    if(ADSENSE_SLOT_ID){
+      slot.style.background = "none"; slot.style.display = "block";
+      var ins = document.createElement("ins");
+      ins.className = "adsbygoogle";
+      ins.style.cssText = "display:block";
+      ins.setAttribute("data-ad-client", ADSENSE_CLIENT_ID);
+      ins.setAttribute("data-ad-slot", ADSENSE_SLOT_ID);
+      ins.setAttribute("data-ad-format", "auto");
+      ins.setAttribute("data-full-width-responsive", "true");
+      slot.appendChild(ins);
+      try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){}
+    } else {
+      slot.appendChild(el("div",{text:"Ad space"}));
+    }
     box.appendChild(slot);
     var count = el("div",{style:"font-weight:800; color:#C9C4EE; font-size:15px"});
     box.appendChild(count);
@@ -5492,8 +5510,8 @@
     if(world.id === "magnet")   return startMagnet(world);
     if(world.id === "zhmeasure")return startZhMeasure(world);
     if(world.id === "zhstroke") return startZhStrokes(world);
-    if(world.id === "ninja")    return startNinja(world);
     if(world.id === "tower")    return startTower(world);
+    if(world.id === "toystick") return startToyStick(world);
     if(world.id === "measure")  return startMeasure(world);
     if(world.id === "wordprob") return startWordProblems(world);
     if(world.id === "synonym")  return startSynonyms(world);
@@ -6573,135 +6591,6 @@
   }
 
   /* ==========================================================================
-     Slice the Answer
-     --------------------------------------------------------------------------
-     The question sits at the top; numbers are tossed up from below on real
-     arcs. Tap the one that answers it before gravity takes it back down.
-
-     Everything a child has to read is still, and only the numbers move: the
-     hurry is in the hand, never in the reading.
-     ========================================================================== */
-
-  var NINJA_SKINS = ["🍉","🍎","🍊","🍍","🥝","🍑"];
-
-  /* Slice the Answer is a fast reflex game: the numbers have to be read and
-     tapped in a second or two, on a small round fruit. numberQuestion()
-     scales all the way up to P4-P6 syllabus content (fractions, ratio,
-     multi-thousand sums) for older/higher-level kids, which is fine for a
-     sit-and-think quiz but produces answers and distractors with five or
-     six digits here — unreadable on a falling fruit and far too slow to
-     work out while it drops. Band 3 always gets the same simple
-     times/divide/missing/half question set instead, whatever the child's
-     actual level or rank. */
-  function ninjaQuestion(b, level){
-    if(b < 3) return numberQuestion(b, level);
-    var a, c, ans, k3 = pick(["times","divide","missing","half"]);
-    if(k3 === "times"){ a = ri(3, 12); c = ri(3, 12); return {q:a+" × "+c, prompt:"What is…", a:a*c, opts:numberOptions(a*c, 12)}; }
-    if(k3 === "divide"){ c = ri(2, 12); ans = ri(2, 12); a = c * ans; return {q:a+" ÷ "+c, prompt:"What is…", a:ans, opts:numberOptions(ans, 5)}; }
-    if(k3 === "missing"){
-      a = ri(4, 30); c = ri(2, 25);
-      return {q: a + " + ? = " + (a + c), prompt:"What is missing?", a:c, opts:numberOptions(c, 7)};
-    }
-    ans = ri(4, 40); a = ans * 2;
-    return {q:"Half of " + a, prompt:"What is…", a:ans, opts:numberOptions(ans, 6)};
-  }
-
-  function startNinja(world){
-    var b = band();
-    var rounds = b === 0 ? 5 : b === 1 ? 6 : 8;
-    /* Younger hands get a slower, higher throw and more time at the top. */
-    var gravity = b === 0 ? 900 : b === 1 ? 1050 : b === 2 ? 1250 : 1450;
-
-    var shell = gameShell(world, rounds);
-    var i = 0, correct = 0, over = false;
-
-    shell.stage.appendChild(el("div",{"class":"prompt",
-      text:"Slice the right number before it falls!"}));
-    var qline = el("div",{"class":"bigq"});
-    shell.stage.appendChild(qline);
-    var arena = el("div",{"class":"ninja-arena"});
-    shell.stage.appendChild(arena);
-
-    function next(){
-      if(over) return;
-      if(i >= rounds){ over = true; finish(world, correct, rounds); return; }
-      arena.textContent = "";
-      var Q = ninjaQuestion(b, Math.max(1, levelOf("numbers")));
-      qline.textContent = qLine(Q);
-      speak(Q.prompt ? Q.prompt : qLine(Q));
-
-      /* Three or four fruits, one of them right. They leave at staggered
-         moments so they never come up as a wall. */
-      var opts = shuffle(Q.opts.slice(0, b === 0 ? 3 : 4));
-      var live = [], done = false;
-
-      opts.forEach(function(v, k){
-        var f = el("button",{"class":"fruit","aria-label":String(v)});
-        f.appendChild(el("span",{"class":"fruit-skin", text: NINJA_SKINS[k % NINJA_SKINS.length]}));
-        f.appendChild(el("span",{"class":"fruit-num", text:String(v)}));
-        arena.appendChild(f);
-        var w = arena.clientWidth || 320, h = arena.clientHeight || 260;
-        var o = {
-          el: f, val: String(v), sliced: false,
-          x: (w * (k + 1)) / (opts.length + 1) - 26,
-          y: h,
-          vx: (Math.random() - 0.5) * 40,
-          /* Chosen so the top of the arc lands just inside the arena. */
-          vy: -Math.sqrt(2 * gravity * (h * 0.78)),
-          delay: k * 0.28
-        };
-        f.style.transform = "translate(" + o.x + "px," + o.y + "px)";
-        f.addEventListener("click", function(){ slice(o); });
-        live.push(o);
-      });
-
-      function slice(o){
-        if(done || o.sliced) return;
-        o.sliced = true;
-        o.el.classList.add(o.val === String(Q.a) ? "hit" : "miss");
-        if(o.val === String(Q.a)){
-          done = true; correct++;
-          sfx.pop(); rightAnswer(o.el); confettiBurst(24);
-          markDot(shell.dots, i, true);
-          i++; setTimeout(next, 700);
-        } else {
-          sfx.bad(); wrongAnswer();
-        }
-      }
-
-      var last = null, t = 0;
-      function frame(ts){
-        if(over || done) return;
-        if(!document.body.contains(arena)){ over = true; return; }
-        if(last === null) last = ts;
-        var dt = Math.min(0.04, (ts - last) / 1000); last = ts; t += dt;
-        var h = arena.clientHeight || 260, gone = 0;
-        live.forEach(function(o){
-          if(o.delay > 0){ o.delay -= dt; o.el.style.opacity = "0"; gone += o.y > h ? 0 : 0; return; }
-          o.el.style.opacity = "1";
-          o.vy += gravity * dt;
-          o.x += o.vx * dt; o.y += o.vy * dt;
-          o.el.style.transform = "translate(" + o.x + "px," + o.y + "px)";
-          if(o.y > h + 40) gone++;
-        });
-        if(gone >= live.length){
-          /* Everything fell: the round is missed, and the answer is shown
-             rather than left a mystery. */
-          done = true;
-          sfx.bad(); wrongAnswer();
-          qline.textContent = qLine(Q) + "  " + Q.a;
-          markDot(shell.dots, i, false);
-          i++; setTimeout(next, 1000);
-          return;
-        }
-        requestAnimationFrame(frame);
-      }
-      requestAnimationFrame(frame);
-    }
-    next();
-  }
-
-  /* ==========================================================================
      Table Tower
      --------------------------------------------------------------------------
      Times tables, which are learnt by repetition and nothing else. Every right
@@ -6854,6 +6743,112 @@
       show(box);
     }
 
+    nextQuestion();
+  }
+
+  /* ==========================================================================
+     Toy Stick Showdown
+     --------------------------------------------------------------------------
+     Designed by Kayden Bang (Mee Toh Primary School): answer an addition to
+     swing the toy stick at Dal. Ten swings land him — get three wrong along
+     the way, though, and Dal gets you first.
+     ========================================================================== */
+  function toyStickSum(b, level){
+    var spread = b === 0 ? 5 : b === 1 ? 10 : b === 2 ? (20 + level * 5) : (30 + level * 8);
+    var a = ri(1, spread), c = ri(1, spread);
+    return {a: a, c: c, ans: a + c};
+  }
+
+  function startToyStick(world){
+    var b = band(), level = Math.max(1, levelOf(world.id));
+    var dalHp = 100, dalMax = 100, dmg = 10;
+    var playerHp = 15, playerMax = 15;
+    var attempts = 0, correct = 0, over = false;
+
+    var shell = gameShell(world, 10);
+    shell.stage.appendChild(el("div",{"class":"byline",
+      text:"🎮 Created by Kayden Bang, Mee Toh Primary School"}));
+    shell.stage.appendChild(el("div",{"class":"prompt",
+      text:"Answer the sum to swing your toy stick at Dal!"}));
+
+    var scene = el("div",{"class":"toystick-scene"});
+    var dalSide = el("div",{"class":"toystick-fighter"});
+    dalSide.appendChild(el("div",{"class":"toystick-face", text:"😠"}));
+    dalSide.appendChild(el("div",{"class":"toystick-name", text:"Dal"}));
+    var dalBar = el("div",{"class":"hpbar"});
+    var dalFill = el("div",{"class":"hpbar-fill dal"});
+    dalBar.appendChild(dalFill);
+    dalSide.appendChild(dalBar);
+    scene.appendChild(dalSide);
+
+    var vs = el("div",{"class":"toystick-weapon", text:"🪓"});
+    scene.appendChild(vs);
+
+    var youSide = el("div",{"class":"toystick-fighter"});
+    youSide.appendChild(el("div",{"class":"toystick-face", text:"🙂"}));
+    youSide.appendChild(el("div",{"class":"toystick-name", text: state.name || "You"}));
+    var youBar = el("div",{"class":"hpbar"});
+    var youFill = el("div",{"class":"hpbar-fill you"});
+    youBar.appendChild(youFill);
+    youSide.appendChild(youBar);
+    scene.appendChild(youSide);
+    shell.stage.appendChild(scene);
+
+    function paintBars(){
+      dalFill.style.width = Math.max(0, (dalHp / dalMax) * 100) + "%";
+      youFill.style.width = Math.max(0, (playerHp / playerMax) * 100) + "%";
+    }
+    paintBars();
+
+    var qbox = el("div",{"class":"qbox"});
+    shell.stage.appendChild(qbox);
+
+    function endBattle(won){
+      over = true;
+      var beforeLevel = levelOf(world.id);
+      award(world.id, won ? 3 : 0, won);
+      music.stop();
+      if(won){ sfx.win(); confettiBurst(120, window.innerHeight * 0.3); }
+      var box = el("div",{"class":"result"});
+      box.appendChild(el("div",{"class":"stars-big", text: won ? "⭐⭐⭐" : "💪"}));
+      box.appendChild(el("div",{"class":"score display", text: won ? "You defeated Dal!" : "Dal got you this time!"}));
+      if(won && levelOf(world.id) > beforeLevel) box.appendChild(el("div",{style:"font-weight:800; color:#8FE3C4; font-size:16px", text:"Level " + levelOf(world.id) + " unlocked!"}));
+      box.appendChild(el("div",{style:"font-weight:800; color:#C9C4EE; font-size:15px",
+        text:"🎮 A game by Kayden Bang, Mee Toh Primary School"}));
+      var again = el("button",{"class":"btn btn-lg btn-go", style:"min-width:240px", text:"Play again"});
+      again.addEventListener("click", function(){ sfx.tap(); startToyStick(world); });
+      var home = el("button",{"class":"btn btn-lg btn-ghost", style:"min-width:240px", text:"Choose another game"});
+      home.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+      box.appendChild(again); box.appendChild(home);
+      show(box);
+    }
+
+    function nextQuestion(){
+      if(over) return;
+      qbox.textContent = "";
+      var q = toyStickSum(b, level);
+      qbox.appendChild(el("div",{"class":"bigq", text: q.a + " + " + q.c + " = ?"}));
+      speak(q.a + " plus " + q.c);
+      qbox.appendChild(choiceGrid(numberOptions(q.ans, Math.max(4, Math.round(q.ans * 0.3))), q.ans, function(ok){
+        attempts++;
+        if(ok){
+          correct++;
+          dalHp = Math.max(0, dalHp - dmg);
+          sfx.pop(); rightAnswer(); confettiBurst(20);
+          dalSide.classList.add("hit");
+          setTimeout(function(){ dalSide.classList.remove("hit"); }, 400);
+        } else {
+          playerHp = Math.max(0, playerHp - 3);
+          sfx.bad(); wrongAnswer();
+          youSide.classList.add("hit");
+          setTimeout(function(){ youSide.classList.remove("hit"); }, 400);
+        }
+        paintBars();
+        if(dalHp <= 0){ setTimeout(function(){ endBattle(true); }, 700); return; }
+        if(playerHp <= 0){ setTimeout(function(){ endBattle(false); }, 700); return; }
+        setTimeout(nextQuestion, ok ? 700 : 1100);
+      }, false));
+    }
     nextQuestion();
   }
 
