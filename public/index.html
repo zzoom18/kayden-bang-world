@@ -2382,6 +2382,12 @@
 
   function renderHome(){
     refreshWritings();
+    /* Every way out of a game (the back arrow, "Choose another game" on the
+       finish screen) lands here, so this is the one place that reliably
+       catches a child leaving mid-narration — without it, a question or
+       explanation that was still being read out keeps talking over the
+       home screen it no longer belongs to. */
+    if(CAN_SPEAK) try{ window.speechSynthesis.cancel(); }catch(e){}
     /* The game screens have had their own mood music for a while; the game
        picker itself stayed silent, which made arriving here after a round
        feel like the sound had cut out rather than like a menu. music.start
@@ -3038,6 +3044,23 @@
   }
 
   /* ---------- Letter Sounds ---------- */
+  /* speak("H") reads the letter's NAME ("aitch"), not the phonic sound this
+     game is actually teaching — the exact opposite of the point. Browser
+     text-to-speech has no way to ask for a bare phoneme, so each letter is
+     spelled out as a short nonsense syllable that nudges ordinary
+     grapheme-to-sound rules toward the right sound instead ("h" -> "huh").
+     Vowels are the least exact this way (English TTS still leans toward a
+     vowel's name over its short sound), but every consonant comes out
+     right, which is the sound most of these words actually start with. */
+  var LETTER_PHONICS = {
+    a:"a", b:"buh", c:"kuh", d:"duh", e:"eh", f:"ffff", g:"guh", h:"huh",
+    i:"ih", j:"juh", k:"kuh", l:"llll", m:"mmmm", n:"nnnn", o:"ah", p:"puh",
+    q:"kwuh", r:"ruh", s:"ssss", t:"tuh", u:"uh", v:"vuh", w:"wuh", x:"ks",
+    y:"yuh", z:"zzzz"
+  };
+  function phonicSound(letter){
+    return LETTER_PHONICS[String(letter || "").toLowerCase()] || letter;
+  }
   function buildSounds(level){
     var b = band(), qs = [], i;
     var pool = deal("sounds", PICS, keyer(), 8);
@@ -3070,11 +3093,18 @@
     var letter = q.letter.toUpperCase();
     var row = el("div",{"class":"sayrow"});
     row.appendChild(el("div",{"class":"bigq", text: letter + " " + q.letter}));
-    var say = sayButton(letter);
+    var say = sayButton(function(){ return phonicSound(q.letter); });
     if(say) row.appendChild(say);
     stage.appendChild(row);
     if(say) stage.appendChild(el("div",{"class":"sayhint", text:"Tap the speaker to hear it again"}));
-    speak(letter);
+    speak(phonicSound(q.letter));
+    /* Without this, the generic stage-watcher notices this same screen
+       320ms later and reads its raw text as its own separate utterance —
+       "H h" pronounced as two letter names back to back, cancelling the
+       phonic sound above and replacing it with exactly the letter-naming
+       this game is trying not to do. Priming lastSpoken marks the screen
+       as already read, so that second, wrong utterance never fires. */
+    lastSpoken = stageQuestion(stage);
 
     stage.appendChild(choiceGrid(q.opts, q.answer, function(ok){
       /* Saying the word after a right answer is where the sound and the
