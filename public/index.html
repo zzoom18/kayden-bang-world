@@ -195,7 +195,7 @@
   .duo-chip.on{color:#fff}
   .duo-chip.ca.on{background:linear-gradient(150deg,#FF8AB0,#FF5D8F)}
   .duo-chip.cb.on{background:linear-gradient(150deg,#63D6FF,#2FB6E6)}
-  .bigq{font-family:"Baloo 2",sans-serif; font-weight:800; font-size:clamp(44px,10vw,84px); line-height:1.05}
+  .bigq{font-family:"Baloo 2",sans-serif; font-weight:800; font-size:clamp(44px,10vw,84px); line-height:1.15; white-space:pre-line}
   .bigemo{font-size:clamp(70px,19vw,140px); line-height:1}
   .choices{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; width:100%; max-width:620px}
   .choices.three{grid-template-columns:repeat(3,1fr)}
@@ -1241,6 +1241,13 @@
      on Android and Windows is frequently male. */
   var FEMALE_VOICE_HINTS = /female|woman|girl|zira|susan|samantha|karen|serena|moira|tessa|fiona|kate|amy|emma|joanna|salli|ivy|kendra|jenny|aria|libby|olivia|sonia|natasha|yuna|xiaoxiao|xiaoyi|mei[-\s]?jia/i;
   var MALE_VOICE_HINTS = /\bmale\b|\bman\b|\bboy\b|daniel|david|mark|james|george|oliver|ryan|guy|brian|matthew|justin|kevin|eric/i;
+  /* The flat, clipped read a parent calls "robotic" is almost always the
+     device's default compact voice — most platforms also ship a better one
+     that the default picker never reaches for. iOS/macOS label theirs
+     "Enhanced" or "Premium"; some Android and Chrome builds expose a
+     "Natural" or "Neural" voice alongside the plain one. Given a choice,
+     take the better-sounding voice over an earlier one in the list. */
+  var QUALITY_HINTS = /enhanced|premium|neural|natural|wavenet|studio|hd\b/i;
 
   /* Chooses a voice for a language, preferring, in order: an exact match for
      the requested locale (en-SG, spoken to sound Singaporean rather than
@@ -1260,8 +1267,14 @@
     }
     function female(v){ return FEMALE_VOICE_HINTS.test(v.name || ""); }
     function notMale(v){ return !MALE_VOICE_HINTS.test(v.name || ""); }
+    function quality(v){ return QUALITY_HINTS.test(v.name || ""); }
     function pickFrom(list){
       if(!list.length) return null;
+      /* A high-quality female voice first; then any high-quality voice at
+         all, since a smoother male voice still beats a robotic female one;
+         then the same female-over-male fallback as before. */
+      var qf = list.filter(function(v){ return quality(v) && female(v); }); if(qf.length) return qf[0];
+      var q = list.filter(quality); if(q.length) return q[0];
       var f = list.filter(female); if(f.length) return f[0];
       var n = list.filter(notMale); if(n.length) return n[0];
       return list[0];
@@ -1280,8 +1293,8 @@
          through plain "en" if this device has no en-SG voice installed. */
       u.lang = opts.lang || "en-SG";
       /* Slower than default: these are children hearing a word once. */
-      u.rate = opts.rate || 0.82;
-      u.pitch = opts.pitch || 1.05;
+      u.rate = opts.rate || 0.9;
+      u.pitch = opts.pitch || 1.0;
       var v = voiceFor(u.lang);
       if(v) u.voice = v;
       window.speechSynthesis.speak(u);
@@ -1609,6 +1622,16 @@
      writes locally at once and pushes to the account a moment later, batched
      so a run of right answers is one request rather than ten. */
   var pushTimer = null, accountEmail = null;
+  /* Sentences other players' children have written and had approved,
+     fetched once at boot and refreshed quietly each time the home screen is
+     shown, so a newly-approved one appears without anyone reloading the
+     page by hand. */
+  var approvedWritings = [];
+  function refreshWritings(){
+    api("/api/writings/approved", null, "GET").then(function(res){
+      if(res.status === 200 && res.body.ok) approvedWritings = res.body.writings || [];
+    })["catch"](function(){});
+  }
 
   /* ---------- staying signed in ----------
      Two stores, deliberately. localStorage is the "keep me signed in" box:
@@ -2149,6 +2172,7 @@
   }
 
   function renderHome(){
+    refreshWritings();
     var wrap = el("div");
     wrap.appendChild(topbar());
     var pad = el("div",{"class":"pad"});
@@ -2259,6 +2283,32 @@
       });
     });
 
+
+    pad.appendChild(el("h3",{"class":"subject", text:"✍️ Written by Kids"}));
+    var wgrid = el("div",{"class":"worlds"});
+    var wcard = el("button",{"class":"world", "data-world":"write-own", style:"background:linear-gradient(150deg,#FFD9A0,#E8863D)"});
+    wcard.appendChild(el("div",{"class":"emo", text:"✍️"}));
+    wcard.appendChild(el("div",{"class":"nm", text:"Write your own sentence"}));
+    wcard.appendChild(el("div",{"class":"sub", text:"Get it approved and it becomes a real game"}));
+    wcard.addEventListener("click", function(){
+      sfx.tap();
+      if(!licence){ openWelcome(false); return; }
+      openWriting();
+    });
+    wgrid.appendChild(wcard);
+    approvedWritings.forEach(function(w){
+      var c = el("button",{"class":"world", "data-world":"writing-" + w.id, style:"background:linear-gradient(150deg,#FFC2E0,#D6569C)"});
+      c.appendChild(el("div",{"class":"emo", text:"📝"}));
+      c.appendChild(el("div",{"class":"nm", text:"“" + w.sentence.split(" ").slice(0,4).join(" ") + (w.sentence.split(" ").length > 4 ? "…" : "") + "”"}));
+      c.appendChild(el("div",{"class":"sub", text:"by " + (w.childName || "a player")}));
+      c.addEventListener("click", function(){
+        sfx.tap();
+        if(!licence){ openWelcome(false); return; }
+        playWriting(w);
+      });
+      wgrid.appendChild(c);
+    });
+    pad.appendChild(wgrid);
 
     var print = el("button",{"class":"printcard"});
     print.appendChild(el("div",{"class":"pe", text:"🖨️"}));
@@ -2661,7 +2711,9 @@
     if(k === "algebra"){
       var m = ri(2, 9), xv = ri(2, 15), cst = ri(1, 20);
       ans = xv;
-      return {q: m + "x + " + cst + " = " + (m * xv + cst) + ".  x = ?", prompt:"Solve for x", a:ans,
+      /* "4x + 9 = 65. x = ?" crammed onto one line reads as a wall of
+         symbols; a P6 child reads the equation, then the question. */
+      return {q: m + "x + " + cst + " = " + (m * xv + cst) + ".\nx = ?", prompt:"Solve for x", a:ans,
         opts: fourOpts(xv, [m * xv + cst, Math.round((m * xv + cst) / m), xv + m, cst])};
     }
     if(k === "percentChange"){
@@ -8258,6 +8310,150 @@
      next time it checks in (see /api/verify). This screen used to ask for a
      KBW-XXXX key; it now just explains that and lets a child close it and
      keep playing what is already open to them. */
+  /* ---------- write your own sentence ----------
+     A child types one sentence. It goes to the server as 'pending' and sits
+     there until a parent looks at it in the admin page; only once it is
+     approved does anyone else ever see it, credited to whoever wrote it, as
+     a one-round Sentence Builder made from their own words. Nothing here
+     shows a child's sentence to another family before a parent has read it. */
+  function openWriting(){
+    var box = el("div");
+    box.appendChild(el("h2",{"class":"display", text:"Write your own sentence"}));
+    box.appendChild(el("p",{text:"Write one sentence, 2 to 14 words. If it's approved, it becomes a real game — with your name on it."}));
+
+    var token = getToken();
+    if(!token){
+      box.appendChild(el("p",{style:"font-weight:800; color:#FFD98A", text:"Sign in first so we know whose sentence this is."}));
+      var back0 = el("button",{"class":"btn btn-ghost", style:"width:100%; margin-top:10px", text:"Close"});
+      back0.addEventListener("click", function(){ m0.close(); });
+      box.appendChild(back0);
+      var m0 = modal(box);
+      return;
+    }
+
+    var f = el("div",{"class":"field"});
+    f.appendChild(el("label",{text:"Your sentence", "for":"pc_sentence"}));
+    var inp = el("input",{type:"text", id:"pc_sentence", maxlength:"90",
+      placeholder:"The dog ran fast in the park"});
+    f.appendChild(inp); box.appendChild(f);
+    var err = el("div",{"class":"err"}); box.appendChild(err);
+    var go = el("button",{"class":"btn btn-lg btn-pink", style:"width:100%", text:"Submit"});
+    box.appendChild(go);
+
+    var listWrap = el("div",{style:"margin-top:18px"});
+    box.appendChild(listWrap);
+
+    function statusLabel(st){
+      return st === "approved" ? "✅ Now a game!" : st === "rejected" ? "Not used this time" : "⏳ Waiting to be read";
+    }
+    function loadMine(){
+      listWrap.textContent = "";
+      api("/api/writing?token=" + encodeURIComponent(token), null, "GET").then(function(res){
+        if(!(res.status === 200 && res.body.ok) || !res.body.writings.length) return;
+        listWrap.appendChild(el("div",{style:"font-weight:800; color:#C9C4EE; font-size:13px; margin-bottom:8px", text:"YOUR SENTENCES"}));
+        res.body.writings.slice().reverse().forEach(function(w){
+          var row = el("div",{"class":"prow"});
+          row.appendChild(el("div",{"class":"n", style:"font-weight:700", text:"“" + w.sentence + "”"}));
+          row.appendChild(el("div",{"class":"v", style:"font-size:13px", text:statusLabel(w.status)}));
+          listWrap.appendChild(row);
+        });
+      })["catch"](function(){});
+    }
+
+    go.addEventListener("click", function(){
+      var v = (inp.value || "").trim();
+      go.disabled = true; err.textContent = "";
+      api("/api/writing", {token:token, sentence:v, childName:state.name || ""}).then(function(res){
+        if(res.status === 200 && res.body.ok){
+          inp.value = ""; sfx.win(); confettiBurst(40);
+          loadMine();
+        } else {
+          err.textContent = (res.body && res.body.message) || "Couldn't send that. Try again.";
+        }
+      })["catch"](function(){
+        err.textContent = "Couldn't reach the server. Check your connection.";
+      }).then(function(){ go.disabled = false; });
+    });
+
+    var back = el("button",{"class":"btn btn-ghost", style:"width:100%; margin-top:14px", text:"Close"});
+    back.addEventListener("click", function(){ m.close(); });
+    box.appendChild(back);
+
+    var m = modal(box);
+    loadMine();
+    setTimeout(function(){ inp.focus(); }, 80);
+  }
+
+  /* Plays one approved sentence, exactly like Sentence Builder, credited to
+     whoever wrote it. w carries {id, childName, sentence}. */
+  function playWriting(w){
+    var words = w.sentence.split(" ");
+    var wrap = el("div",{style:"flex:1; min-height:0; display:flex; flex-direction:column"});
+    var bar = el("div",{"class":"gamebar"});
+    var back = el("button",{"class":"iconbtn","aria-label":"Back to the games", text:"←"});
+    back.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+    bar.appendChild(back);
+    bar.appendChild(el("div",{"class":"tally"}, "✍️", el("b",{text:"by " + (w.childName || "a player")})));
+    wrap.appendChild(bar);
+    var stage = el("div",{"class":"stage"});
+    wrap.appendChild(stage);
+    show(wrap);
+
+    var built = [], wrong = false;
+    stage.appendChild(el("div",{"class":"prompt", text:"Tap the words in the right order"}));
+    var line = el("div",{"class":"sentline"});
+    stage.appendChild(line);
+    var tray = el("div",{"class":"wordtray"});
+    stage.appendChild(tray);
+
+    function redraw(){
+      line.textContent = "";
+      if(!built.length) line.appendChild(el("span",{"class":"sentghost", text:"…"}));
+      built.forEach(function(t){ line.appendChild(el("span",{"class":"sentword", text:t})); });
+    }
+    redraw();
+
+    var jumbled = shuffle(words.slice());
+    if(jumbled[0] === words[0] && words.length > 2) jumbled = shuffle(jumbled);
+
+    function finishRound(won){
+      music.stop();
+      var box = el("div",{"class":"result"});
+      box.appendChild(el("div",{"class":"stars-big", text: won ? "⭐" : "✍️"}));
+      box.appendChild(el("div",{"class":"score display", text: won ? "You got it!" : words.join(" ")}));
+      box.appendChild(el("div",{style:"font-weight:800; color:#C9C4EE; font-size:15px",
+        text:"Written by " + (w.childName || "a player")}));
+      var again = el("button",{"class":"btn btn-lg btn-go", style:"min-width:240px", text:"Play again"});
+      again.addEventListener("click", function(){ sfx.tap(); playWriting(w); });
+      var home = el("button",{"class":"btn btn-lg btn-ghost", style:"min-width:240px", text:"Choose another game"});
+      home.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+      box.appendChild(again); box.appendChild(home);
+      show(box);
+    }
+
+    jumbled.forEach(function(t){
+      var chip = el("button",{"class":"wordchip", text:t});
+      chip.addEventListener("click", function(){
+        if(chip.disabled || wrong) return;
+        if(t === words[built.length]){
+          chip.disabled = true; chip.classList.add("used");
+          built.push(t); redraw(); sfx.tap();
+          if(built.length === words.length){
+            sfx.good(); confettiBurst(60); speak(words.join(" "));
+            setTimeout(function(){ finishRound(true); }, 1200);
+          }
+        } else {
+          wrong = true;
+          chip.classList.add("bad"); sfx.bad();
+          line.textContent = "";
+          line.appendChild(el("span",{"class":"sentword good", text: words.join(" ")}));
+          setTimeout(function(){ finishRound(false); }, 1600);
+        }
+      });
+      tray.appendChild(chip);
+    });
+  }
+
   function openKey(){
     var box = el("div");
     box.appendChild(el("h2",{"class":"display", text:"Full access"}));
@@ -8271,6 +8467,7 @@
 
   /* ---------- boot ---------- */
   load();
+  refreshWritings();
   renderHome();
 
   /* Edge-swipe back: the gesture fires a popstate. We keep one spare entry

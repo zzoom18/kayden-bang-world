@@ -24,6 +24,7 @@ const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
 const REGISTRATIONS = path.join(DATA_DIR, 'registrations.jsonl');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const GRANTS_FILE = path.join(DATA_DIR, 'grants.json');
+const WRITINGS_FILE = path.join(DATA_DIR, 'writings.json');
 // Optional: POST each signup somewhere else too (a mailing list, a sheet).
 const REGISTRATION_WEBHOOK = process.env.REGISTRATION_WEBHOOK || '';
 
@@ -41,6 +42,10 @@ if (KEY_SECRET.length < 32) {
    open access on or off from the admin page without touching the server. */
 let settings = { openAccess: true, defaultTier: 'full' };
 let grants = {};   // email -> tier id, set per person from the admin page
+// A child's own sentence, waiting for a parent to look at it before it can
+// ever appear to anyone else. Nothing here is shown to another family until
+// its status is 'approved'.
+let writings = [];
 
 function loadStore(){
   try {
@@ -50,6 +55,10 @@ function loadStore(){
   try {
     const raw = JSON.parse(fs.readFileSync(GRANTS_FILE, 'utf8'));
     if (raw && typeof raw === 'object') grants = raw;
+  } catch { /* none yet */ }
+  try {
+    const raw = JSON.parse(fs.readFileSync(WRITINGS_FILE, 'utf8'));
+    if (Array.isArray(raw)) writings = raw;
   } catch { /* none yet */ }
 }
 function persist(file, value){
@@ -596,6 +605,102 @@ async function handleGrant(req, res) {
   return sendJson(req, res, 200, { ok: true, grants, saved });
 }
 
+/* ---------- a child's own writing, turned into a game ----------
+   Kayden or Ellyia (or anyone playing) types one sentence. It sits as
+   'pending' until a parent looks at it in the admin page and approves it -
+   only then does it ever appear to another player, credited to whoever
+   wrote it. There is no attempt to auto-generate a comprehension question
+   from free text; the game it becomes is Sentence Builder, unscrambling the
+   child's own words, which needs no further authoring once approved. */
+const MAX_PENDING_PER_EMAIL = 5;
+const SENTENCE_CHARS = /^[A-Za-z0-9À-ÖØ-öø-ÿ' .,!?-]+$/;
+
+function cleanSentence(raw) {
+  const s = String(raw || '').replace(/\s+/g, ' ').trim();
+  if (s.length < 6 || s.length > 90) return null;
+  const words = s.split(' ').filter(Boolean);
+  if (words.length < 2 || words.length > 14) return null;
+  if (!SENTENCE_CHARS.test(s)) return null;
+  return s;
+}
+
+async function handleWriting(req, res) {
+  if (req.method === 'GET') {
+    const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+    const result = readToken(KEY_SECRET, url.searchParams.get('token'));
+    if (!result.ok || !result.email) return sendJson(req, res, 401, { ok: false, error: result.reason || 'no_account' });
+    const mine = writings.filter((w) => w.email === result.email)
+      .map((w) => ({ id: w.id, sentence: w.sentence, status: w.status, createdAt: w.createdAt }));
+    return sendJson(req, res, 200, { ok: true, writings: mine });
+  }
+
+  let body;
+  try { body = await readBody(req); } catch { return sendJson(req, res, 400, { ok: false, error: 'bad_request' }); }
+
+  const result = readToken(KEY_SECRET, body.token);
+  if (!result.ok) return sendJson(req, res, 401, { ok: false, error: result.reason });
+  if (!result.email) return sendJson(req, res, 200, { ok: false, error: 'no_account' });
+
+  const sentence = cleanSentence(body.sentence);
+  if (!sentence) {
+    return sendJson(req, res, 400, { ok: false, error: 'bad_sentence',
+      message: 'That needs to be 2 to 14 words, letters and numbers only.' });
+  }
+
+  const pending = writings.filter((w) => w.email === result.email && w.status === 'pending').length;
+  if (pending >= MAX_PENDING_PER_EMAIL) {
+    return sendJson(req, res, 429, { ok: false, error: 'too_many_pending',
+      message: 'Wait for one of your sentences to be reviewed before sending another.' });
+  }
+
+  const entry = {
+    id: crypto.randomUUID(),
+    email: result.email,
+    childName: String(body.childName || '').trim().slice(0, 40),
+    sentence,
+    status: 'pending',
+    createdAt: Date.now(),
+  };
+  writings.push(entry);
+  const saved = persist(WRITINGS_FILE, writings);
+  console.log(`[writing] ${result.email} submitted a sentence, pending review`);
+  return sendJson(req, res, 200, { ok: true, saved, writing: entry });
+}
+
+/* Public and read-only: the small set of already-approved sentences, which
+   is exactly what a parent chose to let other players see. */
+async function handleWritingsApproved(req, res) {
+  const approved = writings.filter((w) => w.status === 'approved')
+    .map((w) => ({ id: w.id, childName: w.childName || 'A player', sentence: w.sentence }));
+  return sendJson(req, res, 200, { ok: true, writings: approved });
+}
+
+async function handleAdminWritings(req, res) {
+  if (!requireAdmin(req, res)) return;
+
+  if (req.method === 'GET') {
+    return sendJson(req, res, 200, { ok: true, writings });
+  }
+
+  let body;
+  try { body = await readBody(req); } catch { return sendJson(req, res, 400, { ok: false, error: 'bad_request' }); }
+
+  const id = String(body.id || '');
+  const entry = writings.find((w) => w.id === id);
+  if (!entry) return sendJson(req, res, 404, { ok: false, error: 'not_found' });
+
+  if (body.status === 'delete') {
+    writings = writings.filter((w) => w.id !== id);
+  } else if (['pending', 'approved', 'rejected'].includes(body.status)) {
+    entry.status = body.status;
+  } else {
+    return sendJson(req, res, 400, { ok: false, error: 'bad_status' });
+  }
+  const saved = persist(WRITINGS_FILE, writings);
+  console.log(`[admin] writing ${id} -> ${body.status}`);
+  return sendJson(req, res, 200, { ok: true, saved, writings });
+}
+
 function readRegistrations() {
   let lines = [];
   try { lines = fs.readFileSync(REGISTRATIONS, 'utf8').split('\n').filter(Boolean); } catch { return []; }
@@ -974,6 +1079,9 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/admin/settings') return await handleSettings(req, res);
     if (url.pathname === '/api/admin/grant' && req.method === 'POST') return await handleGrant(req, res);
     if (url.pathname === '/api/admin/account' && req.method === 'POST') return await handleAccount(req, res);
+    if (url.pathname === '/api/writing' && (req.method === 'GET' || req.method === 'POST')) return await handleWriting(req, res);
+    if (url.pathname === '/api/writings/approved' && req.method === 'GET') return await handleWritingsApproved(req, res);
+    if (url.pathname === '/api/admin/writings' && (req.method === 'GET' || req.method === 'POST')) return await handleAdminWritings(req, res);
     if (url.pathname.startsWith('/api/')) return sendJson(req, res, 404, { ok: false, error: 'not_found' });
 
     if (req.method !== 'GET' && req.method !== 'HEAD') {

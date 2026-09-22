@@ -78,6 +78,7 @@
   .tag{font-size:11.5px; font-weight:800; padding:4px 9px; border-radius:7px; background:var(--panel-2); color:var(--soft); white-space:nowrap}
   .tag.full{background:rgba(53,196,143,.18); color:#7DE9BE}
   .tag.trial{background:rgba(255,196,61,.18); color:#FFD98A}
+  .tag.stop{background:rgba(255,93,143,.18); color:#FF8FAE}
 
   .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-bottom:18px}
   .stat{background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:15px}
@@ -171,6 +172,12 @@
   </section>
 
   <section class="panel">
+    <h2>Kids' writing</h2>
+    <p class="note">Every sentence a child submits sits here until you read it. Approve one and it becomes a one-round Sentence Builder on the home screen, credited to whoever wrote it — nobody sees it before that.</p>
+    <div class="tw"><table id="writingTable"></table></div>
+  </section>
+
+  <section class="panel">
     <h2>Make licence keys</h2>
     <p class="note">Only needed when open access is off. Every key unlocks the whole app. Serial numbers must never repeat — keep note of where you stopped.</p>
     <div class="row">
@@ -218,6 +225,7 @@
         $("app").hidden = false;
         paint(res.body);
         loadRegs();
+        loadWritings();
         return true;
       }
       token = "";
@@ -402,6 +410,75 @@
         say($("grantMsg"), res.body.message || "That did not work.", false);
       }
     })["catch"](function(){ say($("grantMsg"), "Could not reach the server.", false); });
+  }
+
+  /* ---------- kids' writing ---------- */
+  function loadWritings(){
+    return api("/api/admin/writings").then(function(res){
+      if(res.body.ok) paintWritings(res.body.writings || []);
+    });
+  }
+  function paintWritings(list){
+    var t = $("writingTable");
+    t.textContent = "";
+    if(!list.length){
+      var e = document.createElement("div");
+      e.className = "empty";
+      e.textContent = "Nothing submitted yet.";
+      t.parentNode.appendChild(e);
+      t.hidden = true;
+      return;
+    }
+    t.hidden = false;
+    var prev = t.parentNode.querySelector(".empty");
+    if(prev) prev.remove();
+    t.innerHTML = "<tr><th>Sentence</th><th>By</th><th>Status</th><th></th></tr>";
+    /* Newest first, and a pending one always above an already-decided one,
+       so the pile that needs a decision is never buried under old ones. */
+    list.slice().sort(function(a, b){
+      var rank = {pending:0, approved:1, rejected:1};
+      if(rank[a.status] !== rank[b.status]) return rank[a.status] - rank[b.status];
+      return b.createdAt - a.createdAt;
+    }).forEach(function(w){
+      var tr = document.createElement("tr");
+      var td1 = document.createElement("td"); td1.textContent = "“" + w.sentence + "”";
+      var td2 = document.createElement("td"); td2.className = "mono";
+      td2.textContent = (w.childName || "—") + " (" + w.email + ")";
+      var td3 = document.createElement("td");
+      var tag = document.createElement("span");
+      tag.className = "tag " + (w.status === "approved" ? "full" : w.status === "rejected" ? "stop" : "trial");
+      tag.textContent = w.status;
+      td3.appendChild(tag);
+      var td4 = document.createElement("td"); td4.style.textAlign = "right"; td4.style.whiteSpace = "nowrap";
+      if(w.status !== "approved"){
+        var ap = document.createElement("button");
+        ap.className = "btn btn-sm btn-go"; ap.textContent = "Approve";
+        ap.style.marginRight = "6px";
+        ap.addEventListener("click", function(){ setWriting(w.id, "approved"); });
+        td4.appendChild(ap);
+      }
+      if(w.status !== "rejected"){
+        var rj = document.createElement("button");
+        rj.className = "btn btn-sm btn-stop"; rj.textContent = "Reject";
+        rj.style.marginRight = "6px";
+        rj.addEventListener("click", function(){ setWriting(w.id, "rejected"); });
+        td4.appendChild(rj);
+      }
+      var del = document.createElement("button");
+      del.className = "btn btn-sm btn-stop"; del.textContent = "Delete";
+      del.addEventListener("click", function(){
+        if(!confirm("Delete this sentence for good?")) return;
+        setWriting(w.id, "delete");
+      });
+      td4.appendChild(del);
+      tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4);
+      t.appendChild(tr);
+    });
+  }
+  function setWriting(id, status){
+    return api("/api/admin/writings", {method:"POST", body:{id:id, status:status}}).then(function(res){
+      if(res.body.ok) paintWritings(res.body.writings || []);
+    });
   }
 
   $("grantGo").addEventListener("click", function(){
