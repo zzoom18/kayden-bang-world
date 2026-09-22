@@ -69,8 +69,11 @@
   }
   .moebar strong{font-weight:800; color:#FFD98A}
   .moe-dot{font-size:15px}
-  .moe-sep, .moe-range{color:var(--ink-soft)}
+  .moe-sep, .moe-sep2, .moe-range{color:var(--ink-soft)}
   .moe-new{font-weight:800; color:#9BE8C6}
+  /* The syllabus/age-range segment is the credibility line; the weekly-new
+     one is the reason to come back, so it survives on a narrow phone even
+     when the middle segment (and its own separator) is dropped. */
   @media (max-width:430px){ .moe-sep, .moe-range{display:none} }
   .screen{flex:1; min-height:0; display:flex; flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch}
   .pad{padding:18px; max-width:1100px; width:100%; margin:0 auto}
@@ -921,8 +924,8 @@
     <span>Follows the <strong>Singapore MOE syllabus</strong></span>
     <span class="moe-sep">·</span>
     <span class="moe-range">Nursery to Primary 6</span>
-    <span class="moe-sep">·</span>
-    <span class="moe-new">New activities every week</span>
+    <span class="moe-sep2">·</span>
+    <span class="moe-new">🎉 New games every week, and fresh content added weekly</span>
   </div>
   <div class="screen" id="screen"></div>
 </div>
@@ -1689,7 +1692,13 @@
     maths:   ["tenframe","numbers","cannon","quest","race","ninja","patterns","bonds","numline","shapes","measure","wordprob","tower","sgmoney","money","picgraph","barmodel","fraction","decimal","areaperim","ratio","balance"],
     english: ["sounds","spell","rhyme","plural","opposites","synonym","grammar","tenses","homophone","sentence","punct","meaning","affix","idiom","reading"],
     think:   ["odd","sort","code"],
-    science: ["quiz","animals","magnet","lifecycle","plant","matter","circuit"],
+    /* Five Senses and Animal Homes suit the very youngest and open the
+       path; Food Chains needs the vocabulary from Animal Groups and
+       States of Matter first, so it closes it. All three carried a
+       science category tag but were never added here, so they never
+       featured in “what unlocks next” and sat outside the star gates
+       every other science game answers to. */
+    science: ["homes","senses","quiz","animals","magnet","lifecycle","plant","matter","circuit","foodchain"],
     inspect: ["spotdiff","findodd","shadow","detective"],
     music:   ["tune","highlow","beats","tempo"],
     guess:   ["guessnum","guessanimal","mystery","riddle"],
@@ -7965,7 +7974,7 @@
     if(!ended){
       box.appendChild(el("div",{"class":"moetag", text:"📘  Follows the Singapore MOE syllabus, Nursery to Primary 6"}));
       var perks = el("ul",{"class":"perks"});
-      ["Games picked for your child's exact school level","New activities added and updated every week",
+      ["Games picked for your child's exact school level","New games added every week, with content refreshed weekly",
        "Stars, badges and progress saved","Printable worksheets included","No adverts, ever"].forEach(function(p){
         perks.appendChild(el("li", null, el("span",{"class":"tk", text:"✓"}), el("span",{text:p})));
       });
