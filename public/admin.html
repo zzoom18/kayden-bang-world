@@ -144,6 +144,16 @@
       </div>
       <button class="toggle" id="openToggle" aria-pressed="false" aria-label="Toggle open access"></button>
     </div>
+    <div class="switch" style="margin-top:14px">
+      <div class="txt">
+        <div class="tt">Ad breaks</div>
+        <div class="td" id="adsNote">Shows a short ad break after every few finished rounds.</div>
+      </div>
+      <button class="toggle" id="adsToggle" aria-pressed="true" aria-label="Toggle ad breaks"></button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div><label for="adsEvery">Every how many rounds</label><input id="adsEvery" type="number" value="10" min="1" max="100"></div>
+    </div>
     <div class="row" style="margin-top:14px">
       <div class="fit">
         <button class="btn btn-go" id="saveSettings">Save</button>
@@ -335,6 +345,13 @@
       ? "On — everyone who registers gets the full app immediately."
       : "Off — new sign-ups get a " + (data.trialDays || 7) + "-day trial, then need a key.";
 
+    var adsOn = state.settings.adsEnabled !== false;
+    $("adsToggle").setAttribute("aria-pressed", adsOn ? "true" : "false");
+    $("adsNote").textContent = adsOn
+      ? "On — every child sees a short ad break after this many finished rounds (a personal override still lets you turn it off for one account)."
+      : "Off — nobody sees an ad break, app-wide.";
+    $("adsEvery").value = state.settings.adsEveryRounds || 10;
+
     var regs = data.registrations || {};
     var stats = [
       { v: regs.total || 0, l: "sign-ups" },
@@ -360,10 +377,17 @@
     this.setAttribute("aria-pressed", now ? "false" : "true");
   });
 
+  $("adsToggle").addEventListener("click", function(){
+    var now = this.getAttribute("aria-pressed") === "true";
+    this.setAttribute("aria-pressed", now ? "false" : "true");
+  });
+
   $("saveSettings").addEventListener("click", function(){
     var body = {
       openAccess: $("openToggle").getAttribute("aria-pressed") === "true",
-      defaultTier: "full"
+      defaultTier: "full",
+      adsEnabled: $("adsToggle").getAttribute("aria-pressed") === "true",
+      adsEveryRounds: Math.max(1, Math.min(100, Math.floor(Number($("adsEvery").value)) || 10))
     };
     this.disabled = true;
     api("/api/admin/settings", {method:"POST", body:body}).then(function(res){
@@ -457,7 +481,13 @@
         img.style.cssText = "width:64px; height:48px; object-fit:cover; border-radius:6px; display:block";
         td1.appendChild(img);
       } else {
-        td1.textContent = "“" + w.sentence + "”";
+        /* A short sentence and a long essay both land in the same review
+           queue now — the cell shows a preview and the full text on hover
+           rather than stretching every row to essay height. */
+        var preview = w.sentence.length > 200 ? w.sentence.slice(0, 200) + "…" : w.sentence;
+        td1.textContent = "“" + preview + "”";
+        td1.title = w.sentence;
+        td1.style.maxWidth = "360px";
       }
       var td2 = document.createElement("td"); td2.className = "mono";
       td2.textContent = (w.childName || "—") + " (" + w.email + ")";
@@ -622,6 +652,17 @@
         });
         td6.appendChild(ul);
 
+        var adBtn = document.createElement("button");
+        adBtn.className = "btn btn-sm";
+        adBtn.style.marginLeft = "6px";
+        adBtn.textContent = r.adsDisabled ? "Turn on ads" : "Turn off ads";
+        adBtn.addEventListener("click", function(){
+          var action = r.adsDisabled ? "enableAds" : "disableAds";
+          if(action === "enableAds" && !confirm("Turn ad breaks back on for " + r.email + "?")) return;
+          account(r.email, action);
+        });
+        td6.appendChild(adBtn);
+
         var rs = document.createElement("button");
         rs.className = "btn btn-sm";
         rs.style.marginLeft = "6px";
@@ -661,6 +702,8 @@
           say($("grantMsg"), action === "delete" ? "Deleted " + email + "."
             : action === "unlockAll" ? "Every game unlocked for " + email + "."
             : action === "lockAll" ? "Star gates restored for " + email + "."
+            : action === "disableAds" ? "Ad breaks turned off for " + email + "."
+            : action === "enableAds" ? "Ad breaks turned back on for " + email + "."
             : "Progress reset for " + email + ".", true);
           loadRegs();
           return api("/api/admin/settings").then(function(r2){ if(r2.body.ok) paint(r2.body); });

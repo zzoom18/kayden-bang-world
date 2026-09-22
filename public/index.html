@@ -1757,12 +1757,17 @@
      settings, and the app also honours the system "reduce motion" setting
      without being asked. */
   var DEFAULT = { name:"", age:5, avatar:"🦊", avatarHat:null, avatarBg:null, setup:false,
-    stars:0, streak:0, perfects:0, allUnlocked:false,
+    stars:0, streak:0, perfects:0, allUnlocked:false, adsDisabled:false, roundsPlayed:0,
     lastPlayed:"", motion:true, sound:true, music:true, readAloud:true,
     quest:null, progress:{}, bags:{} };
   var state = JSON.parse(JSON.stringify(DEFAULT));
   var licence = null;
   var licenceExp = null;
+  /* Set from the server on sign-in/verify (admin-controlled, global for every
+     account); a sane default stands in for the handful of moments before
+     that first response lands, or if the server is ever older than this
+     client and does not send it at all. */
+  var adsConfig = {enabled:true, everyRounds:10};
 
   /* ---------- saving ----------
      localStorage keeps the app instant and working offline; the account copy
@@ -2662,6 +2667,35 @@
     if(d) d.className = "dot " + (ok ? "on" : "bad");
   }
 
+  /* A round finished every time this fires, across every game, so it is the
+     one place that can count "every 10th round" without each game having to
+     know about ads at all. No ad network is wired in yet — the box below is
+     a clearly-labelled placeholder standing in for one. Once a Google
+     AdSense/Ad Manager account is approved for this domain, the slot div's
+     contents are the only thing that needs replacing with the real
+     <ins class="adsbygoogle"> tag and its script; the counting, the timing
+     and the per-account on/off switch all stay exactly as they are. */
+  function showAdBreak(onDone){
+    var box = el("div",{style:"text-align:center"});
+    box.appendChild(el("div",{style:"font-weight:800; color:#8E88C4; font-size:13px; letter-spacing:.04em; text-transform:uppercase", text:"Advertisement"}));
+    var slot = el("div",{style:"margin:18px 0; min-height:200px; border-radius:var(--r-lg); background:rgba(255,255,255,.07); display:flex; align-items:center; justify-content:center; color:#8E88C4; font-weight:700"});
+    slot.appendChild(el("div",{text:"Ad space"}));
+    box.appendChild(slot);
+    var count = el("div",{style:"font-weight:800; color:#C9C4EE; font-size:15px"});
+    box.appendChild(count);
+    var m = modal(box);
+    var left = 5;
+    function tick(){
+      count.textContent = "Continue in " + left + "…";
+      left--;
+    }
+    tick();
+    var timer = setInterval(function(){
+      if(left < 0){ clearInterval(timer); m.close(); onDone(); return; }
+      tick();
+    }, 1000);
+  }
+
   function finish(world, correct, total){
     var stars = correct === total ? 3 : correct >= Math.ceil(total*0.8) ? 2 : correct >= Math.ceil(total*0.5) ? 1 : 0;
     var passed = correct >= Math.ceil(total * 0.7);
@@ -2669,6 +2703,18 @@
     var beforeLevel = levelOf(world.id);
     award(world.id, stars, passed);
     runStreak = 0;
+
+    /* adsConfig is set from the server on sign-in/verify (admin-controlled);
+       a default stands in for the moments before that first response lands. */
+    state.roundsPlayed = (state.roundsPlayed || 0) + 1;
+    var dueForAd = !state.adsDisabled && adsConfig.enabled &&
+      state.roundsPlayed % adsConfig.everyRounds === 0;
+
+    function proceed(){ showResult(world, correct, total, stars, passed, beforeLevel); }
+    if(dueForAd) showAdBreak(proceed); else proceed();
+  }
+
+  function showResult(world, correct, total, stars, passed, beforeLevel){
     if(stars === 3){ sfx.win(); confettiBurst(120, window.innerHeight * 0.3); }
     else if(stars === 2){ sfx.win(); confettiBurst(50); }
     else if(passed) sfx.levelup();
@@ -9102,9 +9148,10 @@
       );
     });
   }
-  function applyLicence(lic, exp){
+  function applyLicence(lic, exp, ads){
     licence = {id:lic.id, name:lic.name, trial:!!lic.trial};
     licenceExp = exp || null;
+    if(ads) adsConfig = ads;
   }
 
   function openWelcome(ended){
@@ -9217,7 +9264,7 @@
     function signedIn(res, who){
       if(res.status === 200 && res.body.ok){
         setToken(res.body.token, rememberMe);
-        applyLicence(res.body.licence, Math.floor(Date.now()/1000) + (res.body.trialDays || 7) * 86400);
+        applyLicence(res.body.licence, Math.floor(Date.now()/1000) + (res.body.trialDays || 7) * 86400, res.body.ads);
         var kid = (kidI.value||"").trim();
         m.close();
         /* Signing in with an address that has played before brings back
@@ -9322,9 +9369,9 @@
 
     var writePane = el("div",{"class":"writepane"});
     var f = el("div",{"class":"field"});
-    f.appendChild(el("label",{text:"Your sentence", "for":"pc_sentence"}));
-    var inp = el("textarea",{id:"pc_sentence", rows:"3", maxlength:"90",
-      placeholder:"The dog ran fast in the park"});
+    f.appendChild(el("label",{text:"Your sentence or story", "for":"pc_sentence"}));
+    var inp = el("textarea",{id:"pc_sentence", rows:"10", maxlength:"4000",
+      placeholder:"The dog ran fast in the park… write as much as you like!"});
     f.appendChild(inp); writePane.appendChild(f);
     box.appendChild(writePane);
 
@@ -9417,7 +9464,8 @@
               style:"width:44px; height:32px; object-fit:cover; border-radius:8px; flex:none"}));
             row.appendChild(el("div",{"class":"n", style:"font-weight:700", text:"Your drawing"}));
           } else {
-            row.appendChild(el("div",{"class":"n", style:"font-weight:700", text:"“" + w.sentence + "”"}));
+            var preview = w.sentence.length > 60 ? w.sentence.slice(0, 60) + "…" : w.sentence;
+            row.appendChild(el("div",{"class":"n", style:"font-weight:700", text:"“" + preview + "”"}));
           }
           row.appendChild(el("div",{"class":"v", style:"font-size:13px", text:statusLabel(w.status)}));
           listWrap.appendChild(row);
@@ -9451,9 +9499,17 @@
     setTimeout(function(){ inp.focus(); }, 80);
   }
 
-  /* Plays one approved sentence, exactly like Sentence Builder, credited to
-     whoever wrote it. w carries {id, childName, sentence}. */
+  /* A short sentence still becomes the drag-the-words-into-order game it
+     always did; a long essay cannot sensibly be a reorder puzzle, so past
+     this length it is read back instead. */
+  var WRITING_GAME_MAX_WORDS = 14;
+
+  /* Plays one approved sentence or story, credited to whoever wrote it.
+     w carries {id, childName, sentence}. */
   function playWriting(w){
+    var wordCount = w.sentence.trim().split(/\s+/).filter(Boolean).length;
+    if(wordCount > WRITING_GAME_MAX_WORDS) return readOwnStory(w);
+
     var words = w.sentence.split(" ");
     var wrap = el("div",{style:"flex:1; min-height:0; display:flex; flex-direction:column"});
     var bar = el("div",{"class":"gamebar"});
@@ -9489,6 +9545,40 @@
       if(ok){ sfx.good(); confettiBurst(60); speak(words.join(" ")); } else { sfx.bad(); }
       setTimeout(function(){ finishRound(ok); }, ok ? 1200 : 1600);
     });
+  }
+
+  /* A long story, read back rather than turned into a puzzle. w carries
+     {id, childName, sentence}. */
+  function readOwnStory(w){
+    var wrap = el("div",{style:"flex:1; min-height:0; display:flex; flex-direction:column"});
+    var bar = el("div",{"class":"gamebar"});
+    var back = el("button",{"class":"iconbtn","aria-label":"Back to the games", text:"←"});
+    back.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+    bar.appendChild(back);
+    bar.appendChild(el("div",{"class":"tally"}, "✍️", el("b",{text:"by " + (w.childName || "a player")})));
+    wrap.appendChild(bar);
+    var stage = el("div",{"class":"stage", style:"align-items:center; justify-content:flex-start; gap:16px; padding-top:18px"});
+    var titleRow = el("div",{"class":"sayrow"});
+    titleRow.appendChild(el("div",{"class":"prompt", text:"Written by " + (w.childName || "a player")}));
+    var say = sayButton(w.sentence);
+    if(say) titleRow.appendChild(say);
+    stage.appendChild(titleRow);
+    stage.appendChild(el("div",{"class":"story", style:"white-space:pre-wrap; text-align:left; max-width:640px", text:w.sentence}));
+    var done = el("button",{"class":"btn btn-lg btn-go", style:"min-width:240px", text:"I read it! ⭐"});
+    done.addEventListener("click", function(){
+      if(!done.disabled){
+        done.disabled = true;
+        sfx.win(); confettiBurst(60);
+        state.stars = (state.stars || 0) + 1;
+        save();
+      }
+      renderHome();
+    });
+    var home = el("button",{"class":"btn btn-lg btn-ghost", style:"min-width:240px", text:"Choose another game"});
+    home.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+    stage.appendChild(done); stage.appendChild(home);
+    wrap.appendChild(stage);
+    show(wrap);
   }
 
   /* Shows one approved drawing full-size, credited to whoever drew it. w
@@ -9680,7 +9770,7 @@
           /* The server hands back a new token when access has been widened
              since this browser last checked. */
           if(res.body.token){ setToken(res.body.token, rememberedHere()); }
-          applyLicence(res.body.licence, res.body.expiresAt);
+          applyLicence(res.body.licence, res.body.expiresAt, res.body.ads);
           /* Draw only once the account's stars are in, or the home screen
              would show this device's total and then quietly change. */
           syncProgress(function(){

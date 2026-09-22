@@ -68,8 +68,19 @@ if (KEY_SECRET.length < 32) {
 /* ---------- settings and grants ----------
    Who gets what is a runtime decision, not a deploy-time one: the owner flips
    open access on or off from the admin page without touching the server. */
-let settings = { openAccess: true, defaultTier: 'full' };
+let settings = { openAccess: true, defaultTier: 'full', adsEnabled: true, adsEveryRounds: 10 };
 let grants = {};   // email -> tier id, set per person from the admin page
+
+/* What every device is told about the ad break on sign-in/verify: whether it
+   runs at all, and how many finished rounds apart. A per-account override
+   (progress.adsDisabled, set by POST /api/admin/account) can still turn it
+   off for one child even while this stays on for everyone else. */
+function adsConfig() {
+  return {
+    enabled: settings.adsEnabled !== false,
+    everyRounds: Math.max(1, Math.min(100, Math.floor(Number(settings.adsEveryRounds)) || 10))
+  };
+}
 // A child's own sentence, waiting for a parent to look at it before it can
 // ever appear to anyone else. Nothing here is shown to another family until
 // its status is 'approved'.
@@ -335,7 +346,8 @@ async function handleRegister(req, res) {
     ok: true,
     token,
     trialDays: ent.days,
-    licence: { id: licence.id, name: licence.name, maxPages: licence.maxPages, commercial: licence.commercial, trial: !!licence.trial }
+    licence: { id: licence.id, name: licence.name, maxPages: licence.maxPages, commercial: licence.commercial, trial: !!licence.trial },
+    ads: adsConfig()
   });
 }
 
@@ -416,6 +428,11 @@ function cleanProgress(raw) {
     stars: Math.min(999999, Math.max(0, Math.floor(Number(raw.stars) || 0))),
     streak: Math.min(3650, Math.max(0, Math.floor(Number(raw.streak) || 0))),
     perfects: Math.min(999999, Math.max(0, Math.floor(Number(raw.perfects) || 0))),
+    roundsPlayed: Math.min(999999, Math.max(0, Math.floor(Number(raw.roundsPlayed) || 0))),
+    /* adsDisabled is the same kind of admin-only field as allUnlocked above:
+       never read from raw here, only ever carried forward from the stored
+       copy by mergeProgress, and set by POST /api/admin/account (action
+       disableAds/enableAds). */
     lastPlayed: String(raw.lastPlayed || '').slice(0, 10),
     motion: raw.motion !== false,
     sound: raw.sound !== false,
@@ -451,13 +468,16 @@ function mergeProgress(mine, theirs) {
     stars: Math.max(Number(mine.stars) || 0, Number(theirs.stars) || 0),
     perfects: Math.max(Number(mine.perfects) || 0, Number(theirs.perfects) || 0),
     streak: Math.max(Number(mine.streak) || 0, Number(theirs.streak) || 0),
+    roundsPlayed: Math.max(Number(mine.roundsPlayed) || 0, Number(theirs.roundsPlayed) || 0),
     setup: !!(mine.setup || theirs.setup),
     /* Always the existing stored copy's value, never theirs (the incoming
-       client post) — cleanProgress never derives this field from client
-       input, so theirs.allUnlocked is always undefined here anyway. This
-       is what stops a device that synced before an admin's change from
-       echoing a stale value back over it once the admin flips it. */
+       client post) — cleanProgress never derives either field from client
+       input, so theirs.allUnlocked/adsDisabled are always undefined here
+       anyway. This is what stops a device that synced before an admin's
+       change from echoing a stale value back over it once the admin flips
+       it. */
     allUnlocked: !!mine.allUnlocked,
+    adsDisabled: !!mine.adsDisabled,
     progress: {}
   };
   const a = mine.quest, b = theirs.quest;
@@ -596,7 +616,8 @@ async function handleGoogle(req, res) {
     name,
     email,
     trialDays: ent.days,
-    licence: { id: licence.id, name: licence.name, maxPages: licence.maxPages, commercial: licence.commercial, trial: !!licence.trial }
+    licence: { id: licence.id, name: licence.name, maxPages: licence.maxPages, commercial: licence.commercial, trial: !!licence.trial },
+    ads: adsConfig()
   });
 }
 
@@ -622,8 +643,16 @@ async function handleSettings(req, res) {
     try { tierByName(body.defaultTier); settings.defaultTier = body.defaultTier.toLowerCase(); }
     catch (e) { return sendJson(req, res, 400, { ok: false, error: 'bad_tier', message: e.message }); }
   }
+  if (typeof body.adsEnabled === 'boolean') settings.adsEnabled = body.adsEnabled;
+  if (body.adsEveryRounds !== undefined) {
+    const n = Math.floor(Number(body.adsEveryRounds));
+    if (!Number.isFinite(n) || n < 1 || n > 100) {
+      return sendJson(req, res, 400, { ok: false, error: 'bad_ads_every', message: 'Pick a number of rounds between 1 and 100.' });
+    }
+    settings.adsEveryRounds = n;
+  }
   const saved = persist(SETTINGS_FILE, settings);
-  console.log(`[admin] openAccess=${settings.openAccess} defaultTier=${settings.defaultTier}`);
+  console.log(`[admin] openAccess=${settings.openAccess} defaultTier=${settings.defaultTier} adsEnabled=${settings.adsEnabled} adsEveryRounds=${settings.adsEveryRounds}`);
   return sendJson(req, res, 200, { ok: true, settings, saved });
 }
 
@@ -658,16 +687,29 @@ async function handleGrant(req, res) {
    from free text or describe a drawing, so a parent decides by hand what,
    if anything, each submission becomes. */
 const MAX_PENDING_PER_EMAIL = 5;
-const SENTENCE_CHARS = /^[A-Za-z0-9À-ÖØ-öø-ÿ' .,!?-]+$/;
+/* \n is allowed now that a submission can run to essay length and a child
+   might reasonably break it into paragraphs; everything rendering this
+   still goes through textContent (see el() in index.html), never innerHTML,
+   so there is no more injection risk in allowing it than in any other
+   character here. */
+const SENTENCE_CHARS = /^[A-Za-z0-9À-ÖØ-öø-ÿ '"():;.,!?\n-]+$/;
 const IMAGE_DATA_URL = /^data:image\/(png|jpeg);base64,([A-Za-z0-9+/=]+)$/;
 const MAX_IMAGE_BYTES = 260 * 1024; // a simple canvas drawing, not a photo
 const MAX_WRITING_BODY_BYTES = 380 * 1024; // room for the base64 inflation
 
 function cleanSentence(raw) {
-  const s = String(raw || '').replace(/\s+/g, ' ').trim();
-  if (s.length < 6 || s.length > 90) return null;
-  const words = s.split(' ').filter(Boolean);
-  if (words.length < 2 || words.length > 14) return null;
+  const s = String(raw || '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  /* No upper word count any more — a submission can be a whole essay, not
+     just a one-line sentence. The character ceiling is just there to keep
+     one child's story from being an unbounded amount of storage; a few
+     thousand characters is well beyond what a primary-school child types
+     in one sitting. Short submissions (a handful of words) still become
+     the drag-the-words-into-order game they always did — see playWriting()
+     in index.html — while longer ones are read back instead, since a
+     reorder puzzle stops being playable well before "long essay" length. */
+  if (s.length < 6 || s.length > 4000) return null;
+  const words = s.split(/\s+/).filter(Boolean);
+  if (words.length < 2) return null;
   if (!SENTENCE_CHARS.test(s)) return null;
   return s;
 }
@@ -723,7 +765,7 @@ async function handleWriting(req, res) {
     const sentence = cleanSentence(body.sentence);
     if (!sentence) {
       return sendJson(req, res, 400, { ok: false, error: 'bad_sentence',
-        message: 'That needs to be 2 to 14 words, letters and numbers only.' });
+        message: 'That needs to be at least a couple of words (up to about 4000 characters), using ordinary letters, numbers and punctuation.' });
     }
     entry.sentence = sentence;
   }
@@ -855,7 +897,8 @@ function accountRows() {
       games,
       childAge: prog ? (Number(prog.age) || null) : null,
       playedAt: prog && prog.updatedAt ? new Date(prog.updatedAt * 1000).toISOString() : null,
-      allUnlocked: prog ? !!prog.allUnlocked : false
+      allUnlocked: prog ? !!prog.allUnlocked : false,
+      adsDisabled: prog ? !!prog.adsDisabled : false
     };
   }).sort((x, y) => String(y.last || '').localeCompare(String(x.last || '')));
 }
@@ -924,6 +967,14 @@ async function handleAccount(req, res) {
     const saved = writeProgress(email, current);
     console.log(`[admin] ${body.action} for ${email}`);
     return sendJson(req, res, 200, { ok: true, saved, allUnlocked: current.allUnlocked });
+  }
+  if (body.action === 'disableAds' || body.action === 'enableAds') {
+    const current = readProgress(email) || cleanProgress({});
+    current.adsDisabled = body.action === 'disableAds';
+    current.updatedAt = Math.floor(Date.now() / 1000);
+    const saved = writeProgress(email, current);
+    console.log(`[admin] ${body.action} for ${email}`);
+    return sendJson(req, res, 200, { ok: true, saved, adsDisabled: current.adsDisabled });
   }
   return sendJson(req, res, 400, { ok: false, error: 'unknown_action' });
 }
@@ -1009,14 +1060,16 @@ async function handleVerify(req, res) {
       ok: true,
       token,
       upgraded: true,
-      licence: { id: up.id, name: up.name, maxPages: up.maxPages, commercial: up.commercial, trial: false }
+      licence: { id: up.id, name: up.name, maxPages: up.maxPages, commercial: up.commercial, trial: false },
+      ads: adsConfig()
     });
   }
 
   return sendJson(req, res, 200, {
     ok: true,
     licence: { id: result.licence.id, name: result.licence.name, maxPages: result.licence.maxPages, commercial: result.licence.commercial, trial: !!result.licence.trial },
-    expiresAt: result.expiresAt
+    expiresAt: result.expiresAt,
+    ads: adsConfig()
   });
 }
 
