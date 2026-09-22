@@ -2,6 +2,7 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { verify, issueToken, readToken, mint, tierByName, TIERS, SELLABLE_TIERS, TRIAL_TIER } from './lib/keys.js';
 import { verifyGoogleToken } from './lib/google.js';
@@ -20,11 +21,38 @@ const REVOKED = new Set(
 // origin by default, so the list only matters if you host the page elsewhere.
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map((o) => o.trim()).filter(Boolean);
 const TRIAL_DAYS = Number(process.env.TRIAL_DAYS) || 7;
-const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
+// Most redeploys (a fresh tarball extracted over the app folder, a container
+// rebuild) replace ROOT entirely, so a DATA_DIR inside it silently loses
+// every registration and every child's saved stars on the next deploy. The
+// account's actual home directory is not part of that app folder and is not
+// touched by re-extracting it, so it survives a redeploy without needing a
+// DATA_DIR environment variable to be set anywhere — which matters on hosts
+// (Hostinger's Node.js hosting among them) that don't expose one to set.
+const DATA_DIR = process.env.DATA_DIR || path.join(os.homedir(), '.papercub-data');
 const REGISTRATIONS = path.join(DATA_DIR, 'registrations.jsonl');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const GRANTS_FILE = path.join(DATA_DIR, 'grants.json');
 const WRITINGS_FILE = path.join(DATA_DIR, 'writings.json');
+
+/* One-time move for anyone upgrading from before this default changed: if a
+ * host happens to keep the app folder across deploys (rather than the usual
+ * fresh-copy-every-time), registrations and progress saved under the old
+ * default — inside the app folder — would otherwise go silently unread the
+ * moment this new default takes over. Only runs when nobody has set DATA_DIR
+ * themselves, and only copies once (it never overwrites an already-started
+ * new location). A no-op wherever the old folder never existed. */
+(function migrateLegacyDataDir() {
+  if (process.env.DATA_DIR) return;
+  const legacy = path.join(ROOT, 'data');
+  try {
+    if (fs.existsSync(legacy) && !fs.existsSync(DATA_DIR)) {
+      fs.cpSync(legacy, DATA_DIR, { recursive: true });
+      console.log(`[data] migrated ${legacy} -> ${DATA_DIR}`);
+    }
+  } catch (err) {
+    console.error('[data] legacy migration failed:', err.message);
+  }
+})();
 // Optional: POST each signup somewhere else too (a mailing list, a sheet).
 const REGISTRATION_WEBHOOK = process.env.REGISTRATION_WEBHOOK || '';
 
@@ -1160,20 +1188,19 @@ server.listen(PORT, () => {
   console.log(`  Google sign-in: ${GOOGLE_CLIENT_ID ? 'enabled' : 'off (set GOOGLE_CLIENT_ID)'}`);
   console.log(`  admin page: /admin (sign in as ${ADMIN_EMAILS.join(', ')})`);
 
-  /* Railway, Fly and most container hosts give a fresh, empty filesystem on
-     every deploy. If DATA_DIR sits inside the app directory there, every
-     registration and every child's saved stars disappear the next time the
-     app is deployed — silently, which is the worst way to lose them. A volume
-     has to be mounted and DATA_DIR pointed at it. */
-  const EPHEMERAL_HOST = process.env.RAILWAY_ENVIRONMENT || process.env.FLY_APP_NAME ||
-    process.env.RENDER || process.env.DYNO;
-  if (EPHEMERAL_HOST && DATA_DIR.startsWith(ROOT)) {
+  /* Redeploying almost always means replacing ROOT with a fresh copy of the
+     app (a rebuilt container, a tarball extracted over the old files). Any
+     explicit DATA_DIR override that still points inside ROOT loses every
+     registration and every child's saved stars the next time that happens —
+     silently, which is the worst way to lose them. This is not tied to any
+     one host: it is true wherever a deploy replaces the app folder. */
+  if (DATA_DIR.startsWith(ROOT)) {
     console.error('');
     console.error('  ****************************************************************');
-    console.error('  *  DATA_DIR is inside the app directory on a host that wipes   *');
-    console.error(`  *  it on every deploy: ${DATA_DIR}`);
-    console.error('  *  Registrations and saved progress WILL be lost.              *');
-    console.error('  *  Mount a volume and set DATA_DIR to it, e.g. /data           *');
+    console.error('  *  DATA_DIR is inside the app directory, which redeploys wipe: *');
+    console.error(`  *  ${DATA_DIR}`);
+    console.error('  *  Registrations and saved progress WILL be lost on the next   *');
+    console.error('  *  deploy. Point DATA_DIR outside the app folder instead.      *');
     console.error('  ****************************************************************');
     console.error('');
   }
