@@ -360,22 +360,6 @@
   .tower-scene.wobble{animation:towerwobble .5s ease}
   @keyframes towerwobble{0%,100%{transform:none} 25%{transform:rotate(-1.6deg)} 70%{transform:rotate(1.2deg)}}
 
-  /* ---- Joystick Boss Battle ---- */
-  .joy-field{position:relative; width:100%; max-width:520px; height:clamp(190px,34vh,280px);
-    border-radius:22px; overflow:hidden; border:3px solid rgba(255,255,255,.12);
-    background:linear-gradient(180deg,#2B2560 0%,#4A2A66 62%,#1C1840 100%); margin:6px 0}
-  .joy-sprite{position:absolute; top:0; left:0; font-size:40px; line-height:1; will-change:transform}
-  .joy-bolt{position:absolute; top:0; left:0; width:12px; height:12px; border-radius:50%;
-    background:radial-gradient(circle,#FFD98A,#FF5D8F); box-shadow:0 0 8px rgba(255,93,143,.85)}
-  .joy-controls{display:flex; align-items:center; gap:18px; width:100%; max-width:520px; margin-top:2px}
-  .joy-base{width:84px; height:84px; border-radius:50%; background:rgba(255,255,255,.10);
-    border:3px solid rgba(255,255,255,.18); position:relative; flex:none; touch-action:none}
-  .joy-knob{width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,.6);
-    position:absolute; left:23px; top:23px}
-  .joy-qwrap{flex:1; min-width:0}
-  .joy-hprow{display:flex; align-items:center; gap:10px; width:100%; max-width:520px}
-  .joy-hprow .hpbar{flex:1}
-
   /* ---- Measure Up, Word Problems ---- */
   .boardwrap{display:flex; justify-content:center; width:100%; margin:4px 0 2px}
   .wordprob{max-width:520px; font-weight:800; font-size:clamp(17px,3.8vw,22px); line-height:1.45;
@@ -1916,7 +1900,7 @@
     /* Number Quest is the backbone of the subject and stays open from day one
        at every age; the two showy games are worth earning. Adding them ahead
        of it quietly pushed the flagship game behind a 35-star gate. */
-    maths:   ["tenframe","numbers","cannon","quest","race","patterns","bonds","numline","shapes","measure","wordprob","tower","joyboss","sgmoney","money","picgraph","barmodel","fraction","decimal","areaperim","ratio","balance"],
+    maths:   ["tenframe","numbers","cannon","quest","race","patterns","bonds","numline","shapes","measure","wordprob","tower","sgmoney","money","picgraph","barmodel","fraction","decimal","areaperim","ratio","balance"],
     english: ["sounds","spell","rhyme","plural","opposites","synonym","grammar","tenses","homophone","sentence","punct","meaning","affix","idiom","reading"],
     think:   ["odd","sort","code"],
     /* Five Senses and Animal Homes suit the very youngest and open the
@@ -2296,7 +2280,6 @@
     {id:"zhmeasure",nm:"\u91cf\u8bcd Measure Words", sub:"\u4e00\u53ea\u732b, \u4e00\u672c\u4e66, \u4e00\u6735\u82b1", emo:"\u91cf", bg:"linear-gradient(150deg,#FFB9B9,#C2334E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"chinese", topic:"\u6570\u5b57\u4e0e\u91cf\u8bcd Numbers & Measure Words"},
     {id:"zhstroke",nm:"\u7b14\u753b Stroke Count", sub:"\u8fd9\u4e2a\u5b57\u6709\u51e0\u753b\uff1f", emo:"\u7b14", bg:"linear-gradient(150deg,#FFD9A0,#C4781B)", ages:"3\u201312", levels:["K1","K2","P1","P2","P3","P4"], sg:"K1 \u2013 P4", free:true, cat:"chinese", topic:"\u8ba4\u5b57\u4e0e\u8bcd\u8bed Characters & Words"},
     {id:"tower",   nm:"Table Tower",    sub:"Stack a block for every table you know", emo:"\ud83c\udfd7\ufe0f", bg:"linear-gradient(150deg,#FFD97D,#E8862F)", ages:"7\u201312", levels:["P2","P3","P4","P5","P6"], sg:"P2 \u2013 P6", free:true, cat:"maths", topic:"Multiplication & Division"},
-    {id:"joyboss", nm:"Joystick Boss Battle", sub:"Dodge Dal and answer sums to shoot back \u2014 by Kayden Bang, Mee Toh Primary School", emo:"\ud83c\udfae", bg:"linear-gradient(150deg,#B9A2FF,#6A2FC9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"measure", nm:"Measure Up",     sub:"Read the ruler, the jug and the scale", emo:"\ud83d\udccf", bg:"linear-gradient(150deg,#A7E8C4,#22996B)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5"], sg:"K2 \u2013 P5", free:true, cat:"maths", topic:"Measurement & Data"},
     {id:"wordprob",nm:"Word Problems",  sub:"The sum is hidden in the story", emo:"\ud83d\udcdd", bg:"linear-gradient(150deg,#B8B5FF,#5A51C9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Fractions & Problem Solving"},
     {id:"synonym", nm:"Same Meaning",   sub:"A better word than the one you used", emo:"\ud83d\udd01", bg:"linear-gradient(150deg,#FFC4E1,#C2478E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Reading & Vocabulary"},
@@ -5513,7 +5496,6 @@
     if(world.id === "zhmeasure")return startZhMeasure(world);
     if(world.id === "zhstroke") return startZhStrokes(world);
     if(world.id === "tower")    return startTower(world);
-    if(world.id === "joyboss")  return startJoyBoss(world);
     if(world.id === "measure")  return startMeasure(world);
     if(world.id === "wordprob") return startWordProblems(world);
     if(world.id === "synonym")  return startSynonyms(world);
@@ -6745,234 +6727,6 @@
       show(box);
     }
 
-    nextQuestion();
-  }
-
-  /* ==========================================================================
-     Joystick Boss Battle
-     --------------------------------------------------------------------------
-     Designed by Kayden Bang (Mee Toh Primary School): Dal moves around and
-     shoots at the player, who dodges with an on-screen joystick while
-     answering sums to shoot back. Dal has 200 HP and takes 20 damage per
-     correct answer — ten in a row wins. The player has 15 HP and loses 1 for
-     every shot that lands — fifteen hits, not one wrong answer, is what
-     costs the fight.
-     ========================================================================== */
-  function joyBossSum(b, level){
-    var spread = b === 0 ? 5 : b === 1 ? 10 : b === 2 ? (20 + level * 5) : (30 + level * 8);
-    var a = ri(1, spread), c = ri(1, spread);
-    return {a: a, c: c, ans: a + c};
-  }
-
-  function startJoyBoss(world){
-    var b = band(), level = Math.max(1, levelOf(world.id));
-    var dalHp = 200, dalMax = 200, dmgToBoss = 20;
-    var playerHp = 15, playerMax = 15;
-    var attempts = 0, correct = 0, over = false;
-
-    var shell = gameShell(world, 10);
-    shell.stage.appendChild(el("div",{"class":"byline",
-      text:"🎮 Created by Kayden Bang, Mee Toh Primary School"}));
-    shell.stage.appendChild(el("div",{"class":"prompt",
-      text:"Drag the joystick to dodge Dal — answer sums to shoot back!"}));
-
-    var dalRow = el("div",{"class":"joy-hprow"});
-    dalRow.appendChild(el("div",{text:"😠"}));
-    var dalBarOuter = el("div",{"class":"hpbar"});
-    var dalBar = el("div",{"class":"hpfill foehp"});
-    dalBarOuter.appendChild(dalBar);
-    dalRow.appendChild(dalBarOuter);
-    var dalTxt = el("div",{"class":"hptxt", text:dalHp + " / " + dalMax});
-    dalRow.appendChild(dalTxt);
-    shell.stage.appendChild(dalRow);
-
-    var youRow = el("div",{"class":"joy-hprow"});
-    youRow.appendChild(el("div",{text:"🙂"}));
-    var youBarOuter = el("div",{"class":"hpbar"});
-    var youBar = el("div",{"class":"hpfill mehp"});
-    youBarOuter.appendChild(youBar);
-    youRow.appendChild(youBarOuter);
-    var youTxt = el("div",{"class":"hptxt", text:playerHp + " / " + playerMax});
-    youRow.appendChild(youTxt);
-    shell.stage.appendChild(youRow);
-
-    function paintHp(){
-      dalBar.style.width = Math.max(0, (dalHp / dalMax) * 100) + "%";
-      dalTxt.textContent = Math.max(0, dalHp) + " / " + dalMax;
-      youBar.style.width = Math.max(0, (playerHp / playerMax) * 100) + "%";
-      youTxt.textContent = Math.max(0, playerHp) + " / " + playerMax;
-    }
-    paintHp();
-
-    var field = el("div",{"class":"joy-field"});
-    var dalSprite = el("div",{"class":"joy-sprite f-e", text:"😠"});
-    var playerSprite = el("div",{"class":"joy-sprite f-e", text:"🙂"});
-    field.appendChild(dalSprite); field.appendChild(playerSprite);
-    shell.stage.appendChild(field);
-
-    var controls = el("div",{"class":"joy-controls"});
-    var stickWrap = el("div",{"class":"joy-base"});
-    var knob = el("div",{"class":"joy-knob"});
-    stickWrap.appendChild(knob);
-    controls.appendChild(stickWrap);
-    var qwrap = el("div",{"class":"joy-qwrap"});
-    var qbox = el("div",{"class":"qbox"});
-    qwrap.appendChild(qbox);
-    controls.appendChild(qwrap);
-    shell.stage.appendChild(controls);
-
-    /* ---- joystick input ---- */
-    var joyVec = {x:0, y:0};
-    function updateKnob(e){
-      var r = stickWrap.getBoundingClientRect();
-      var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-      var dx = e.clientX - cx, dy = e.clientY - cy;
-      var maxR = r.width / 2 - 19;
-      var dist = Math.sqrt(dx * dx + dy * dy);
-      if(dist > maxR){ dx = dx / dist * maxR; dy = dy / dist * maxR; }
-      knob.style.transform = "translate(" + dx + "px," + dy + "px)";
-      joyVec.x = dx / maxR; joyVec.y = dy / maxR;
-    }
-    function resetKnob(){ joyVec.x = 0; joyVec.y = 0; knob.style.transform = "translate(0,0)"; }
-    stickWrap.addEventListener("pointerdown", function(e){ stickWrap.setPointerCapture(e.pointerId); updateKnob(e); });
-    stickWrap.addEventListener("pointermove", updateKnob);
-    stickWrap.addEventListener("pointerup", resetKnob);
-    stickWrap.addEventListener("pointercancel", resetKnob);
-
-    /* ---- positions and movement loop ---- */
-    var fw = 0, fh = 0, spriteR = 20;
-    var px, py, dx, dy;
-    var bolts = [];
-    var invincible = false;
-    var dalTarget = {x:0, y:0};
-    var lastFire = 0, lastTargetPick = 0;
-
-    function layField(){
-      fw = field.clientWidth || 300; fh = field.clientHeight || 220;
-      px = fw / 2; py = fh - spriteR - 6;
-      dx = fw / 2; dy = spriteR + 6;
-      dalTarget.x = dx; dalTarget.y = dy;
-    }
-    layField();
-
-    function place(elm, x, y){
-      elm.style.transform = "translate(" + (x - spriteR) + "px," + (y - spriteR) + "px)";
-    }
-
-    var rafId = null, lastTs = null;
-    function frame(ts){
-      if(over) return;
-      if(lastTs === null) lastTs = ts;
-      var dt = Math.min(0.05, (ts - lastTs) / 1000); lastTs = ts;
-
-      /* player, driven by the joystick */
-      var speed = 150;
-      px = Math.min(fw - spriteR, Math.max(spriteR, px + joyVec.x * speed * dt));
-      py = Math.min(fh - spriteR, Math.max(spriteR, py + joyVec.y * speed * dt));
-      place(playerSprite, px, py);
-
-      /* Dal, wandering to a new spot every couple of seconds */
-      if(ts - lastTargetPick > 1900){
-        lastTargetPick = ts;
-        dalTarget.x = ri(spriteR, fw - spriteR);
-        dalTarget.y = ri(spriteR, fh * 0.55);
-      }
-      var toX = dalTarget.x - dx, toY = dalTarget.y - dy;
-      var toDist = Math.sqrt(toX * toX + toY * toY);
-      if(toDist > 4){
-        var bossSpeed = 60;
-        dx += (toX / toDist) * bossSpeed * dt;
-        dy += (toY / toDist) * bossSpeed * dt;
-      }
-      place(dalSprite, dx, dy);
-
-      /* Dal fires at the player's current spot every so often */
-      if(ts - lastFire > 1300){
-        lastFire = ts;
-        var bx = px - dx, by = py - dy;
-        var bdist = Math.sqrt(bx * bx + by * by) || 1;
-        var bulletSpeed = 170;
-        bolts.push({
-          x: dx, y: dy,
-          vx: (bx / bdist) * bulletSpeed, vy: (by / bdist) * bulletSpeed,
-          el: el("div",{"class":"joy-bolt"})
-        });
-        field.appendChild(bolts[bolts.length - 1].el);
-      }
-
-      /* bolts travel, and can hit the player */
-      for(var i = bolts.length - 1; i >= 0; i--){
-        var o = bolts[i];
-        o.x += o.vx * dt; o.y += o.vy * dt;
-        if(o.x < -20 || o.x > fw + 20 || o.y < -20 || o.y > fh + 20){
-          o.el.remove(); bolts.splice(i, 1); continue;
-        }
-        o.el.style.transform = "translate(" + (o.x - 6) + "px," + (o.y - 6) + "px)";
-        if(!invincible){
-          var hx = o.x - px, hy = o.y - py;
-          if(Math.sqrt(hx * hx + hy * hy) < spriteR + 6){
-            o.el.remove(); bolts.splice(i, 1);
-            playerHp = Math.max(0, playerHp - 1);
-            paintHp();
-            sfx.bad();
-            playerSprite.classList.add("hurt");
-            invincible = true;
-            setTimeout(function(){ playerSprite.classList.remove("hurt"); invincible = false; }, 600);
-            if(playerHp <= 0){ endBattle(false); return; }
-          }
-        }
-      }
-
-      rafId = requestAnimationFrame(frame);
-    }
-    rafId = requestAnimationFrame(frame);
-
-    function endBattle(won){
-      if(over) return;
-      over = true;
-      if(rafId) cancelAnimationFrame(rafId);
-      bolts.forEach(function(o){ o.el.remove(); });
-      var beforeLevel = levelOf(world.id);
-      award(world.id, won ? 3 : 0, won);
-      music.stop();
-      if(won){ sfx.win(); confettiBurst(120, window.innerHeight * 0.3); }
-      var box = el("div",{"class":"result"});
-      box.appendChild(el("div",{"class":"stars-big", text: won ? "⭐⭐⭐" : "💪"}));
-      box.appendChild(el("div",{"class":"score display", text: won ? "You defeated Dal!" : "Dal got you this time!"}));
-      if(won && levelOf(world.id) > beforeLevel) box.appendChild(el("div",{style:"font-weight:800; color:#8FE3C4; font-size:16px", text:"Level " + levelOf(world.id) + " unlocked!"}));
-      box.appendChild(el("div",{style:"font-weight:800; color:#C9C4EE; font-size:15px",
-        text:"🎮 A game by Kayden Bang, Mee Toh Primary School"}));
-      var again = el("button",{"class":"btn btn-lg btn-go", style:"min-width:240px", text:"Play again"});
-      again.addEventListener("click", function(){ sfx.tap(); startJoyBoss(world); });
-      var home = el("button",{"class":"btn btn-lg btn-ghost", style:"min-width:240px", text:"Choose another game"});
-      home.addEventListener("click", function(){ sfx.tap(); renderHome(); });
-      box.appendChild(again); box.appendChild(home);
-      show(box);
-    }
-
-    /* ---- the question that lets the player shoot back ---- */
-    function nextQuestion(){
-      if(over) return;
-      qbox.textContent = "";
-      var q = joyBossSum(b, level);
-      qbox.appendChild(el("div",{"class":"bigq", text: q.a + " + " + q.c + " = ?"}));
-      qbox.appendChild(choiceGrid(numberOptions(q.ans, Math.max(4, Math.round(q.ans * 0.3))), q.ans, function(ok){
-        if(over) return;
-        attempts++;
-        if(ok){
-          correct++;
-          dalHp = Math.max(0, dalHp - dmgToBoss);
-          paintHp();
-          sfx.pop(); rightAnswer(); confettiBurst(20);
-          dalSprite.classList.add("hurt");
-          setTimeout(function(){ dalSprite.classList.remove("hurt"); }, 400);
-          if(dalHp <= 0){ endBattle(true); return; }
-        } else {
-          sfx.bad(); wrongAnswer();
-        }
-        nextQuestion();
-      }, false));
-    }
     nextQuestion();
   }
 
