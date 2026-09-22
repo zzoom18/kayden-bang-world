@@ -432,7 +432,7 @@
     t.hidden = false;
     var prev = t.parentNode.querySelector(".empty");
     if(prev) prev.remove();
-    t.innerHTML = "<tr><th>Sentence</th><th>By</th><th>Status</th><th></th></tr>";
+    t.innerHTML = "<tr><th>Submission</th><th>By</th><th>Status</th><th></th></tr>";
     /* Newest first, and a pending one always above an already-decided one,
        so the pile that needs a decision is never buried under old ones. */
     list.slice().sort(function(a, b){
@@ -441,7 +441,15 @@
       return b.createdAt - a.createdAt;
     }).forEach(function(w){
       var tr = document.createElement("tr");
-      var td1 = document.createElement("td"); td1.textContent = "“" + w.sentence + "”";
+      var td1 = document.createElement("td");
+      if(w.type === "drawing"){
+        var img = document.createElement("img");
+        img.src = w.imageDataUrl; img.alt = "Drawing";
+        img.style.cssText = "width:64px; height:48px; object-fit:cover; border-radius:6px; display:block";
+        td1.appendChild(img);
+      } else {
+        td1.textContent = "“" + w.sentence + "”";
+      }
       var td2 = document.createElement("td"); td2.className = "mono";
       td2.textContent = (w.childName || "—") + " (" + w.email + ")";
       var td3 = document.createElement("td");
@@ -467,7 +475,7 @@
       var del = document.createElement("button");
       del.className = "btn btn-sm btn-stop"; del.textContent = "Delete";
       del.addEventListener("click", function(){
-        if(!confirm("Delete this sentence for good?")) return;
+        if(!confirm("Delete this submission for good?")) return;
         setWriting(w.id, "delete");
       });
       td4.appendChild(del);

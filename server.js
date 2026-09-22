@@ -605,15 +605,21 @@ async function handleGrant(req, res) {
   return sendJson(req, res, 200, { ok: true, grants, saved });
 }
 
-/* ---------- a child's own writing, turned into a game ----------
-   Kayden or Ellyia (or anyone playing) types one sentence. It sits as
-   'pending' until a parent looks at it in the admin page and approves it -
-   only then does it ever appear to another player, credited to whoever
-   wrote it. There is no attempt to auto-generate a comprehension question
-   from free text; the game it becomes is Sentence Builder, unscrambling the
-   child's own words, which needs no further authoring once approved. */
+/* ---------- a child's own writing or drawing, turned into a game ----------
+   Kayden or Ellyia (or anyone playing) types a sentence or draws a picture.
+   It sits as 'pending' until a parent looks at it in the admin page and
+   approves it - only then does it ever appear to another player, credited
+   to whoever made it. A sentence becomes a one-round Sentence Builder,
+   unscrambling the child's own words; a drawing becomes a small art card
+   that shows the picture full size. Neither is auto-graded or auto-turned
+   into a quiz - there is no model in here to write a comprehension question
+   from free text or describe a drawing, so a parent decides by hand what,
+   if anything, each submission becomes. */
 const MAX_PENDING_PER_EMAIL = 5;
 const SENTENCE_CHARS = /^[A-Za-z0-9À-ÖØ-öø-ÿ' .,!?-]+$/;
+const IMAGE_DATA_URL = /^data:image\/(png|jpeg);base64,([A-Za-z0-9+/=]+)$/;
+const MAX_IMAGE_BYTES = 260 * 1024; // a simple canvas drawing, not a photo
+const MAX_WRITING_BODY_BYTES = 380 * 1024; // room for the base64 inflation
 
 function cleanSentence(raw) {
   const s = String(raw || '').replace(/\s+/g, ' ').trim();
@@ -624,54 +630,80 @@ function cleanSentence(raw) {
   return s;
 }
 
+function cleanDrawing(raw) {
+  const s = String(raw || '');
+  const m = IMAGE_DATA_URL.exec(s);
+  if (!m) return null;
+  // Base64 inflates by ~4/3; this is an estimate, not a decode, since a
+  // multi-hundred-KB string does not need decoding just to size-check it.
+  const approxBytes = Math.floor((m[2].length * 3) / 4);
+  if (approxBytes > MAX_IMAGE_BYTES) return null;
+  return s;
+}
+
 async function handleWriting(req, res) {
   if (req.method === 'GET') {
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
     const result = readToken(KEY_SECRET, url.searchParams.get('token'));
     if (!result.ok || !result.email) return sendJson(req, res, 401, { ok: false, error: result.reason || 'no_account' });
     const mine = writings.filter((w) => w.email === result.email)
-      .map((w) => ({ id: w.id, sentence: w.sentence, status: w.status, createdAt: w.createdAt }));
+      .map((w) => ({ id: w.id, type: w.type || 'sentence', sentence: w.sentence,
+        imageDataUrl: w.imageDataUrl, status: w.status, createdAt: w.createdAt }));
     return sendJson(req, res, 200, { ok: true, writings: mine });
   }
 
   let body;
-  try { body = await readBody(req); } catch { return sendJson(req, res, 400, { ok: false, error: 'bad_request' }); }
+  try { body = await readBody(req, MAX_WRITING_BODY_BYTES); }
+  catch { return sendJson(req, res, 400, { ok: false, error: 'bad_request' }); }
 
   const result = readToken(KEY_SECRET, body.token);
   if (!result.ok) return sendJson(req, res, 401, { ok: false, error: result.reason });
   if (!result.email) return sendJson(req, res, 200, { ok: false, error: 'no_account' });
 
-  const sentence = cleanSentence(body.sentence);
-  if (!sentence) {
-    return sendJson(req, res, 400, { ok: false, error: 'bad_sentence',
-      message: 'That needs to be 2 to 14 words, letters and numbers only.' });
+  const type = body.imageDataUrl ? 'drawing' : 'sentence';
+  const entry = {
+    id: crypto.randomUUID(),
+    email: result.email,
+    childName: String(body.childName || '').trim().slice(0, 40),
+    type,
+    status: 'pending',
+    createdAt: Date.now(),
+  };
+
+  if (type === 'drawing') {
+    const imageDataUrl = cleanDrawing(body.imageDataUrl);
+    if (!imageDataUrl) {
+      return sendJson(req, res, 400, { ok: false, error: 'bad_drawing',
+        message: 'That drawing could not be saved. Try again.' });
+    }
+    entry.imageDataUrl = imageDataUrl;
+  } else {
+    const sentence = cleanSentence(body.sentence);
+    if (!sentence) {
+      return sendJson(req, res, 400, { ok: false, error: 'bad_sentence',
+        message: 'That needs to be 2 to 14 words, letters and numbers only.' });
+    }
+    entry.sentence = sentence;
   }
 
   const pending = writings.filter((w) => w.email === result.email && w.status === 'pending').length;
   if (pending >= MAX_PENDING_PER_EMAIL) {
     return sendJson(req, res, 429, { ok: false, error: 'too_many_pending',
-      message: 'Wait for one of your sentences to be reviewed before sending another.' });
+      message: 'Wait for one of your sentences or drawings to be reviewed before sending another.' });
   }
 
-  const entry = {
-    id: crypto.randomUUID(),
-    email: result.email,
-    childName: String(body.childName || '').trim().slice(0, 40),
-    sentence,
-    status: 'pending',
-    createdAt: Date.now(),
-  };
   writings.push(entry);
   const saved = persist(WRITINGS_FILE, writings);
-  console.log(`[writing] ${result.email} submitted a sentence, pending review`);
+  console.log(`[writing] ${result.email} submitted a ${type}, pending review`);
   return sendJson(req, res, 200, { ok: true, saved, writing: entry });
 }
 
-/* Public and read-only: the small set of already-approved sentences, which
-   is exactly what a parent chose to let other players see. */
+/* Public and read-only: the small set of already-approved submissions,
+   which is exactly what a parent chose to let other players see. */
 async function handleWritingsApproved(req, res) {
   const approved = writings.filter((w) => w.status === 'approved')
-    .map((w) => ({ id: w.id, childName: w.childName || 'A player', sentence: w.sentence }));
+    .map((w) => ({ id: w.id, type: w.type || 'sentence', childName: w.childName || 'A player',
+      sentence: w.sentence, imageDataUrl: w.imageDataUrl }));
   return sendJson(req, res, 200, { ok: true, writings: approved });
 }
 

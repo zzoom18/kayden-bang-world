@@ -861,6 +861,26 @@
   .av{width:58px; height:58px; border-radius:18px; background:rgba(255,255,255,.12); font-size:30px; display:grid; place-items:center; transition:transform .14s var(--ease)}
   .av[aria-pressed="true"]{background:var(--sun); transform:scale(1.06)}
   .err{color:#FF9DBB; font-weight:800; font-size:14px; min-height:20px; margin-top:6px}
+
+  /* ---- write or draw ---- */
+  .writebox textarea{
+    width:100%; border:3px solid var(--line, rgba(255,255,255,.18)); border-radius:var(--r-md);
+    padding:12px 14px; font-family:"Baloo 2",sans-serif; font-size:17px; font-weight:700;
+    color:#fff; background:rgba(0,0,0,.22); resize:vertical; min-height:84px;
+  }
+  .writebox textarea:focus{outline:none; border-color:#9B7BFF}
+  .seg{display:flex; gap:8px; background:rgba(0,0,0,.2); border-radius:14px; padding:5px}
+  .seg button{flex:1; border:0; background:none; padding:10px 8px; border-radius:10px;
+    font-family:"Baloo 2",sans-serif; font-weight:800; font-size:14.5px; color:#C9C4EE; cursor:pointer}
+  .seg button.active{background:#fff; color:#3A3286}
+  .drawwrap{width:100%; border-radius:16px; overflow:hidden; border:3px solid rgba(255,255,255,.18);
+    background:#fff; touch-action:none; line-height:0}
+  .drawwrap canvas{width:100%; height:auto; display:block; touch-action:none; cursor:crosshair}
+  .palette{display:flex; align-items:center; gap:9px; margin-top:12px; flex-wrap:wrap}
+  .swatch{width:30px; height:30px; border-radius:50%; border:3px solid transparent; padding:0; cursor:pointer;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+  .swatch.on{border-color:#FFD98A; transform:scale(1.12)}
+  .btn-sm{padding:9px 16px; font-size:14px; min-width:0; margin-left:auto}
   .linkbtn{background:none; padding:0; min-height:0; color:#C4B3FF; font-weight:800; text-decoration:underline; text-underline-offset:3px; font-size:14.5px}
   .perks{list-style:none; padding:0; margin:0 0 18px; display:flex; flex-direction:column; gap:8px}
   .perks li{display:flex; gap:10px; align-items:center; font-weight:700; font-size:14.5px; color:#C9C4EE}
@@ -1323,7 +1343,12 @@
     if(p) bits.push(p.textContent.trim());
     var q = stage.querySelector(".bigq, .sentence, .idiom, .passage");
     if(q) bits.push(q.textContent.trim());
-    return bits.filter(Boolean).join(". ").replace(/\s+/g, " ").trim();
+    /* A fill-in-the-blank sentence has "___" right in its text. Read
+       literally, that comes out as the TTS engine spelling out
+       "underscore" once per character. A child hearing a gap does not
+       need it named at all — just a short breath, then the sentence
+       carries on. */
+    return bits.filter(Boolean).join(". ").replace(/_{2,}/g, "...").replace(/\s+/g, " ").trim();
   }
   function readStage(){
     if(!CAN_SPEAK || (state && state.sound === false) || (state && state.readAloud === false)) return;
@@ -2309,14 +2334,24 @@
     });
     wgrid.appendChild(wcard);
     approvedWritings.forEach(function(w){
-      var c = el("button",{"class":"world", "data-world":"writing-" + w.id, style:"background:linear-gradient(150deg,#FFC2E0,#D6569C)"});
-      c.appendChild(el("div",{"class":"emo", text:"📝"}));
-      c.appendChild(el("div",{"class":"nm", text:"“" + w.sentence.split(" ").slice(0,4).join(" ") + (w.sentence.split(" ").length > 4 ? "…" : "") + "”"}));
-      c.appendChild(el("div",{"class":"sub", text:"by " + (w.childName || "a player")}));
+      var isDrawing = w.type === "drawing";
+      var c = el("button",{"class":"world", "data-world":"writing-" + w.id,
+        style: isDrawing ? "background:#fff; padding:0; overflow:hidden"
+                         : "background:linear-gradient(150deg,#FFC2E0,#D6569C)"});
+      if(isDrawing){
+        c.appendChild(el("img",{src:w.imageDataUrl, alt:"A drawing by " + (w.childName || "a player"),
+          style:"width:100%; height:96px; object-fit:cover; display:block"}));
+        c.appendChild(el("div",{"class":"nm", style:"padding:10px 12px 0; color:#3A3286", text:"A drawing"}));
+        c.appendChild(el("div",{"class":"sub", style:"padding:0 12px 12px; color:#6E67A6", text:"by " + (w.childName || "a player")}));
+      } else {
+        c.appendChild(el("div",{"class":"emo", text:"📝"}));
+        c.appendChild(el("div",{"class":"nm", text:"“" + w.sentence.split(" ").slice(0,4).join(" ") + (w.sentence.split(" ").length > 4 ? "…" : "") + "”"}));
+        c.appendChild(el("div",{"class":"sub", text:"by " + (w.childName || "a player")}));
+      }
       c.addEventListener("click", function(){
         sfx.tap();
         if(!licence){ openWelcome(false); return; }
-        playWriting(w);
+        if(isDrawing) viewDrawing(w); else playWriting(w);
       });
       wgrid.appendChild(c);
     });
@@ -5552,7 +5587,7 @@
   /* ==========================================================================
      Sound Alike
      --------------------------------------------------------------------------
-     Homophones, read aloud with the gap spoken as "blank", because hearing
+     Homophones, read aloud with a pause where the gap is, because hearing
      the sentence is exactly what does not help here and the child has to look.
      ========================================================================== */
 
@@ -5561,7 +5596,7 @@
     wordRound(world, 8, function(i){
       var it = pool[i];
       return {prompt:"Which word fits the gap?", subject:it.q, small:true,
-        a:it.a, x:it.x, speak:it.q.replace("___", "blank"),
+        a:it.a, x:it.x, speak:it.q.replace("___", "..."),
         after:it.q.replace("___", it.a)};
     });
   }
@@ -6238,6 +6273,13 @@
       if(say) row.appendChild(say);
       shell.stage.appendChild(row);
       speak(R.speak || R.subject);
+      /* The generic stage-watcher (readStage) would otherwise notice this
+         same DOM change 320ms later and read it again itself — from raw
+         text it doesn't know is meant to sound different, cutting this
+         call off partway through. Priming lastSpoken with what it would
+         have read tells it "already done", so this one call is the only
+         one heard. */
+      lastSpoken = stageQuestion(shell.stage);
       shell.stage.appendChild(choiceGrid(shuffle([R.a].concat(R.x.slice(0, 3))), R.a,
         function(ok){
           if(ok){ correct++; sfx.good(); flash("⭐"); if(R.after) speak(R.after); }
@@ -6264,7 +6306,7 @@
     wordRound(world, 8, function(i){
       var it = pool[i];
       return {prompt:"Choose the right form of “" + it.v + "”", subject:it.q,
-        small:true, a:it.a, x:it.x, speak:it.q.replace("___","blank"),
+        small:true, a:it.a, x:it.x, speak:it.q.replace("___","..."),
         after:it.q.replace("___", it.a)};
     });
   }
@@ -8328,14 +8370,16 @@
      approved does anyone else ever see it, credited to whoever wrote it, as
      a one-round Sentence Builder made from their own words. Nothing here
      shows a child's sentence to another family before a parent has read it. */
+  var WRITING_COLOURS = ["#20143A","#E8563C","#FFC43D","#57C08A","#4AA8E8","#9B7BFF","#FF5D8F","#ffffff"];
+
   function openWriting(){
-    var box = el("div");
-    box.appendChild(el("h2",{"class":"display", text:"Write your own sentence"}));
-    box.appendChild(el("p",{text:"Write one sentence, 2 to 14 words. If it's approved, it becomes a real game — with your name on it."}));
+    var box = el("div",{"class":"writebox"});
+    box.appendChild(el("h2",{"class":"display", text:"Write or draw something of your own"}));
+    box.appendChild(el("p",{text:"Write a sentence or draw a picture. If it's approved, it becomes a real game or a picture card — with your name on it."}));
 
     var token = getToken();
     if(!token){
-      box.appendChild(el("p",{style:"font-weight:800; color:#FFD98A", text:"Sign in first so we know whose sentence this is."}));
+      box.appendChild(el("p",{style:"font-weight:800; color:#FFD98A", text:"Sign in first so we know whose it is."}));
       var back0 = el("button",{"class":"btn btn-ghost", style:"width:100%; margin-top:10px", text:"Close"});
       back0.addEventListener("click", function(){ m0.close(); });
       box.appendChild(back0);
@@ -8343,11 +8387,88 @@
       return;
     }
 
+    /* ---- mode tabs ---- */
+    var tabs = el("div",{"class":"seg", style:"margin-bottom:14px"});
+    var tabWrite = el("button",{"class":"active", text:"✍️ Write"});
+    var tabDraw = el("button",{text:"🎨 Draw"});
+    tabs.appendChild(tabWrite); tabs.appendChild(tabDraw);
+    box.appendChild(tabs);
+
+    var writePane = el("div");
     var f = el("div",{"class":"field"});
     f.appendChild(el("label",{text:"Your sentence", "for":"pc_sentence"}));
-    var inp = el("input",{type:"text", id:"pc_sentence", maxlength:"90",
+    var inp = el("textarea",{id:"pc_sentence", rows:"3", maxlength:"90",
       placeholder:"The dog ran fast in the park"});
-    f.appendChild(inp); box.appendChild(f);
+    f.appendChild(inp); writePane.appendChild(f);
+    box.appendChild(writePane);
+
+    /* ---- drawing pane ---- */
+    var drawPane = el("div",{style:"display:none"});
+    var canvasWrap = el("div",{"class":"drawwrap"});
+    var canvas = el("canvas",{width:"600", height:"440"});
+    canvasWrap.appendChild(canvas);
+    drawPane.appendChild(canvasWrap);
+
+    var palette = el("div",{"class":"palette"});
+    var swatches = [];
+    var curColour = WRITING_COLOURS[0];
+    WRITING_COLOURS.forEach(function(c, ci){
+      var sw = el("button",{"class":"swatch" + (ci === 0 ? " on" : ""), style:"background:" + c});
+      sw.addEventListener("click", function(){
+        curColour = c;
+        swatches.forEach(function(s2){ s2.classList.remove("on"); });
+        sw.classList.add("on");
+      });
+      swatches.push(sw);
+      palette.appendChild(sw);
+    });
+    var clearBtn = el("button",{"class":"btn btn-ghost btn-sm", text:"Clear"});
+    palette.appendChild(clearBtn);
+    drawPane.appendChild(palette);
+    box.appendChild(drawPane);
+
+    /* A plain 2D canvas, drawn on with Pointer Events so a finger, a mouse
+       and a stylus all work the same way. touch-action:none stops the page
+       itself scrolling while a child is mid-stroke. */
+    var ctx2d = canvas.getContext("2d");
+    function fillWhite(){ ctx2d.fillStyle = "#fff"; ctx2d.fillRect(0, 0, canvas.width, canvas.height); }
+    fillWhite();
+    var drawing = false, lastX = 0, lastY = 0;
+    function pos(e){
+      var r = canvas.getBoundingClientRect();
+      return {x: (e.clientX - r.left) * (canvas.width / r.width),
+              y: (e.clientY - r.top) * (canvas.height / r.height)};
+    }
+    canvas.addEventListener("pointerdown", function(e){
+      drawing = true; canvas.setPointerCapture(e.pointerId);
+      var p = pos(e); lastX = p.x; lastY = p.y;
+      ctx2d.fillStyle = curColour;
+      ctx2d.beginPath(); ctx2d.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx2d.fill();
+    });
+    canvas.addEventListener("pointermove", function(e){
+      if(!drawing) return;
+      var p = pos(e);
+      ctx2d.strokeStyle = curColour; ctx2d.lineWidth = 10;
+      ctx2d.lineCap = "round"; ctx2d.lineJoin = "round";
+      ctx2d.beginPath(); ctx2d.moveTo(lastX, lastY); ctx2d.lineTo(p.x, p.y); ctx2d.stroke();
+      lastX = p.x; lastY = p.y;
+    });
+    ["pointerup","pointercancel","pointerleave"].forEach(function(ev){
+      canvas.addEventListener(ev, function(){ drawing = false; });
+    });
+    clearBtn.addEventListener("click", function(){ sfx.tap(); fillWhite(); });
+
+    var mode = "write";
+    function setMode(m2){
+      mode = m2;
+      tabWrite.classList.toggle("active", m2 === "write");
+      tabDraw.classList.toggle("active", m2 === "draw");
+      writePane.style.display = m2 === "write" ? "" : "none";
+      drawPane.style.display = m2 === "draw" ? "" : "none";
+    }
+    tabWrite.addEventListener("click", function(){ sfx.tap(); setMode("write"); });
+    tabDraw.addEventListener("click", function(){ sfx.tap(); setMode("draw"); });
+
     var err = el("div",{"class":"err"}); box.appendChild(err);
     var go = el("button",{"class":"btn btn-lg btn-pink", style:"width:100%", text:"Submit"});
     box.appendChild(go);
@@ -8356,16 +8477,22 @@
     box.appendChild(listWrap);
 
     function statusLabel(st){
-      return st === "approved" ? "✅ Now a game!" : st === "rejected" ? "Not used this time" : "⏳ Waiting to be read";
+      return st === "approved" ? "✅ Now on the home screen!" : st === "rejected" ? "Not used this time" : "⏳ Waiting to be read";
     }
     function loadMine(){
       listWrap.textContent = "";
       api("/api/writing?token=" + encodeURIComponent(token), null, "GET").then(function(res){
         if(!(res.status === 200 && res.body.ok) || !res.body.writings.length) return;
-        listWrap.appendChild(el("div",{style:"font-weight:800; color:#C9C4EE; font-size:13px; margin-bottom:8px", text:"YOUR SENTENCES"}));
+        listWrap.appendChild(el("div",{style:"font-weight:800; color:#C9C4EE; font-size:13px; margin-bottom:8px", text:"YOUR SUBMISSIONS"}));
         res.body.writings.slice().reverse().forEach(function(w){
           var row = el("div",{"class":"prow"});
-          row.appendChild(el("div",{"class":"n", style:"font-weight:700", text:"“" + w.sentence + "”"}));
+          if(w.type === "drawing"){
+            row.appendChild(el("img",{src:w.imageDataUrl, alt:"Your drawing",
+              style:"width:44px; height:32px; object-fit:cover; border-radius:8px; flex:none"}));
+            row.appendChild(el("div",{"class":"n", style:"font-weight:700", text:"Your drawing"}));
+          } else {
+            row.appendChild(el("div",{"class":"n", style:"font-weight:700", text:"“" + w.sentence + "”"}));
+          }
           row.appendChild(el("div",{"class":"v", style:"font-size:13px", text:statusLabel(w.status)}));
           listWrap.appendChild(row);
         });
@@ -8373,11 +8500,13 @@
     }
 
     go.addEventListener("click", function(){
-      var v = (inp.value || "").trim();
       go.disabled = true; err.textContent = "";
-      api("/api/writing", {token:token, sentence:v, childName:state.name || ""}).then(function(res){
+      var body = {token:token, childName:state.name || ""};
+      if(mode === "draw") body.imageDataUrl = canvas.toDataURL("image/jpeg", 0.72);
+      else body.sentence = (inp.value || "").trim();
+      api("/api/writing", body).then(function(res){
         if(res.status === 200 && res.body.ok){
-          inp.value = ""; sfx.win(); confettiBurst(40);
+          inp.value = ""; fillWhite(); sfx.win(); confettiBurst(40);
           loadMine();
         } else {
           err.textContent = (res.body && res.body.message) || "Couldn't send that. Try again.";
@@ -8464,6 +8593,28 @@
       });
       tray.appendChild(chip);
     });
+  }
+
+  /* Shows one approved drawing full-size, credited to whoever drew it. w
+     carries {id, childName, imageDataUrl}. */
+  function viewDrawing(w){
+    var wrap = el("div",{style:"flex:1; min-height:0; display:flex; flex-direction:column"});
+    var bar = el("div",{"class":"gamebar"});
+    var back = el("button",{"class":"iconbtn","aria-label":"Back to the games", text:"←"});
+    back.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+    bar.appendChild(back);
+    bar.appendChild(el("div",{"class":"tally"}, "🎨", el("b",{text:"by " + (w.childName || "a player")})));
+    wrap.appendChild(bar);
+    var stage = el("div",{"class":"stage", style:"align-items:center; justify-content:flex-start; gap:16px; padding-top:18px"});
+    stage.appendChild(el("div",{"class":"prompt", text:"Drawn by " + (w.childName || "a player")}));
+    stage.appendChild(el("img",{src:w.imageDataUrl, alt:"A drawing by " + (w.childName || "a player"),
+      style:"max-width:100%; width:520px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,.35); background:#fff"}));
+    var home = el("button",{"class":"btn btn-lg btn-go", style:"min-width:240px", text:"Choose another game"});
+    home.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+    stage.appendChild(home);
+    wrap.appendChild(stage);
+    show(wrap);
+    confettiBurst(30);
   }
 
   function openKey(){
