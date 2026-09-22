@@ -360,6 +360,30 @@
   .tower-scene.wobble{animation:towerwobble .5s ease}
   @keyframes towerwobble{0%,100%{transform:none} 25%{transform:rotate(-1.6deg)} 70%{transform:rotate(1.2deg)}}
 
+  /* ---- Joystick Boss Battle ---- */
+  .kb-field{position:relative; width:100%; max-width:520px; height:clamp(190px,34vh,280px);
+    border-radius:22px; overflow:hidden; border:3px solid rgba(255,255,255,.12);
+    background:linear-gradient(180deg,#2B2560 0%,#4A2A66 62%,#1C1840 100%); margin:6px 0}
+  .kb-field.paused::after{content:"❓ Answer to aim!"; position:absolute; top:8px; left:50%;
+    transform:translateX(-50%); background:rgba(0,0,0,.4); color:#FFD98A; font-weight:800;
+    font-size:12.5px; padding:3px 10px; border-radius:999px}
+  .kb-sprite{position:absolute; top:0; left:0; will-change:transform}
+  .kb-sprite svg{display:block}
+  .kb-sprite.hurt svg{animation:kbhurt .4s ease}
+  @keyframes kbhurt{0%,100%{filter:none} 40%{filter:brightness(2) saturate(0)}}
+  .kb-bolt{position:absolute; top:0; left:0; width:12px; height:12px; border-radius:50%;
+    background:radial-gradient(circle,#FFD98A,#FF5D8F); box-shadow:0 0 8px rgba(255,93,143,.85)}
+  .kb-fire{position:absolute; top:0; left:0; width:8px; height:8px; border-radius:50%;
+    background:radial-gradient(circle,#fff,#7CF7C4); box-shadow:0 0 10px rgba(124,247,196,.9)}
+  .kb-controls{display:flex; align-items:center; gap:18px; width:100%; max-width:520px; margin-top:2px}
+  .kb-base{width:84px; height:84px; border-radius:50%; background:rgba(255,255,255,.10);
+    border:3px solid rgba(255,255,255,.18); position:relative; flex:none; touch-action:none}
+  .kb-knob{width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,.6);
+    position:absolute; left:23px; top:23px}
+  .kb-qwrap{flex:1; min-width:0}
+  .kb-hprow{display:flex; align-items:center; gap:10px; width:100%; max-width:520px}
+  .kb-hprow .hpbar{flex:1}
+
   /* ---- Measure Up, Word Problems ---- */
   .boardwrap{display:flex; justify-content:center; width:100%; margin:4px 0 2px}
   .wordprob{max-width:520px; font-weight:800; font-size:clamp(17px,3.8vw,22px); line-height:1.45;
@@ -1900,7 +1924,7 @@
     /* Number Quest is the backbone of the subject and stays open from day one
        at every age; the two showy games are worth earning. Adding them ahead
        of it quietly pushed the flagship game behind a 35-star gate. */
-    maths:   ["tenframe","numbers","cannon","quest","race","patterns","bonds","numline","shapes","measure","wordprob","tower","sgmoney","money","picgraph","barmodel","fraction","decimal","areaperim","ratio","balance"],
+    maths:   ["tenframe","numbers","cannon","quest","race","patterns","bonds","numline","shapes","measure","wordprob","tower","joyboss","sgmoney","money","picgraph","barmodel","fraction","decimal","areaperim","ratio","balance"],
     english: ["sounds","spell","rhyme","plural","opposites","synonym","grammar","tenses","homophone","sentence","punct","meaning","affix","idiom","reading"],
     think:   ["odd","sort","code"],
     /* Five Senses and Animal Homes suit the very youngest and open the
@@ -2280,6 +2304,7 @@
     {id:"zhmeasure",nm:"\u91cf\u8bcd Measure Words", sub:"\u4e00\u53ea\u732b, \u4e00\u672c\u4e66, \u4e00\u6735\u82b1", emo:"\u91cf", bg:"linear-gradient(150deg,#FFB9B9,#C2334E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"chinese", topic:"\u6570\u5b57\u4e0e\u91cf\u8bcd Numbers & Measure Words"},
     {id:"zhstroke",nm:"\u7b14\u753b Stroke Count", sub:"\u8fd9\u4e2a\u5b57\u6709\u51e0\u753b\uff1f", emo:"\u7b14", bg:"linear-gradient(150deg,#FFD9A0,#C4781B)", ages:"3\u201312", levels:["K1","K2","P1","P2","P3","P4"], sg:"K1 \u2013 P4", free:true, cat:"chinese", topic:"\u8ba4\u5b57\u4e0e\u8bcd\u8bed Characters & Words"},
     {id:"tower",   nm:"Table Tower",    sub:"Stack a block for every table you know", emo:"\ud83c\udfd7\ufe0f", bg:"linear-gradient(150deg,#FFD97D,#E8862F)", ages:"7\u201312", levels:["P2","P3","P4","P5","P6"], sg:"P2 \u2013 P6", free:true, cat:"maths", topic:"Multiplication & Division"},
+    {id:"joyboss", nm:"Joystick Boss Battle", sub:"Answer to aim, dodge to survive \u2014 by Kayden Bang, Mee Toh Primary School", emo:"\ud83c\udfae", bg:"linear-gradient(150deg,#B9A2FF,#6A2FC9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"measure", nm:"Measure Up",     sub:"Read the ruler, the jug and the scale", emo:"\ud83d\udccf", bg:"linear-gradient(150deg,#A7E8C4,#22996B)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5"], sg:"K2 \u2013 P5", free:true, cat:"maths", topic:"Measurement & Data"},
     {id:"wordprob",nm:"Word Problems",  sub:"The sum is hidden in the story", emo:"\ud83d\udcdd", bg:"linear-gradient(150deg,#B8B5FF,#5A51C9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Fractions & Problem Solving"},
     {id:"synonym", nm:"Same Meaning",   sub:"A better word than the one you used", emo:"\ud83d\udd01", bg:"linear-gradient(150deg,#FFC4E1,#C2478E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Reading & Vocabulary"},
@@ -5496,6 +5521,7 @@
     if(world.id === "zhmeasure")return startZhMeasure(world);
     if(world.id === "zhstroke") return startZhStrokes(world);
     if(world.id === "tower")    return startTower(world);
+    if(world.id === "joyboss")  return startJoyBoss(world);
     if(world.id === "measure")  return startMeasure(world);
     if(world.id === "wordprob") return startWordProblems(world);
     if(world.id === "synonym")  return startSynonyms(world);
@@ -6721,6 +6747,334 @@
         won || blocks >= need * 0.7);
       var again = el("button",{"class":"btn btn-lg btn-go", style:"min-width:240px", text:"Build again"});
       again.addEventListener("click", function(){ sfx.tap(); startTower(world); });
+      var home = el("button",{"class":"btn btn-lg btn-ghost", style:"min-width:240px", text:"Choose another game"});
+      home.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+      box.appendChild(again); box.appendChild(home);
+      show(box);
+    }
+
+    nextQuestion();
+  }
+
+  /* ==========================================================================
+     Joystick Boss Battle
+     --------------------------------------------------------------------------
+     Designed by Kayden Bang (Mee Toh Primary School): the fight pauses on
+     every sum. Get it right and you land a shot on Dal, then the fight
+     unpauses — Dal moves and fires back while you dodge with the joystick,
+     until the next sum pauses it again. Dal has 200 HP and takes 20 damage
+     per correct answer, ten in a row wins. The player has 15 HP and loses 1
+     for every shot that lands.
+     ========================================================================== */
+  var KB_BOSS_SVG =
+    '<svg viewBox="0 0 120 100" width="72" height="60">' +
+    '<circle cx="60" cy="42" r="26" fill="#3A2361" stroke="#fff" stroke-width="3"/>' +
+    '<line x1="42" y1="30" x2="54" y2="37" stroke="#fff" stroke-width="4" stroke-linecap="round"/>' +
+    '<line x1="78" y1="30" x2="66" y2="37" stroke="#fff" stroke-width="4" stroke-linecap="round"/>' +
+    '<circle cx="50" cy="44" r="3.5" fill="#fff"/>' +
+    '<circle cx="70" cy="44" r="3.5" fill="#fff"/>' +
+    '<path d="M46 58 Q60 50 74 58" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/>' +
+    '<rect x="2" y="30" width="22" height="22" rx="5" fill="#fff"/>' +
+    '<line x1="24" y1="41" x2="36" y2="41" stroke="#fff" stroke-width="5"/>' +
+    '<rect x="96" y="30" width="22" height="22" rx="5" fill="#fff"/>' +
+    '<line x1="84" y1="41" x2="96" y2="41" stroke="#fff" stroke-width="5"/>' +
+    '</svg>';
+  var KB_PLAYER_SVG =
+    '<svg viewBox="0 0 64 84" width="40" height="54">' +
+    '<circle cx="32" cy="14" r="10" fill="none" stroke="#fff" stroke-width="4"/>' +
+    '<line x1="32" y1="24" x2="32" y2="54" stroke="#fff" stroke-width="4"/>' +
+    '<line x1="32" y1="34" x2="12" y2="28" stroke="#fff" stroke-width="4" stroke-linecap="round"/>' +
+    '<line x1="32" y1="34" x2="52" y2="40" stroke="#fff" stroke-width="4" stroke-linecap="round"/>' +
+    '<rect x="50" y="36" width="14" height="7" rx="1.5" fill="#fff"/>' +
+    '<line x1="32" y1="54" x2="18" y2="78" stroke="#fff" stroke-width="4" stroke-linecap="round"/>' +
+    '<line x1="32" y1="54" x2="46" y2="78" stroke="#fff" stroke-width="4" stroke-linecap="round"/>' +
+    '</svg>';
+
+  function joyBossSum(b, level){
+    var spread = b === 0 ? 6 : b === 1 ? 10 : b === 2 ? (16 + level * 4) : (24 + level * 6);
+    var a = ri(1, spread), c = ri(1, spread);
+    return {a: a, c: c, ans: a + c};
+  }
+
+  function startJoyBoss(world){
+    var b = band(), level = Math.max(1, levelOf(world.id));
+    var need = 10;
+    var dalHp = 200, dalMax = 200, dmgToBoss = 20;
+    var playerHp = 15, playerMax = 15;
+    var correct = 0, over = false, phase = "question", invincible = false;
+    var PLAYER_SPEED = 130, DAL_SPEED = 70, BOLT_SPEED = 150;
+    var PLAYER_HW = 20, PLAYER_HH = 27, BOSS_HW = 36, BOSS_HH = 30, HIT_RADIUS = 20;
+
+    function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+
+    var shell = gameShell(world, need);
+    shell.stage.appendChild(el("div",{"class":"byline",
+      text:"🎮 Created by Kayden Bang, Mee Toh Primary School"}));
+    shell.stage.appendChild(el("div",{"class":"prompt",
+      text:"Answer the sum to fire at Dal — then dodge with the joystick!"}));
+
+    var dalRow = el("div",{"class":"kb-hprow"});
+    dalRow.appendChild(el("div",{"class":"f-name", style:"min-width:64px", text:"Dal"}));
+    var dalBarOuter = el("div",{"class":"hpbar"});
+    var dalBar = el("div",{"class":"hpfill foehp"});
+    dalBarOuter.appendChild(dalBar);
+    dalRow.appendChild(dalBarOuter);
+    var dalHpTxt = el("div",{"class":"hptxt", text:dalHp + " / " + dalMax});
+    dalRow.appendChild(dalHpTxt);
+    shell.stage.appendChild(dalRow);
+
+    var youRow = el("div",{"class":"kb-hprow"});
+    youRow.appendChild(el("div",{"class":"f-name", style:"min-width:64px", text:(state.name || "You")}));
+    var youBarOuter = el("div",{"class":"hpbar"});
+    var youBar = el("div",{"class":"hpfill mehp"});
+    youBarOuter.appendChild(youBar);
+    youRow.appendChild(youBarOuter);
+    var youHpTxt = el("div",{"class":"hptxt", text:playerHp + " / " + playerMax});
+    youRow.appendChild(youHpTxt);
+    shell.stage.appendChild(youRow);
+
+    var field = el("div",{"class":"kb-field paused"});
+    shell.stage.appendChild(field);
+
+    var dalSprite = el("div",{"class":"kb-sprite"});
+    dalSprite.innerHTML = KB_BOSS_SVG;
+    field.appendChild(dalSprite);
+
+    var playerSprite = el("div",{"class":"kb-sprite"});
+    playerSprite.innerHTML = KB_PLAYER_SVG;
+    field.appendChild(playerSprite);
+
+    var controls = el("div",{"class":"kb-controls"});
+    var stickWrap = el("div",{"class":"kb-base"});
+    var knob = el("div",{"class":"kb-knob"});
+    stickWrap.appendChild(knob);
+    controls.appendChild(stickWrap);
+    var qwrap = el("div",{"class":"kb-qwrap"});
+    controls.appendChild(qwrap);
+    shell.stage.appendChild(controls);
+
+    /* ---- movement input: joystick + arrow/WASD keys ---- */
+    var joyVec = {x:0, y:0}, keyVec = {x:0, y:0}, activePointerId = null;
+    function moveStick(e){
+      var r = stickWrap.getBoundingClientRect();
+      var dx = e.clientX - (r.left + r.width / 2);
+      var dy = e.clientY - (r.top + r.height / 2);
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      var max = r.width / 2 - 19;
+      if(dist > max && dist > 0){ dx = dx / dist * max; dy = dy / dist * max; }
+      knob.style.transform = "translate(" + dx + "px," + dy + "px)";
+      joyVec.x = max ? dx / max : 0;
+      joyVec.y = max ? dy / max : 0;
+    }
+    function endStick(e){
+      if(e.pointerId !== activePointerId) return;
+      activePointerId = null;
+      joyVec.x = 0; joyVec.y = 0;
+      knob.style.transform = "translate(0px,0px)";
+    }
+    stickWrap.addEventListener("pointerdown", function(e){
+      activePointerId = e.pointerId;
+      try{ stickWrap.setPointerCapture(e.pointerId); }catch(err){}
+      moveStick(e);
+    });
+    stickWrap.addEventListener("pointermove", function(e){
+      if(e.pointerId !== activePointerId) return;
+      moveStick(e);
+    });
+    stickWrap.addEventListener("pointerup", endStick);
+    stickWrap.addEventListener("pointercancel", endStick);
+
+    function onKeyDown(e){
+      if(e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keyVec.x = -1;
+      else if(e.key === "ArrowRight" || e.key === "d" || e.key === "D") keyVec.x = 1;
+      else if(e.key === "ArrowUp" || e.key === "w" || e.key === "W") keyVec.y = -1;
+      else if(e.key === "ArrowDown" || e.key === "s" || e.key === "S") keyVec.y = 1;
+    }
+    function onKeyUp(e){
+      if((e.key === "ArrowLeft" || e.key === "a" || e.key === "A") && keyVec.x < 0) keyVec.x = 0;
+      else if((e.key === "ArrowRight" || e.key === "d" || e.key === "D") && keyVec.x > 0) keyVec.x = 0;
+      else if((e.key === "ArrowUp" || e.key === "w" || e.key === "W") && keyVec.y < 0) keyVec.y = 0;
+      else if((e.key === "ArrowDown" || e.key === "s" || e.key === "S") && keyVec.y > 0) keyVec.y = 0;
+    }
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    var listenersOff = false;
+    function offListeners(){
+      if(listenersOff) return;
+      listenersOff = true;
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+    }
+
+    /* ---- arena geometry & sprites ---- */
+    var fieldW = 0, fieldH = 0;
+    var playerPos = {x:0, y:0}, dalPos = {x:0, y:0}, dalTarget = {x:0, y:0};
+    var bolts = [];
+    function updateFieldGeom(){
+      var r = field.getBoundingClientRect();
+      fieldW = r.width || 300; fieldH = r.height || 220;
+    }
+    function placeSprites(){
+      updateFieldGeom();
+      playerPos.x = fieldW / 2; playerPos.y = fieldH - 34;
+      dalPos.x = fieldW / 2; dalPos.y = 56;
+      dalTarget.x = dalPos.x; dalTarget.y = dalPos.y;
+      renderSprites();
+    }
+    function renderSprites(){
+      playerSprite.style.transform = "translate(" + (playerPos.x - PLAYER_HW) + "px," + (playerPos.y - PLAYER_HH) + "px)";
+      dalSprite.style.transform = "translate(" + (dalPos.x - BOSS_HW) + "px," + (dalPos.y - BOSS_HH) + "px)";
+    }
+    window.addEventListener("resize", updateFieldGeom);
+    setTimeout(placeSprites, 0);
+
+    function clearBolts(){
+      bolts.forEach(function(bo){ if(bo.el.parentNode) bo.el.parentNode.removeChild(bo.el); });
+      bolts = [];
+    }
+    function spawnBolt(){
+      var dx = playerPos.x - dalPos.x, dy = playerPos.y - dalPos.y;
+      var d = Math.sqrt(dx * dx + dy * dy) || 1;
+      var boltEl = el("div",{"class":"kb-bolt"});
+      field.appendChild(boltEl);
+      bolts.push({x:dalPos.x, y:dalPos.y, vx:dx / d * BOLT_SPEED, vy:dy / d * BOLT_SPEED, el:boltEl});
+    }
+    function fireAtBoss(){
+      var f = el("div",{"class":"kb-fire"});
+      f.style.transform = "translate(" + (playerPos.x - 4) + "px," + (playerPos.y - 4) + "px)";
+      field.appendChild(f);
+      requestAnimationFrame(function(){
+        f.style.transition = "transform .28s linear";
+        f.style.transform = "translate(" + (dalPos.x - 4) + "px," + (dalPos.y - 4) + "px)";
+      });
+      setTimeout(function(){
+        if(f.parentNode) f.parentNode.removeChild(f);
+        dalSprite.classList.add("hurt");
+        setTimeout(function(){ dalSprite.classList.remove("hurt"); }, 400);
+      }, 290);
+    }
+    function onPlayerHit(){
+      if(over || invincible) return;
+      playerHp = Math.max(0, playerHp - 1);
+      youBar.style.width = (playerHp / playerMax * 100) + "%";
+      youHpTxt.textContent = playerHp + " / " + playerMax;
+      sfx.bad();
+      playerSprite.classList.add("hurt");
+      invincible = true;
+      setTimeout(function(){ playerSprite.classList.remove("hurt"); }, 400);
+      setTimeout(function(){ invincible = false; }, 700);
+      if(playerHp <= 0 && !over){
+        over = true;
+        clearBolts();
+        setTimeout(function(){ endBattle(false); }, 500);
+      }
+    }
+
+    var lastTs = null, bossFireTimer = 0.6;
+    function tick(ts){
+      if(!document.body.contains(field)){ offListeners(); return; }
+      if(lastTs == null) lastTs = ts;
+      var dt = Math.min(0.05, (ts - lastTs) / 1000);
+      lastTs = ts;
+
+      var ix = joyVec.x + keyVec.x, iy = joyVec.y + keyVec.y;
+      var imag = Math.sqrt(ix * ix + iy * iy);
+      if(imag > 1){ ix /= imag; iy /= imag; }
+      playerPos.x = clamp(playerPos.x + ix * PLAYER_SPEED * dt, PLAYER_HW, fieldW - PLAYER_HW);
+      playerPos.y = clamp(playerPos.y + iy * PLAYER_SPEED * dt, PLAYER_HH, fieldH - PLAYER_HH);
+
+      if(phase === "action" && !over){
+        var tdx = dalTarget.x - dalPos.x, tdy = dalTarget.y - dalPos.y;
+        var td = Math.sqrt(tdx * tdx + tdy * tdy);
+        if(td < 6){
+          dalTarget.x = ri(BOSS_HW, Math.max(BOSS_HW + 1, fieldW - BOSS_HW));
+          dalTarget.y = ri(BOSS_HH, Math.max(BOSS_HH + 1, fieldH * 0.55));
+        } else {
+          dalPos.x += tdx / td * DAL_SPEED * dt;
+          dalPos.y += tdy / td * DAL_SPEED * dt;
+        }
+        bossFireTimer -= dt;
+        if(bossFireTimer <= 0){ spawnBolt(); bossFireTimer = 0.9; }
+      }
+
+      for(var i = bolts.length - 1; i >= 0; i--){
+        var bo = bolts[i];
+        bo.x += bo.vx * dt; bo.y += bo.vy * dt;
+        bo.el.style.transform = "translate(" + (bo.x - 6) + "px," + (bo.y - 6) + "px)";
+        if(bo.x < -20 || bo.x > fieldW + 20 || bo.y < -20 || bo.y > fieldH + 20){
+          if(bo.el.parentNode) bo.el.parentNode.removeChild(bo.el);
+          bolts.splice(i, 1);
+          continue;
+        }
+        var hdx = bo.x - playerPos.x, hdy = bo.y - playerPos.y;
+        if(!over && !invincible && Math.sqrt(hdx * hdx + hdy * hdy) < HIT_RADIUS){
+          if(bo.el.parentNode) bo.el.parentNode.removeChild(bo.el);
+          bolts.splice(i, 1);
+          onPlayerHit();
+        }
+      }
+
+      renderSprites();
+      if(!over) requestAnimationFrame(tick);
+      else offListeners();
+    }
+    requestAnimationFrame(tick);
+
+    function nextQuestion(){
+      if(over) return;
+      phase = "question";
+      field.classList.add("paused");
+      clearBolts();
+      qwrap.textContent = "";
+      var Q = joyBossSum(b, level);
+      qwrap.appendChild(el("div",{"class":"bigq", text: Q.a + " + " + Q.c + " = ?"}));
+      qwrap.appendChild(choiceGrid(numberOptions(Q.ans, Math.max(4, Math.round(Q.ans * 0.3)), 3), Q.ans, function(ok){
+        if(over) return;
+        if(ok){
+          correct++;
+          dalHp = Math.max(0, dalHp - dmgToBoss);
+          dalBar.style.width = (dalHp / dalMax * 100) + "%";
+          dalHpTxt.textContent = dalHp + " / " + dalMax;
+          fireAtBoss();
+          sfx.good();
+          markDot(shell.dots, correct - 1, true);
+        } else {
+          sfx.bad();
+        }
+        if(dalHp <= 0){
+          over = true;
+          setTimeout(function(){ endBattle(true); }, 650);
+          return;
+        }
+        setTimeout(startAction, ok ? 550 : 350);
+      }, false));
+    }
+
+    function startAction(){
+      if(over) return;
+      phase = "action";
+      field.classList.remove("paused");
+      bossFireTimer = 0.5;
+      setTimeout(function(){
+        if(!over) nextQuestion();
+      }, 2200);
+    }
+
+    function endBattle(won){
+      music.stop();
+      clearBolts();
+      offListeners();
+      if(won){ sfx.win(); confettiBurst(90); award(world.id, 3, true); }
+      else { sfx.bad(); award(world.id, 0, false); }
+      save();
+      var box = el("div",{"class":"result"});
+      box.appendChild(el("div",{"class":"stars-big", text: won ? "🏆" : "💫"}));
+      box.appendChild(el("div",{"class":"score display", text: won ? "You defeated Dal!" : "Dal got you this time!"}));
+      box.appendChild(el("div",{style:"font-weight:800; color:#C9C4EE; font-size:16px",
+        text: won ? correct + " correct shots landed" : "You landed " + correct + " shots — have another go!"}));
+      box.appendChild(el("div",{"class":"byline", text:"🎮 Created by Kayden Bang, Mee Toh Primary School"}));
+      var again = el("button",{"class":"btn btn-lg btn-go", style:"min-width:240px", text: won ? "Fight again" : "Try again"});
+      again.addEventListener("click", function(){ sfx.tap(); startJoyBoss(world); });
       var home = el("button",{"class":"btn btn-lg btn-ghost", style:"min-width:240px", text:"Choose another game"});
       home.addEventListener("click", function(){ sfx.tap(); renderHome(); });
       box.appendChild(again); box.appendChild(home);
