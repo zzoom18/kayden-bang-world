@@ -670,20 +670,15 @@
         });
         actions.appendChild(rs);
 
-        var del = document.createElement("button");
-        del.className = "btn btn-sm danger";
-        del.textContent = "Delete";
-        del.addEventListener("click", function(){
-          /* Two steps, because this cannot be undone and the rows look alike. */
-          if(!confirm("Delete the account " + r.email + "?\n\nThis removes the sign-up record, the saved progress and any access you granted. It cannot be undone.")) return;
-          var typed = prompt("Type the email to confirm:", "");
-          if(String(typed || "").trim().toLowerCase() !== r.email){
-            if(typed !== null) alert("That did not match. Nothing was deleted.");
-            return;
-          }
-          account(r.email, "delete");
+        var ban = document.createElement("button");
+        ban.className = "btn btn-sm" + (r.banned ? "" : " danger");
+        ban.textContent = r.banned ? "Unban" : "Ban";
+        ban.addEventListener("click", function(){
+          var action = r.banned ? "unban" : "ban";
+          if(action === "ban" && !confirm("Ban " + r.email + "?\n\nThey'll be signed out and won't be able to sign in again until you unban them. Their stars and progress are kept.")) return;
+          account(r.email, action);
         });
-        actions.appendChild(del);
+        actions.appendChild(ban);
 
         td6.appendChild(actions);
         tr.appendChild(td6);
@@ -696,11 +691,12 @@
     api("/api/admin/account", {method:"POST", body:{email:email, action:action}})
       .then(function(res){
         if(res.status === 200 && res.body.ok){
-          say($("grantMsg"), action === "delete" ? "Deleted " + email + "."
-            : action === "unlockAll" ? "Every game unlocked for " + email + "."
+          say($("grantMsg"), action === "unlockAll" ? "Every game unlocked for " + email + "."
             : action === "lockAll" ? "Star gates restored for " + email + "."
             : action === "disableAds" ? "Ad breaks turned off for " + email + "."
             : action === "enableAds" ? "Ad breaks turned back on for " + email + "."
+            : action === "ban" ? "Banned " + email + "."
+            : action === "unban" ? "Unbanned " + email + "."
             : "Progress reset for " + email + ".", true);
           loadRegs();
           return api("/api/admin/settings").then(function(r2){ if(r2.body.ok) paint(r2.body); });

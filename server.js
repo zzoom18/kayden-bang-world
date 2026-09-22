@@ -327,6 +327,9 @@ async function handleRegister(req, res) {
   if (!looksLikeEmail(email)) {
     return sendJson(req, res, 400, { ok: false, error: 'email_invalid', message: 'That email address does not look right.' });
   }
+  if (readProgress(email.toLowerCase())?.banned) {
+    return sendJson(req, res, 403, { ok: false, error: 'banned', message: 'This account has been suspended.' });
+  }
 
   signups.set(ip, [...(signups.get(ip) || []), Date.now()]);
 
@@ -473,12 +476,13 @@ function mergeProgress(mine, theirs) {
     setup: !!(mine.setup || theirs.setup),
     /* Always the existing stored copy's value, never theirs (the incoming
        client post) — cleanProgress never derives either field from client
-       input, so theirs.allUnlocked/adsDisabled are always undefined here
-       anyway. This is what stops a device that synced before an admin's
-       change from echoing a stale value back over it once the admin flips
-       it. */
+       input, so theirs.allUnlocked/adsDisabled/banned are always undefined
+       here anyway. This is what stops a device that synced before an
+       admin's change from echoing a stale value back over it once the
+       admin flips it. */
     allUnlocked: !!mine.allUnlocked,
     adsDisabled: !!mine.adsDisabled,
+    banned: !!mine.banned,
     progress: {}
   };
   const a = mine.quest, b = theirs.quest;
@@ -899,7 +903,8 @@ function accountRows() {
       childAge: prog ? (Number(prog.age) || null) : null,
       playedAt: prog && prog.updatedAt ? new Date(prog.updatedAt * 1000).toISOString() : null,
       allUnlocked: prog ? !!prog.allUnlocked : false,
-      adsDisabled: prog ? !!prog.adsDisabled : false
+      adsDisabled: prog ? !!prog.adsDisabled : false,
+      banned: prog ? !!prog.banned : false
     };
   }).sort((x, y) => String(y.last || '').localeCompare(String(x.last || '')));
 }
@@ -977,6 +982,17 @@ async function handleAccount(req, res) {
     console.log(`[admin] ${body.action} for ${email}`);
     return sendJson(req, res, 200, { ok: true, saved, adsDisabled: current.adsDisabled });
   }
+  if (body.action === 'ban' || body.action === 'unban') {
+    // Reversible, unlike the old delete: a banned account keeps its stars
+    // and sign-up record, it just can't sign in or stay signed in — see the
+    // banned check in handleRegister and handleVerify.
+    const current = readProgress(email) || cleanProgress({});
+    current.banned = body.action === 'ban';
+    current.updatedAt = Math.floor(Date.now() / 1000);
+    const saved = writeProgress(email, current);
+    console.log(`[admin] ${body.action} for ${email}`);
+    return sendJson(req, res, 200, { ok: true, saved, banned: current.banned });
+  }
   return sendJson(req, res, 400, { ok: false, error: 'unknown_action' });
 }
 
@@ -1049,6 +1065,9 @@ async function handleVerify(req, res) {
   }
   const result = readToken(KEY_SECRET, body.token);
   if (!result.ok) return sendJson(req, res, 401, { ok: false, error: result.reason });
+  if (result.email && readProgress(result.email.toLowerCase())?.banned) {
+    return sendJson(req, res, 403, { ok: false, error: 'banned', message: 'This account has been suspended.' });
+  }
 
   // Someone holding a trial from before open access was switched on gets
   // upgraded here rather than having to sign up again.
