@@ -12,12 +12,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Kayden Bang">
-<meta name="application-name" content="Kayden Bang World">
+<meta name="apple-mobile-web-app-title" content="Fun Game">
+<meta name="application-name" content="Fun Game">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
-<title>Kayden Bang World</title>
+<title>Fun Game</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800&display=swap">
 <style>
@@ -968,6 +968,15 @@
     }
     return e;
   }
+  /* Fun Game's mark: a five-point star, the same shape as the reward the
+     whole app runs on, so the logo and the currency read as one idea.
+     Used wherever the brand name is introduced, not on every gated card. */
+  function svgLogo(size){
+    var d = "M12 2 14.4 8.8 21.5 8.9 15.8 13.2 17.9 20.1 12 16 6.1 20.1 8.2 13.2 2.5 8.9 9.6 8.8 Z";
+    return el("div",{html:
+      '<svg width="' + (size || 26) + '" height="' + (size || 26) + '" viewBox="0 0 24 24" ' +
+      'fill="none" aria-hidden="true"><path d="' + d + '" fill="#fff"/></svg>'});
+  }
   function ri(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
   function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
   function titleCase(x){ return String(x||"").charAt(0).toUpperCase() + String(x||"").slice(1); }
@@ -1863,7 +1872,7 @@
       var n=0; JOURNEY.maths.forEach(function(id){ if(played(id)) n++; }); return n >= 4; }},
     {id:"word", e:"📚", nm:"Word Lover",      hint:"Try every English game",     test:function(){
       return JOURNEY.english.every(function(id){ return played(id); }); }},
-    {id:"all",  e:"👑", nm:"Kayden Bang World Champion", hint:"Master eight games",       test:function(){
+    {id:"all",  e:"👑", nm:"Fun Game Champion", hint:"Master eight games",       test:function(){
       var n=0; for(var k in state.progress) if(mastered(k)) n++; return n >= 8; }}
   ];
   function earnedBadges(){ return BADGES.filter(function(bd){ try{ return bd.test(); }catch(e){ return false; } }); }
@@ -2152,7 +2161,7 @@
           : d <= 0 ? "Sample ends today"
           : d === 1 ? "Sample · 1 day left"
           : "Sample · " + d + " days left";
-        var up = el("button",{"class":"linkbtn", id:"pc_upgrade", text:"Unlock all games"});
+        var up = el("button",{"class":"linkbtn", id:"pc_upgrade", text:"About full access"});
         up.addEventListener("click", function(){ sfx.tap(); openKey(); });
         pad.appendChild(el("div",{style:"display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:8px"}, pill, up));
       } else {
@@ -2271,7 +2280,7 @@
     row.appendChild(pg);
     var gu = el("button",{"class":"btn btn-ghost", text:"Grown-up corner"});
     gu.addEventListener("click", function(){ sfx.tap(); openGrownup(); });
-    var ab = el("button",{"class":"btn btn-ghost", text:"About Kayden Bang World"});
+    var ab = el("button",{"class":"btn btn-ghost", text:"About Fun Game"});
     ab.addEventListener("click", function(){ sfx.tap(); openAbout(); });
     row.appendChild(gu); row.appendChild(ab);
     pad.appendChild(row);
@@ -5549,7 +5558,7 @@
   function startCircuit(world){
     var rounds = 7;
     var shell = gameShell(world, rounds);
-    var i = 0, correct = 0, order = shuffle(CIRCUIT_FAULTS.slice());
+    var i = 0, correct = 0, order = deal(world.id, CIRCUIT_FAULTS, function(x){ return x.k; }, rounds);
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
       var f = order[i];
@@ -5586,7 +5595,7 @@
   function startMagnet(world){
     var rounds = 8;
     var shell = gameShell(world, rounds);
-    var i = 0, correct = 0, order = shuffle(MAGNETIC.slice());
+    var i = 0, correct = 0, order = dealBand(world.id, MAGNETIC, rounds);
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
       var it = order[i];
@@ -7344,7 +7353,7 @@
     var pool = zhPool(), rounds = 8;
     var shell = gameShell(world, rounds);
     var i = 0, correct = 0;
-    var order = shuffle(pool.slice());
+    var order = deal(world.id, pool, keyer(), rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
@@ -7397,7 +7406,7 @@
     var pool = zhPool(), rounds = 8;
     var shell = gameShell(world, rounds);
     var i = 0, correct = 0;
-    var order = shuffle(pool.slice());
+    var order = deal(world.id, pool, keyer(), rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
@@ -7965,9 +7974,9 @@
 
   function openAbout(){
     var box = el("div");
-    box.appendChild(el("div",{"class":"aboutmark", text:"🦊"}));
-    box.appendChild(el("h2",{"class":"display", text:"About Kayden Bang World"}));
-    box.appendChild(el("p",{text:"Kayden Bang World started as a small learning project created for Kayden."}));
+    box.appendChild(el("div",{"class":"aboutmark"}, svgLogo(32)));
+    box.appendChild(el("h2",{"class":"display", text:"About Fun Game"}));
+    box.appendChild(el("p",{text:"Fun Game started as a small learning project created for Kayden."}));
     box.appendChild(el("p",{text:"The idea was simply to make learning a little more fun, interesting and easier to explore through simple educational activities and tools."}));
 
     var kids = el("div",{"class":"kids"});
@@ -7985,10 +7994,10 @@
     box.appendChild(el("p",{text:"So we decided to open kayden.sg to everyone."}));
     box.appendChild(el("p",{text:"There is no big mission behind it \u2014 just a hope that children can enjoy learning, practise at their own pace, and discover new things along the way."}));
     box.appendChild(el("p",{text:"The website will continue to grow as we add more activities and ideas that we feel may be useful for children in Singapore. New content is added and updated every week."}));
-    box.appendChild(el("p",{text:"We hope Kayden Bang World can be a small and helpful part of a child\u2019s learning journey."}));
+    box.appendChild(el("p",{text:"We hope Fun Game can be a small and helpful part of a child\u2019s learning journey."}));
     box.appendChild(el("p",{style:"margin-bottom:6px; font-weight:800; color:#8FE3C4", text:"Learn, explore and have fun."}));
     box.appendChild(el("div",{"class":"byline",
-      text:"The games follow the Singapore MOE primary syllabus. Kayden Bang World is an independent family project, not affiliated with or endorsed by the Ministry of Education."}));
+      text:"The games follow the Singapore MOE primary syllabus. Fun Game is an independent family project, not affiliated with or endorsed by the Ministry of Education."}));
 
     var m = modal(box);
     var close = el("button",{"class":"btn btn-lg btn-ghost", style:"width:100%; margin-top:16px", text:"Close"});
@@ -8158,8 +8167,8 @@
     box.appendChild(el("div",{"class":"byline", text:"Made by a dad in Singapore for his two children, Kayden and Ellyia."}));
 
     var alt = el("div",{style:"text-align:center; margin-top:16px; padding-top:14px; border-top:2px solid rgba(255,255,255,.10)"});
-    alt.appendChild(el("span",{style:"color:#8E88C4; font-weight:700; font-size:14.5px", text:"Already bought? "}));
-    var hk = el("button",{"class":"linkbtn", text:"Enter your key"});
+    alt.appendChild(el("span",{style:"color:#8E88C4; font-weight:700; font-size:14.5px", text:"Already have an account? "}));
+    var hk = el("button",{"class":"linkbtn", text:"About full access"});
     alt.appendChild(hk); box.appendChild(alt);
 
     /* Nobody should ever be stuck behind this sheet. Without a way out, a
@@ -8244,40 +8253,20 @@
     setTimeout(function(){ nameI.focus(); }, 80);
   }
 
+  /* There is no key to buy or type any more: full access is switched on for
+     an account from the admin side, by request, and the app picks it up the
+     next time it checks in (see /api/verify). This screen used to ask for a
+     KBW-XXXX key; it now just explains that and lets a child close it and
+     keep playing what is already open to them. */
   function openKey(){
     var box = el("div");
-    box.appendChild(el("h2",{"class":"display", text:"Enter your key"}));
-    box.appendChild(el("p",{text:"It came with your order and unlocks every game."}));
-    var f = el("div",{"class":"field"});
-    f.appendChild(el("label",{text:"Licence key", "for":"pc_key"}));
-    var inp = el("input",{type:"text", id:"pc_key", placeholder:"KBW-XXXX-XXXX-XXXX", spellcheck:"false", autocapitalize:"characters"});
-    f.appendChild(inp); box.appendChild(f);
-    var err = el("div",{"class":"err"}); box.appendChild(err);
-    var go = el("button",{"class":"btn btn-lg btn-pink", id:"pc_key_go", style:"width:100%", text:"Unlock"});
-    box.appendChild(go);
-    var back = el("button",{"class":"btn btn-ghost", style:"width:100%; margin-top:10px", text:"Not now"});
-    box.appendChild(back);
+    box.appendChild(el("h2",{"class":"display", text:"Full access"}));
+    box.appendChild(el("p",{text:"There's no key to enter. Full access is switched on for your account by whoever set it up — ask them, and it will be there next time you open the app."}));
+    var ok = el("button",{"class":"btn btn-lg btn-pink", style:"width:100%", text:"Got it"});
+    box.appendChild(ok);
 
     var m = modal(box);
-    back.addEventListener("click", function(){ m.close(); if(!licence) openWelcome(false); });
-    go.addEventListener("click", function(){
-      var v = (inp.value||"").trim();
-      if(!v){ err.textContent = "Enter the key from your order."; return; }
-      go.disabled = true; go.textContent = "Checking…"; err.textContent = "";
-      api("/api/activate", {key:v}).then(function(res){
-        if(res.status === 200 && res.body.ok){
-          try{ localStorage.setItem("papercub.token", res.body.token); }catch(e){}
-          applyLicence(res.body.licence, null);
-          m.close(); renderHome();
-          if(!state.setup) openProfile();
-        } else {
-          err.textContent = res.body.message || "That key didn't work.";
-        }
-      })["catch"](function(){
-        err.textContent = "Couldn't reach the server. Check your connection.";
-      }).then(function(){ go.disabled = false; go.textContent = "Unlock"; });
-    });
-    setTimeout(function(){ inp.focus(); }, 80);
+    ok.addEventListener("click", function(){ m.close(); if(!licence) openWelcome(false); });
   }
 
   /* ---------- boot ---------- */
@@ -8375,7 +8364,7 @@
     var bar = el("div",{"class":"installbar"});
     bar.appendChild(el("div",{"class":"ib-e", text:"🦊"}));
     var mid = el("div",{"class":"ib-mid"});
-    mid.appendChild(el("div",{"class":"ib-t", text:"Add Kayden Bang World to your home screen"}));
+    mid.appendChild(el("div",{"class":"ib-t", text:"Add Fun Game to your home screen"}));
     mid.appendChild(el("div",{"class":"ib-s", text: installEvent
       ? "It opens like an app, full screen, and works without wifi."
       : "Tap Share, then \u201cAdd to Home Screen\u201d."}));

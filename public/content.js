@@ -1,4 +1,4 @@
-/* Kayden Bang World content banks.
+/* Fun Game content banks.
  *
  * Everything a child sees is in here, tagged with the age bands it suits:
  *   0 = 3–4 (Little)   1 = 5–6 (Starter)   2 = 7–8 (Growing)   3 = 9–12 (Big kid)

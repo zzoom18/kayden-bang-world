@@ -987,7 +987,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Kayden Bang World listening on :${PORT}`);
+  console.log(`Fun Game listening on :${PORT}`);
   console.log(`  admin mint endpoint: ${ADMIN_TOKEN ? 'enabled' : 'disabled (set ADMIN_TOKEN to enable)'}`);
   console.log(`  cross-origin activation: ${ALLOWED_ORIGINS.length ? ALLOWED_ORIGINS.join(', ') : 'same-origin only'}`);
   console.log(`  sample access: ${TRIAL_DAYS} days, registrations saved to ${REGISTRATIONS}`);

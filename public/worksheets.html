@@ -10,7 +10,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Kayden Bang">
+<meta name="apple-mobile-web-app-title" content="Fun Game">
 <style>
   html,body{height:100%}
   body{margin:0}
@@ -18,7 +18,7 @@
   [hidden]{display:none!important}
   :root{padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
 </style>
-<title>Kayden Bang World Printables</title>
+<title>Fun Game Printables</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Andika:wght@400;700&display=swap">
 <style>
@@ -335,12 +335,11 @@
     <div class="brand">
       <div class="brand-mark">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M4 18.5 16.2 6.3l3 3L7 21.5l-4 .8.9-3.8Z" fill="#fff"/>
-          <path d="M17.6 4.9 19 3.5l3 3-1.4 1.4-3-3Z" fill="#241F4D"/>
+          <path d="M12 2 14.4 8.8 21.5 8.9 15.8 13.2 17.9 20.1 12 16 6.1 20.1 8.2 13.2 2.5 8.9 9.6 8.8 Z" fill="#fff"/>
         </svg>
       </div>
       <div>
-        <div class="brand-name display">Kayden Bang World</div>
+        <div class="brand-name display">Fun Game</div>
         <div class="brand-sub">Worksheets to print · Singapore MOE syllabus</div>
       </div>
     </div>
@@ -429,21 +428,17 @@
     </label>
     <div class="err" id="regErr"></div>
     <button class="btn btn-go" id="regGo" style="width:100%; font-size:16px; padding:14px">Start printing</button>
-    <div class="welcome-alt">Already bought? <button class="linkbtn" id="haveKey">Enter your licence key</button></div>
+    <div class="welcome-alt">Already have an account? <button class="linkbtn" id="haveKey">About full access</button></div>
   </div>
 </div>
 
 <div class="scrim" id="scrim" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
-    <h3 id="mTitle" class="display">Enter your licence key</h3>
-    <p>Your key came with your purchase receipt. Unlocking removes the page limit and the footer credit.</p>
-    <input class="input" id="keyInput" type="text" placeholder="KBW-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false">
-    <div class="err" id="keyErr"></div>
+    <h3 id="mTitle" class="display">Full access</h3>
+    <p>There's no key to enter. Full access is switched on for your account by whoever set it up — ask them, and it will be there next time you open this page.</p>
     <div style="display:flex; gap:10px; margin-top:6px">
-      <button class="btn btn-primary" id="keyGo" style="flex:1">Unlock</button>
-      <button class="btn btn-ghost" id="keyCancel">Not now</button>
+      <button class="btn btn-primary" id="keyGo" style="flex:1">Got it</button>
     </div>
-    <div class="hint">Your key looks like <strong>KBW-XXXX-XXXX-XXXX</strong> and is in the message attached to your order.</div>
   </div>
 </div>
 
@@ -1118,8 +1113,8 @@
 
     var foot = h("div",{"class":"sheet-foot"});
     var paid = state.licence && !state.licence.trial;
-    foot.appendChild(h("span",{text: paid ? titleCase(state.name||"") : "Made with Kayden Bang World"}));
-    foot.appendChild(h("span",{text:"papercub by Alvin, for Kayden & Ellyia", style:"color:#A7A3C6"}));
+    foot.appendChild(h("span",{text: paid ? titleCase(state.name||"") : "Made with Fun Game"}));
+    foot.appendChild(h("span",{text:"Fun Game by Alvin, for Kayden & Ellyia", style:"color:#A7A3C6"}));
     foot.appendChild(h("span",{text:"Page "+pageNo+" of "+total}));
     var stars = h("div",{"class":"stars"});
     for(var i=0;i<3;i++){
@@ -1210,13 +1205,9 @@
     }
   });
 
-  function openModal(){ $("scrim").hidden = false; $("keyErr").textContent = ""; setTimeout(function(){ $("keyInput").focus(); }, 60); }
-  function closeModal(){ $("scrim").hidden = true; }
+  function openModal(){ $("scrim").hidden = false; }
+  function closeModal(){ $("scrim").hidden = true; if(!state.unlocked) showWelcome(false); }
   $("unlockBtn").addEventListener("click", openModal);
-  $("keyCancel").addEventListener("click", function(){
-    closeModal();
-    if(!state.unlocked) showWelcome(false);
-  });
   $("scrim").addEventListener("click", function(e){ if(e.target === this) closeModal(); });
   function api(path, body){
     return fetch(API + path, {
@@ -1246,7 +1237,7 @@
         : d === 1 ? "Trial · 1 day left"
         : "Trial · " + d + " days left";
       $("unlockBtn").hidden = false;
-      $("unlockBtn").textContent = "Unlock full version";
+      $("unlockBtn").textContent = "About full access";
     } else {
       $("statusPill").className = "pill full";
       $("statusText").textContent = (lic && lic.name ? lic.name : "Full") + " licence";
@@ -1292,23 +1283,7 @@
 
   $("haveKey").addEventListener("click", function(){ hideWelcome(); openModal(); });
 
-  $("keyGo").addEventListener("click", function(){
-    var btn = this, v = ($("keyInput").value || "").trim();
-    if(!v){ $("keyErr").textContent = "Enter the key from your order."; return; }
-    btn.disabled = true; btn.textContent = "Checking…"; $("keyErr").textContent = "";
-    api("/api/activate", {key:v}).then(function(res){
-      if(res.status === 200 && res.body.ok){
-        try{ localStorage.setItem("papercub.token", res.body.token); }catch(e){}
-        applyLicence(res.body.licence);
-        hideWelcome(); closeModal(); render();
-      } else {
-        $("keyErr").textContent = res.body.message || "That key didn't work. Check your order message.";
-      }
-    })["catch"](function(){
-      $("keyErr").textContent = "Couldn't reach the licence server. Check your connection and try again.";
-    }).then(function(){ btn.disabled = false; btn.textContent = "Unlock"; });
-  });
-  $("keyInput").addEventListener("keydown", function(e){ if(e.key==="Enter") $("keyGo").click(); });
+  $("keyGo").addEventListener("click", closeModal);
 
   (function restoreLicence(){
     var token = null;

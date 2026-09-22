@@ -1,4 +1,4 @@
-# Kayden Bang World
+# Fun Game
 
 Made by Alvin, a father in Singapore, for his two children — Kayden (Primary 3, Mee Toh
 School) and Ellyia (K2). The age gap between them is why the whole app keys off age.

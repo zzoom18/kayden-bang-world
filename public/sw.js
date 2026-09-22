@@ -1,4 +1,4 @@
-/* Kayden Bang World — service worker.
+/* Fun Game — service worker.
  *
  * Its job is to make the app installable and to keep it usable when the wifi
  * drops at the back of the house. It is deliberately NOT a cache-first worker:
