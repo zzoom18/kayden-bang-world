@@ -94,6 +94,16 @@
   .layout{
     flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,352px) minmax(0,1fr); gap:20px;
     padding:20px; padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));
+    /* On a phone the deck and stage stack into two implicit rows (see the
+       900px media query below). A plain `auto` row track sizes itself off
+       the item's automatic minimum size, and .deck is `min-height:0` so its
+       own children can scroll — the same property that made its row's
+       minimum collapse to a handful of pixels here, cramming three cards
+       of controls into an 8px sliver with the worksheet preview rendered
+       on top of them. grid-auto-rows:min-content asks for the row's real
+       min-content size instead, which is what min-height:0 was never meant
+       to affect. Harmless on desktop, where two columns mean one row. */
+    grid-auto-rows: min-content;
   }
   /* A grid item defaults to min-width:auto, which means it refuses to shrink
      below its content. On a phone that made the control deck 662px wide inside
@@ -265,7 +275,18 @@
   .lk-s{font-size:15px; font-weight:700; color:var(--ink-soft); line-height:1.55}
 
   @media (max-width:900px){
-    .layout{grid-template-columns:minmax(0,1fr); overflow-x:hidden}
+    /* Desktop is two side-by-side panels, each scrolling on its own, inside
+       an .app pinned to exactly the viewport height. Stacking them into one
+       column on a phone means there is no longer a fixed-height slot for
+       either to scroll within — dropping .deck and .scroller's own scroll
+       (below) only relocates the content, it does not give it anywhere to
+       go. .app has to be allowed to grow past one screen and hand scrolling
+       to the page itself, or everything past the first viewport — most of
+       the control deck, the whole worksheet preview — is laid out but
+       genuinely unreachable: no error, no visible clipping, just a page a
+       finger cannot scroll any further down. */
+    .app{height:auto; min-height:100%}
+    .layout{grid-template-columns:minmax(0,1fr); overflow-x:hidden; height:auto}
     .deck{overflow:visible; max-height:none}
     .scroller{overflow:visible}
     .page-tag{display:none}
