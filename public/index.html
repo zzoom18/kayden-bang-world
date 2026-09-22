@@ -1372,6 +1372,25 @@
       return true;
     }catch(e){ return false; }
   }
+  /* Games that speak the answer as feedback ("that's the right form",
+     the correct pinyin, the missing word) used to move on after a fixed
+     short delay regardless of how long that took to say, so a longer
+     sentence got cut off by the next question appearing. This waits for
+     the browser to actually finish speaking — polling rather than relying
+     on the utterance's own 'end' event, so it works with any speak() call
+     already made, not just ones written to expect it — then adds the
+     pause a game asks for so the answer has a moment to sink in. A
+     ceiling guards against a browser that never reports speaking as
+     finished. */
+  function afterSpeech(fn, pauseMs){
+    var settled = false;
+    function go(){ if(settled) return; settled = true; setTimeout(fn, pauseMs == null ? 900 : pauseMs); }
+    if(!CAN_SPEAK || !window.speechSynthesis.speaking){ go(); return; }
+    var check = setInterval(function(){
+      if(!window.speechSynthesis.speaking){ clearInterval(check); go(); }
+    }, 120);
+    setTimeout(function(){ clearInterval(check); go(); }, 6000);
+  }
   /* ---------- reading the question out loud ----------
      Rather than adding a speak() call to each of fifty-odd games — and
      forgetting it on the next one — this watches the stage and reads whatever
@@ -6155,7 +6174,7 @@
         else { sfx.bad(); }
         markDot(shell.dots, i, ok);
         i++;
-        setTimeout(next, ok ? 900 : 1300);
+        afterSpeech(next, ok ? 900 : 1300);
       }, false, true));
     }
     next();
@@ -6692,7 +6711,7 @@
           else { sfx.bad(); }
           markDot(shell.dots, i, ok);
           i++;
-          setTimeout(next, ok ? 700 : 1150);
+          afterSpeech(next, ok ? 700 : 1150);
         }, false));
     }
     next();
@@ -7595,7 +7614,7 @@
           if(ok){ correct++; sfx.good(); flash("⭐"); speak(it.w + " … " + it.o); } else { sfx.bad(); }
           markDot(shell.dots, i, ok);
           i++;
-          setTimeout(next, ok ? 700 : 1100);
+          afterSpeech(next, ok ? 700 : 1100);
         }, false));
     }
     next();
@@ -7620,7 +7639,7 @@
         if(ok) speak(it.q.replace("___", it.a));
         markDot(shell.dots, i, ok);
         i++;
-        setTimeout(next, ok ? 1100 : 1700);
+        afterSpeech(next, ok ? 1100 : 1700);
       }, false));
     }
     next();
@@ -7667,7 +7686,7 @@
               speak(words.join(" "));
               markDot(shell.dots, i, true);
               i++;
-              setTimeout(next, 1500);
+              afterSpeech(next, 1500);
             }
           } else {
             /* One wrong tap ends the round — order is the whole skill. */
@@ -7797,7 +7816,7 @@
         if(ok){ correct++; sfx.good(); flash("⭐"); speak(it.a); } else { sfx.bad(); }
         markDot(shell.dots, i, ok);
         i++;
-        setTimeout(next, ok ? 750 : 1200);
+        afterSpeech(next, ok ? 750 : 1200);
       }, false));
     }
     next();
@@ -8020,12 +8039,15 @@
         right.z, function(ok){
           if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
           markDot(shell.dots, i, ok);
-          /* Right or wrong, the whole word is read out — that is the bit
-             worth remembering. */
-          setTimeout(function(){ speak(right.w, {lang:"zh-CN", rate:0.72}); }, 240);
           if(!ok) shell.stage.appendChild(el("div",{"class":"zh-tell", text: right.w + "  " + right.p}));
           i++;
-          setTimeout(next, ok ? 620 : 1400);
+          /* Right or wrong, the whole word is read out — that is the bit
+             worth remembering, so the next word waits for it to finish
+             rather than talking over it. */
+          setTimeout(function(){
+            speak(right.w, {lang:"zh-CN", rate:0.72});
+            afterSpeech(next, ok ? 620 : 1400);
+          }, 240);
         }, false, true));
     }
     next();
