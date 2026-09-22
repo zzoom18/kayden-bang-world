@@ -2011,7 +2011,16 @@ window.PC = (function(){
     {b:3, e:"🕷️", w:"spider",     v:false},
     {b:3, e:"🦐", w:"prawn",      v:false},
     {b:3, e:"🐙", w:"octopus",    v:false},
-    {b:3, e:"🪱", w:"earthworm",  v:false}
+    {b:3, e:"🪱", w:"earthworm",  v:false},
+    {b:3, e:"🦎", w:"lizard",     v:true},
+    {b:3, e:"🐢", w:"tortoise",   v:true},
+    {b:3, e:"🦅", w:"eagle",      v:true},
+    {b:3, e:"🐊", w:"crocodile",  v:true},
+    {b:3, e:"🦇", w:"bat",        v:true},
+    {b:3, e:"🦈", w:"shark",      v:true},
+    {b:3, e:"🦀", w:"crab",       v:false},
+    {b:3, e:"🪼", w:"jellyfish",  v:false},
+    {b:3, e:"⭐", w:"starfish",   v:false}
   ];
 
   /* ---------- living or non-living (Living Things, for younger players) ---------- */
