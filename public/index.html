@@ -378,6 +378,18 @@
     border:3px solid rgba(255,217,138,.4); border-radius:18px; padding:11px 15px;
     font-size:14.5px; font-weight:700; max-width:420px; line-height:1.4}
   .gw-e{font-size:28px; line-height:1; flex:none}
+  /* What the fight is for: shown every level, not only on the level that
+     hands it over, so a child three fights away from a new sword still
+     knows it is coming. Dashed and dim, unlike .gearwin's solid gold — this
+     one has not been earned yet. */
+  .nextgear{display:flex; align-items:center; gap:10px; justify-content:center;
+    background:rgba(255,255,255,.08); border:2.5px dashed rgba(255,255,255,.28);
+    border-radius:16px; padding:9px 14px; font-size:13px; font-weight:700;
+    color:var(--ink-soft); max-width:420px; line-height:1.35; text-align:left}
+  .nextgear.soon{background:linear-gradient(120deg, rgba(255,196,61,.16), rgba(155,123,255,.16));
+    border-color:rgba(255,217,138,.55); color:#fff}
+  .ng-e{font-size:24px; line-height:1; flex:none; opacity:.85}
+  .nextgear.soon .ng-e{opacity:1}
 
   /* ---- Harbour Cannon ---- */
   .sea{position:relative; width:100%; max-width:760px; height:clamp(280px,50vh,500px);
@@ -1213,16 +1225,39 @@
     /* Safari fills the list asynchronously, and on a cold load it is empty. */
     try{ window.speechSynthesis.onvoiceschanged = refreshVoices; }catch(e){}
   }
+  /* Most engines mark a voice's sex only in its name, not a field we can
+     read, so this is a name-matching heuristic rather than a real property.
+     It is wrong for a voice named after nobody in either list, but right far
+     more often than picking whichever voice happened to load first, which
+     on Android and Windows is frequently male. */
+  var FEMALE_VOICE_HINTS = /female|woman|girl|zira|susan|samantha|karen|serena|moira|tessa|fiona|kate|amy|emma|joanna|salli|ivy|kendra|jenny|aria|libby|olivia|sonia|natasha|yuna|xiaoxiao|xiaoyi|mei[-\s]?jia/i;
+  var MALE_VOICE_HINTS = /\bmale\b|\bman\b|\bboy\b|daniel|david|mark|james|george|oliver|ryan|guy|brian|matthew|justin|kevin|eric/i;
+
+  /* Chooses a voice for a language, preferring, in order: an exact match for
+     the requested locale (en-SG, spoken to sound Singaporean rather than
+     British or American); a voice that sounds female, because a primary
+     school child hears mostly female teachers and that is the voice a
+     parent expects reading these questions; any voice in the same language
+     at all, so the app never falls silent just because en-SG is not
+     installed on this device. */
   function voiceFor(lang){
     if(!voices.length) refreshVoices();
-    var want = lang.toLowerCase();
-    var exact = null, loose = null, i, v, vl;
+    var want = lang.toLowerCase(), base = want.split("-")[0];
+    var sameLocale = [], sameLang = [], i, v, vl;
     for(i = 0; i < voices.length; i++){
       v = voices[i]; vl = String(v.lang || "").toLowerCase().replace("_","-");
-      if(vl === want && !exact) exact = v;
-      if(vl.split("-")[0] === want.split("-")[0] && !loose) loose = v;
+      if(vl === want) sameLocale.push(v);
+      else if(vl.split("-")[0] === base) sameLang.push(v);
     }
-    return exact || loose || null;
+    function female(v){ return FEMALE_VOICE_HINTS.test(v.name || ""); }
+    function notMale(v){ return !MALE_VOICE_HINTS.test(v.name || ""); }
+    function pickFrom(list){
+      if(!list.length) return null;
+      var f = list.filter(female); if(f.length) return f[0];
+      var n = list.filter(notMale); if(n.length) return n[0];
+      return list[0];
+    }
+    return pickFrom(sameLocale) || pickFrom(sameLang) || null;
   }
   function speak(text, opts){
     if(!CAN_SPEAK || !text) return false;
@@ -1231,7 +1266,10 @@
     try{
       window.speechSynthesis.cancel();
       var u = new SpeechSynthesisUtterance(String(text));
-      u.lang = opts.lang || "en-GB";
+      /* en-SG so a device that has it sounds like a Singaporean teacher
+         rather than a British or American one; voiceFor() falls back
+         through plain "en" if this device has no en-SG voice installed. */
+      u.lang = opts.lang || "en-SG";
       /* Slower than default: these are children hearing a word once. */
       u.rate = opts.rate || 0.82;
       u.pitch = opts.pitch || 1.05;
@@ -6520,6 +6558,29 @@
     meBox.appendChild(kit);
     arena.appendChild(meBox);
     stage.appendChild(arena);
+
+    /* The reward the fight is for. Shown on every level on the way to it,
+       not sprung only on the level that hands it over, so "what am I
+       playing for" has an answer the whole climb. GEAR is in ascending
+       order of level, so the first entry still ahead of us is the next one. */
+    var nextGear = null, gi;
+    for(gi = 0; gi < GEAR.length; gi++){ if(GEAR[gi].at > q.level){ nextGear = GEAR[gi]; break; } }
+    if(nextGear){
+      var toGo = nextGear.at - q.level;
+      var soon = toGo <= 1;
+      var ng = el("div",{"class":"nextgear" + (soon ? " soon" : "")});
+      ng.appendChild(el("span",{"class":"ng-e", text:nextGear.e}));
+      ng.appendChild(el("span",{}, soon
+        ? el("span",{}, el("b",{text:"Win this fight"}), " to unlock " + nextGear.nm +
+            " (+" + (nextGear.atk || nextGear.def) + " " + (nextGear.atk ? "attack" : "defence") + ")")
+        : el("span",{}, "Next reward: ", el("b",{text:nextGear.nm}),
+            " in " + toGo + (toGo === 1 ? " win" : " wins") + " (Level " + nextGear.at + ")")));
+      stage.appendChild(ng);
+    } else {
+      stage.appendChild(el("div",{"class":"nextgear soon"},
+        el("span",{"class":"ng-e", text:"👑"}),
+        el("span",{}, el("b",{text:hero.nm}), " carries the strongest gear in the realm.")));
+    }
 
     var qbox = el("div",{"class":"qbox"});
     stage.appendChild(qbox);
