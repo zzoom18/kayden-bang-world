@@ -4847,11 +4847,22 @@
       var r = pool[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Riddle " + (i+1) + " of " + rounds}));
+      /* A picture of the answer itself would give the riddle away, so every
+         round gets the same puzzle-piece picture rather than one tied to
+         what is actually being described. */
+      var rscene = el("div",{"class":"quiz-scene", style:"width:100px; height:100px"});
+      rscene.appendChild(el("div",{"class":"pic", style:"font-size:54px", text:"🧩"}));
+      shell.stage.appendChild(rscene);
       shell.stage.appendChild(el("div",{"class":"story", style:"font-size:clamp(17px,4.4vw,22px)", text:r.q}));
+      speak(r.q);
+      lastSpoken = stageQuestion(shell.stage);
       shell.stage.appendChild(choiceGrid(shuffle([r.a].concat(r.w)), r.a, function(ok){
-        if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
+        if(ok){ correct++; rightAnswer(); flash("⭐"); speak(r.a); }
+        else { wrongAnswer(); }
+        if(r.why) shell.stage.appendChild(el("div",{"class":"fact", text:"💡 " + r.why}));
+        if(!ok) speak(r.a + (r.why ? ". " + r.why : ""));
         markDot(shell.dots, i, ok); i++;
-        setTimeout(next, ok ? 900 : 1500);
+        afterSpeech(next, ok ? 1200 : 2400);
       }, false));
       var grid = shell.stage.lastChild;
       Array.prototype.forEach.call(grid.children, function(c){
