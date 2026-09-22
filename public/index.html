@@ -832,6 +832,11 @@
   .scrim{position:fixed; inset:0; z-index:40; background:rgba(28,22,86,.58); display:grid; place-items:center; padding:20px; overflow-y:auto}
   .sheet{background:#3A3286; border-radius:var(--r-xl); padding:26px; width:min(460px,100%); box-shadow:0 24px 60px rgba(0,0,0,.5); animation:rise .3s var(--ease)}
   @keyframes rise{from{transform:translateY(18px) scale(.96); opacity:0} to{transform:none; opacity:1}}
+  /* A modal that needs real room to work in — writing a longer sentence,
+     drawing a picture — rather than a small centred dialog. */
+  .scrim-full{padding:0; align-items:stretch}
+  .sheet-full{width:100%; max-width:none; min-height:100%; border-radius:0;
+    display:flex; flex-direction:column; padding:22px 18px calc(22px + env(safe-area-inset-bottom))}
   .gsi-wrap{margin:0 0 4px; display:flex; justify-content:center; min-height:44px}
   .or-line{display:flex; align-items:center; gap:12px; margin:16px 0 14px; color:var(--ink-soft);
     font-weight:800; font-size:12.5px; letter-spacing:.09em; text-transform:uppercase}
@@ -900,6 +905,16 @@
     background:#fff; touch-action:none; line-height:0}
   .drawwrap canvas{width:100%; height:auto; display:block; touch-action:none; cursor:crosshair}
   .palette{display:flex; align-items:center; gap:9px; margin-top:12px; flex-wrap:wrap}
+  /* Full screen gives a lot more room than the old dialog had — the
+     textarea and the canvas both grow to use it instead of sitting small
+     in the middle of empty space. */
+  .sheet-full .writebox{flex:1; min-height:0; display:flex; flex-direction:column}
+  .sheet-full .writebox .writepane{flex:1; min-height:0; display:flex; flex-direction:column}
+  .sheet-full .writebox .drawpane{flex:1; min-height:0; display:flex; flex-direction:column}
+  .sheet-full .writebox .field{flex:1; min-height:0; display:flex; flex-direction:column}
+  .sheet-full .writebox textarea{flex:1; min-height:220px; font-size:20px}
+  .sheet-full .drawwrap{flex:1; min-height:0}
+  .sheet-full .drawwrap canvas{height:100%; object-fit:contain}
   .swatch{width:30px; height:30px; border-radius:50%; border:3px solid transparent; padding:0; cursor:pointer;
     box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
   .swatch.on{border-color:#FFD98A; transform:scale(1.12)}
@@ -8266,9 +8281,9 @@
   }
 
   /* ---------- modals ---------- */
-  function modal(node){
-    var scrim = el("div",{"class":"scrim"});
-    var sheet = el("div",{"class":"sheet", role:"dialog", "aria-modal":"true"});
+  function modal(node, opts){
+    var scrim = el("div",{"class":"scrim" + (opts && opts.full ? " scrim-full" : "")});
+    var sheet = el("div",{"class":"sheet" + (opts && opts.full ? " sheet-full" : ""), role:"dialog", "aria-modal":"true"});
     sheet.appendChild(node);
     scrim.appendChild(sheet);
     document.body.appendChild(scrim);
@@ -8710,7 +8725,7 @@
     tabs.appendChild(tabWrite); tabs.appendChild(tabDraw);
     box.appendChild(tabs);
 
-    var writePane = el("div");
+    var writePane = el("div",{"class":"writepane"});
     var f = el("div",{"class":"field"});
     f.appendChild(el("label",{text:"Your sentence", "for":"pc_sentence"}));
     var inp = el("textarea",{id:"pc_sentence", rows:"3", maxlength:"90",
@@ -8719,9 +8734,9 @@
     box.appendChild(writePane);
 
     /* ---- drawing pane ---- */
-    var drawPane = el("div",{style:"display:none"});
+    var drawPane = el("div",{"class":"drawpane", style:"display:none"});
     var canvasWrap = el("div",{"class":"drawwrap"});
-    var canvas = el("canvas",{width:"600", height:"440"});
+    var canvas = el("canvas",{width:"900", height:"680"});
     canvasWrap.appendChild(canvas);
     drawPane.appendChild(canvasWrap);
 
@@ -8836,7 +8851,7 @@
     back.addEventListener("click", function(){ m.close(); });
     box.appendChild(back);
 
-    var m = modal(box);
+    var m = modal(box, {full:true});
     loadMine();
     setTimeout(function(){ inp.focus(); }, 80);
   }
