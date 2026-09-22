@@ -1954,7 +1954,7 @@
     science: ["homes","senses","quiz","animals","magnet","lifecycle","plant","matter","circuit","foodchain"],
     inspect: ["spotdiff","findodd","shadow","detective"],
     music:   ["tune","highlow","beats","tempo"],
-    guess:   ["guessnum","guessanimal","mystery","riddle"],
+    guess:   ["guessnum","guessanimal","mystery","riddle","flags"],
     quick:   ["bubbles","catch","simon","memory"],
     chinese: ["zhpic","zhstroke","zhpinyin","zhnum","zhword","zhmeasure"],
     duo:     ["duomaths","duoword","duosquares","duomemory"]
@@ -2296,6 +2296,7 @@
     {id:"guessanimal",nm:"Guess the Animal",sub:"Clues one at a time",       emo:"🐾", bg:"linear-gradient(150deg,#A8E6C9,#3FBF87)", ages:"4–10", levels:["N","K1","K2","P1","P2","P3","P4"], sg:"Nursery – P4", free:true, cat:"guess", topic:"Guess & Riddles"},
     {id:"riddle",  nm:"Riddle Time",   sub:"What am I?",                     emo:"❓", bg:"linear-gradient(150deg,#FFD08A,#FF9E3D)", ages:"6–12", levels:["P1","P2","P3","P4","P5","P6"], sg:"P1 – P6", free:false, cat:"guess", topic:"Guess & Riddles"},
     {id:"mystery", nm:"Mystery Picture",sub:"Peek, then guess what it is",   emo:"🔎", bg:"linear-gradient(150deg,#9FD8FF,#4AA8E8)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:false, cat:"guess", topic:"Guess & Riddles"},
+    {id:"flags",   nm:"World Flags",  sub:"Which country is this flag from?", emo:"🌍", bg:"linear-gradient(150deg,#7FE3FF,#2F8FE6)", ages:"5–12", levels:["K1","K2","P1","P2","P3","P4","P5","P6"], sg:"K1 – P6", free:true, cat:"guess", topic:"Guess & Riddles"},
     {id:"tune",    nm:"Copy the Tune",  sub:"Hear the melody, play it back",  emo:"🎹", bg:"linear-gradient(150deg,#FFB3D9,#FF5D8F)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"music", topic:"Listening & Rhythm"},
     {id:"highlow", nm:"High or Low",    sub:"Which note was higher?",         emo:"🎵", bg:"linear-gradient(150deg,#C9B4FF,#8B6BE8)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"music", topic:"Listening & Rhythm"},
     {id:"beats",   nm:"Count the Beats",sub:"How many drum beats?",           emo:"🥁", bg:"linear-gradient(150deg,#FFD08A,#FF9E3D)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:false, cat:"music", topic:"Listening & Rhythm"},
@@ -5016,6 +5017,49 @@
     next();
   }
 
+  /* ---------- World Flags ---------- */
+  /* Forty flags in three bands, easiest first: the countries a child in
+     Singapore already sees on packaging and the news, then the rest of
+     Europe and the Americas, then the ones that take a real memory for
+     shapes and colours rather than a lucky guess. */
+  var FLAGS = [
+    {e:"🇸🇬", n:"Singapore", b:0}, {e:"🇲🇾", n:"Malaysia", b:0}, {e:"🇯🇵", n:"Japan", b:0},
+    {e:"🇺🇸", n:"United States", b:0}, {e:"🇬🇧", n:"United Kingdom", b:0}, {e:"🇦🇺", n:"Australia", b:0},
+    {e:"🇨🇳", n:"China", b:0}, {e:"🇮🇳", n:"India", b:0}, {e:"🇰🇷", n:"South Korea", b:0},
+    {e:"🇮🇩", n:"Indonesia", b:0}, {e:"🇹🇭", n:"Thailand", b:0}, {e:"🇫🇷", n:"France", b:0},
+    {e:"🇩🇪", n:"Germany", b:1}, {e:"🇮🇹", n:"Italy", b:1}, {e:"🇨🇦", n:"Canada", b:1},
+    {e:"🇧🇷", n:"Brazil", b:1}, {e:"🇪🇸", n:"Spain", b:1}, {e:"🇷🇺", n:"Russia", b:1},
+    {e:"🇻🇳", n:"Vietnam", b:1}, {e:"🇵🇭", n:"Philippines", b:1}, {e:"🇳🇿", n:"New Zealand", b:1},
+    {e:"🇨🇭", n:"Switzerland", b:1}, {e:"🇳🇱", n:"Netherlands", b:1}, {e:"🇲🇽", n:"Mexico", b:1},
+    {e:"🇪🇬", n:"Egypt", b:2}, {e:"🇿🇦", n:"South Africa", b:2}, {e:"🇸🇪", n:"Sweden", b:2},
+    {e:"🇳🇴", n:"Norway", b:2}, {e:"🇸🇦", n:"Saudi Arabia", b:2}, {e:"🇹🇷", n:"Turkey", b:2},
+    {e:"🇦🇷", n:"Argentina", b:2}, {e:"🇵🇹", n:"Portugal", b:2}, {e:"🇬🇷", n:"Greece", b:2},
+    {e:"🇫🇮", n:"Finland", b:2}, {e:"🇮🇪", n:"Ireland", b:2}, {e:"🇧🇪", n:"Belgium", b:2},
+    {e:"🇦🇹", n:"Austria", b:2}, {e:"🇵🇱", n:"Poland", b:2}, {e:"🇩🇰", n:"Denmark", b:2},
+    {e:"🇦🇪", n:"UAE", b:2}
+  ];
+  function buildFlags(level){
+    var b = band(), count = b <= 1 ? 6 : 8;
+    var maxBand = b <= 1 ? 0 : b === 2 ? 1 : 2;
+    var pool = FLAGS.filter(function(f){ return f.b <= maxBand; });
+    var used = [], qs = [], i;
+    for(i = 0; i < count; i++){
+      var choices = pool.filter(function(f){ return used.indexOf(f.n) < 0; });
+      if(!choices.length) choices = pool;
+      var item = pick(choices);
+      used.push(item.n);
+      var wrongs = shuffle(pool.filter(function(f){ return f.n !== item.n; })).slice(0, 3)
+        .map(function(w){ return w.n; });
+      qs.push({flag: item.e, answer: item.n, opts: shuffle([item.n].concat(wrongs))});
+    }
+    return qs;
+  }
+  function renderFlags(q, stage, done){
+    stage.appendChild(el("div",{"class":"prompt", text:"Which country is this flag from?"}));
+    stage.appendChild(el("div",{style:"font-size:clamp(70px,16vw,120px); line-height:1; margin:6px 0", text:q.flag}));
+    stage.appendChild(choiceGrid(q.opts, q.answer, done, false));
+  }
+
   /* ---------- Riddle Time ---------- */
   function startRiddles(world){
     var rounds = 6;
@@ -5559,6 +5603,7 @@
     if(world.id === "foodchain")return startFoodChain(world);
     if(world.id === "guessnum") return startGuessNumber(world);
     if(world.id === "guessanimal")return startGuessAnimal(world);
+    if(world.id === "flags")     return runQuestions(world, buildFlags(levelOf(world.id)), renderFlags);
     if(world.id === "riddle")  return startRiddles(world);
     if(world.id === "mystery") return startMystery(world);
     if(world.id === "highlow")  return startHighLow(world);
