@@ -153,8 +153,43 @@ window.PC = (function(){
     {b:3,q:"Which planet is closest to the sun?",a:"Mercury",w:["Venus","Earth","Mars"],f:"Mercury takes only 88 Earth days to go round the sun."},
     {b:3,q:"What is condensation?",a:"A gas turning into a liquid",w:["A liquid turning into a gas","A solid turning into a liquid","A liquid turning into a solid"],f:"It is why a cold glass gets wet on the outside."},
     {b:3,q:"Which part of a circuit provides the energy?",a:"The cell",w:["The bulb","The switch","The wire"],f:"The cell pushes the current around the loop."},
-    {b:3,q:"What does a food chain always start with?",a:"A producer",w:["A predator","A consumer","A decomposer"],f:"Producers are usually plants, which make their own food."}
-  
+    {b:3,q:"What does a food chain always start with?",a:"A producer",w:["A predator","A consumer","A decomposer"],f:"Producers are usually plants, which make their own food."},
+
+    /* band 1 — more general knowledge, 5 to 6 */
+    {b:1,q:"Which shape has four equal sides?",a:"Square",w:["Triangle","Circle","Oval"],f:"A square's four sides are all the same length."},
+    {b:1,q:"What do we wear to keep our feet warm?",a:"Socks",w:["Hats","Gloves","Scarves"],f:"Socks also soak up sweat so our shoes last longer."},
+    {b:1,q:"Which meal do we eat in the morning?",a:"Breakfast",w:["Lunch","Dinner","Supper"],f:"Breakfast means breaking the night's fast — the gap since your last meal."},
+    {b:1,q:"What colour do you get from mixing blue and yellow?",a:"Green",w:["Purple","Orange","Pink"],f:"Blue and yellow paint mixed together always makes green."},
+    {b:1,q:"Which animal is known as man's best friend?",a:"Dog",w:["Cat","Horse","Parrot"],f:"Dogs were the first animal people ever tamed, thousands of years ago."},
+    {b:1,q:"How many fingers do you have on one hand?",a:"5",w:["4","6","10"],f:"Five fingers, including your thumb."},
+    {b:1,q:"Where would you find a monkey swinging in the wild?",a:"In a tree",w:["In the sea","Under the ground","In the sky"],f:"Many monkeys use their long arms and tails to swing from branch to branch."},
+    {b:1,q:"What do we call the star at the centre of our solar system?",a:"The Sun",w:["The Moon","A comet","A planet"],f:"The Sun is a giant ball of hot glowing gas."},
+    {b:1,q:"Which of these is a vegetable?",a:"Carrot",w:["Apple","Banana","Mango"],f:"A carrot is the root of the plant, grown underground."},
+    {b:1,q:"What do you use an umbrella for?",a:"To stay dry in the rain",w:["To keep warm","To go fast","To see far away"],f:"An umbrella's canopy is made of waterproof material."},
+
+    /* band 2 — more general knowledge, 7 to 8 */
+    {b:2,q:"What is the capital city of Singapore?",a:"Singapore",w:["Kuala Lumpur","Jakarta","Bangkok"],f:"Singapore is one of the few countries that is also a single city."},
+    {b:2,q:"Which ocean is the largest in the world?",a:"Pacific Ocean",w:["Atlantic Ocean","Indian Ocean","Arctic Ocean"],f:"The Pacific covers about a third of the whole Earth's surface."},
+    {b:2,q:"How many players are on a football team on the pitch at once?",a:"11",w:["9","13","7"],f:"Each side puts out 11 players, including a goalkeeper."},
+    {b:2,q:"Which instrument has black and white keys?",a:"Piano",w:["Violin","Drum","Flute"],f:"A full-size piano has 88 keys in total."},
+    {b:2,q:"What do bees collect from flowers to make honey?",a:"Nectar",w:["Pollen only","Water","Sap"],f:"Bees turn the sugary nectar they collect into honey back at the hive."},
+    {b:2,q:"Which country is famous for the Great Wall?",a:"China",w:["Japan","India","Egypt"],f:"The Great Wall of China stretches for thousands of kilometres."},
+    {b:2,q:"What is the name of our galaxy?",a:"The Milky Way",w:["The Solar System","Andromeda","The Milky Ocean"],f:"Our galaxy has hundreds of billions of stars in it."},
+    {b:2,q:"Which of these animals lives in Antarctica?",a:"Penguin",w:["Lion","Camel","Kangaroo"],f:"Emperor penguins can survive temperatures far below freezing."},
+    {b:2,q:"What do we call money used in a particular country?",a:"Currency",w:["Tax","Interest","Budget"],f:"Singapore's currency is the Singapore dollar."},
+    {b:2,q:"Which of these is a percussion instrument?",a:"Drum",w:["Guitar","Trumpet","Violin"],f:"You play percussion instruments by hitting, shaking or scraping them."},
+
+    /* band 3 — more general knowledge, 9 to 12 */
+    {b:3,q:"Which is the longest river in the world?",a:"The Nile",w:["The Amazon","The Yangtze","The Mississippi"],f:"The Nile flows through north-eastern Africa for over 6,600 km."},
+    {b:3,q:"What is the currency used in Japan?",a:"Yen",w:["Won","Yuan","Ringgit"],f:"Japan has used the yen as its currency since 1871."},
+    {b:3,q:"Which continent is the Sahara Desert located on?",a:"Africa",w:["Asia","Australia","South America"],f:"The Sahara is roughly the size of the whole United States."},
+    {b:3,q:"How many players are on a basketball team on the court at once?",a:"5",w:["6","7","11"],f:"Each side has five players on court, with substitutes waiting off it."},
+    {b:3,q:"Which ancient Egyptian structures were built as tombs for pharaohs?",a:"Pyramids",w:["Temples","Sphinxes","Obelisks"],f:"The Great Pyramid of Giza took an estimated 20 years to build."},
+    {b:3,q:"What is the smallest country in the world?",a:"Vatican City",w:["Monaco","Singapore","Malta"],f:"Vatican City is smaller than most public parks."},
+    {b:3,q:"Which explorer is credited with reaching the Americas in 1492?",a:"Christopher Columbus",w:["Marco Polo","Ferdinand Magellan","Vasco da Gama"],f:"Columbus was actually trying to find a new route to Asia."},
+    {b:3,q:"What does ASEAN stand for?",a:"Association of Southeast Asian Nations",w:["Asian Economic Alliance","Assembly of Southern Nations","Asia-Europe Network"],f:"ASEAN has ten member countries, including Singapore."},
+    {b:3,q:"Which gas makes up most of the air we breathe?",a:"Nitrogen",w:["Oxygen","Carbon dioxide","Hydrogen"],f:"Nitrogen makes up about 78% of the air, oxygen only about 21%."},
+    {b:3,q:"What is the world's tallest mountain, measured from sea level?",a:"Mount Everest",w:["K2","Mount Kilimanjaro","Mont Blanc"],f:"Mount Everest stands about 8,849 metres above sea level."}
   ];
 
   /* ---------- odd one out ---------- */
