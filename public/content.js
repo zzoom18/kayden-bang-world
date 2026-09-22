@@ -1893,6 +1893,116 @@ window.PC = (function(){
     {e:"🧱", w:"clay brick",       m:false}
   ];
 
+  /* ---------- magnet poles (P3 Magnets) ---------- */
+  var POLES = [
+    {b:2, a:"N", z:"S", r:false}, {b:2, a:"S", z:"N", r:false},
+    {b:2, a:"N", z:"N", r:true},  {b:2, a:"S", z:"S", r:true},
+    {b:3, a:"N", z:"S", r:false}, {b:3, a:"S", z:"N", r:false},
+    {b:3, a:"N", z:"N", r:true},  {b:3, a:"S", z:"S", r:true},
+    {b:3, a:"N", z:"S", r:false}, {b:3, a:"S", z:"N", r:false},
+    {b:3, a:"N", z:"N", r:true},  {b:3, a:"S", z:"S", r:true}
+  ];
+
+  /* ---------- push or pull (How Things Work) ---------- */
+  var FORCES = [
+    {b:1, e:"🚪", w:"opening a door towards you",     push:false},
+    {b:1, e:"🛒", w:"pushing a shopping trolley",      push:true},
+    {b:1, e:"🏹", w:"pulling back a bowstring",        push:false},
+    {b:1, e:"⚽", w:"kicking a football",              push:true},
+    {b:2, e:"🚲", w:"pedalling a bicycle",             push:true},
+    {b:2, e:"🪟", w:"sliding a window shut",           push:true},
+    {b:2, e:"🧲", w:"a magnet drawing in a pin",       push:false},
+    {b:2, e:"🎣", w:"reeling in a fishing line",       push:false},
+    {b:2, e:"🚗", w:"pushing a stalled car",           push:true},
+    {b:2, e:"🐕", w:"a dog pulling its leash",         push:false},
+    {b:2, e:"🛝", w:"sliding down a slide",            push:false},
+    {b:2, e:"🗄️", w:"pulling open a drawer",           push:false}
+  ];
+
+  /* ---------- best material for the job (Matter & Materials) ---------- */
+  var MATERIALS = [
+    {b:2, w:"an umbrella canopy",    a:"waterproof nylon", x:["cotton wool","paper","sponge"]},
+    {b:2, w:"a window pane",         a:"glass",            x:["fabric","cardboard","rubber"]},
+    {b:2, w:"a winter jacket lining",a:"wool",             x:["glass","steel","cling wrap"]},
+    {b:2, w:"a saucepan handle",     a:"plastic",          x:["steel","aluminium","copper"]},
+    {b:3, w:"a rain boot",           a:"rubber",           x:["paper","wool","glass"]},
+    {b:3, w:"a kitchen sponge",      a:"foam",             x:["steel","glass","stone"]},
+    {b:3, w:"a bicycle frame",       a:"aluminium",        x:["cotton","paper","foam"]},
+    {b:3, w:"a drinking glass",      a:"glass",            x:["fabric","foam","cardboard"]},
+    {b:3, w:"a school bag",         a:"canvas fabric",     x:["glass","steel","brick"]},
+    {b:3, w:"electrical wiring",     a:"copper",           x:["wood","rubber","paper"]},
+    {b:3, w:"a cereal box",         a:"cardboard",         x:["glass","steel","rubber"]},
+    {b:3, w:"a swimming goggle lens",a:"plastic",          x:["cotton","paper","wool"]}
+  ];
+
+  /* ---------- conductor or insulator (Electricity) ---------- */
+  var CONDUCTORS = [
+    {b:3, e:"🔑", w:"steel key",        c:true},
+    {b:3, e:"🥄", w:"metal spoon",      c:true},
+    {b:3, e:"📎", w:"copper wire",      c:true},
+    {b:3, e:"🪙", w:"metal coin",       c:true},
+    {b:3, e:"🚰", w:"aluminium foil",   c:true},
+    {b:3, e:"✏️", w:"pencil lead (graphite)", c:true},
+    {b:3, e:"🌳", w:"wooden ruler",     c:false},
+    {b:3, e:"🧊", w:"glass marble",     c:false},
+    {b:3, e:"🥤", w:"plastic cup",      c:false},
+    {b:3, e:"🧶", w:"woollen scarf",    c:false},
+    {b:3, e:"📄", w:"sheet of paper",   c:false},
+    {b:3, e:"🩰", w:"rubber band",      c:false}
+  ];
+
+  /* ---------- vertebrate or invertebrate (Diversity of Living Things) ---------- */
+  var VERTEBRATES = [
+    {b:2, e:"🐟", w:"fish",       v:true},
+    {b:2, e:"🐸", w:"frog",       v:true},
+    {b:2, e:"🐦", w:"sparrow",    v:true},
+    {b:2, e:"🐍", w:"snake",      v:true},
+    {b:2, e:"🐘", w:"elephant",   v:true},
+    {b:2, e:"🦋", w:"butterfly",  v:false},
+    {b:2, e:"🐌", w:"snail",      v:false},
+    {b:3, e:"🦗", w:"grasshopper",v:false},
+    {b:3, e:"🕷️", w:"spider",     v:false},
+    {b:3, e:"🦐", w:"prawn",      v:false},
+    {b:3, e:"🐙", w:"octopus",    v:false},
+    {b:3, e:"🪱", w:"earthworm",  v:false}
+  ];
+
+  /* ---------- living or non-living (Living Things, for younger players) ---------- */
+  var LIVING = [
+    {b:0, e:"🌳", w:"a tree",        l:true},
+    {b:0, e:"🐱", w:"a cat",         l:true},
+    {b:0, e:"🪨", w:"a rock",        l:false},
+    {b:0, e:"🚗", w:"a toy car",     l:false},
+    {b:1, e:"🌸", w:"a flower",      l:true},
+    {b:1, e:"🐟", w:"a fish",        l:true},
+    {b:1, e:"🪑", w:"a chair",       l:false},
+    {b:1, e:"☁️", w:"a cloud",       l:false},
+    {b:1, e:"🦋", w:"a butterfly",   l:true},
+    {b:1, e:"🍄", w:"a mushroom",    l:true},
+    {b:2, e:"🧸", w:"a teddy bear",  l:false},
+    {b:2, e:"🕯️", w:"a candle",      l:false}
+  ];
+
+  /* ---------- sentence types (Grammar & Sentences) ---------- */
+  var SENTENCE_TYPES = [
+    {b:1, s:"The sun is shining.",              t:"Statement"},
+    {b:1, s:"Where is my school bag?",          t:"Question"},
+    {b:1, s:"Close the door, please.",          t:"Command"},
+    {b:1, s:"What a lovely surprise!",          t:"Exclamation"},
+    {b:2, s:"Recess starts at ten o'clock.",    t:"Statement"},
+    {b:2, s:"Have you finished your homework?", t:"Question"},
+    {b:2, s:"Line up quietly at the door.",     t:"Command"},
+    {b:2, s:"Watch out for that step!",         t:"Exclamation"},
+    {b:3, s:"The library closes early on Fridays.", t:"Statement"},
+    {b:3, s:"Why did the experiment not work?", t:"Question"},
+    {b:3, s:"Hand in your worksheets by Monday.", t:"Command"},
+    {b:3, s:"We actually won the relay!",       t:"Exclamation"},
+    {b:3, s:"Singapore is made up of one main island and many smaller ones.", t:"Statement"},
+    {b:3, s:"Could you explain that question again?", t:"Question"},
+    {b:3, s:"Always check your working before submitting.", t:"Command"},
+    {b:3, s:"That is the best goal I have ever seen!", t:"Exclamation"}
+  ];
+
   return {
     PICS: PICS, SPELL: SPELL, QUIZ: QUIZ, ODD: ODD, RHYMES: RHYMES, SORT_ADV: SORT_ADV,
     ANIMAL_CLUES: ANIMAL_CLUES, RIDDLES: RIDDLES,
@@ -1905,6 +2015,8 @@ window.PC = (function(){
     SYNONYMS: SYNONYMS, TENSES: TENSES, PLURALS: PLURALS,
     ANIMAL_GROUPS: ANIMAL_GROUPS, WP_NAMES: WP_NAMES, WP_THINGS: WP_THINGS,
     HOMOPHONES: HOMOPHONES, ZH_MEASURE: ZH_MEASURE, ZH_STROKES: ZH_STROKES,
-    MAGNETIC: MAGNETIC
+    MAGNETIC: MAGNETIC, POLES: POLES, FORCES: FORCES, MATERIALS: MATERIALS,
+    CONDUCTORS: CONDUCTORS, VERTEBRATES: VERTEBRATES, LIVING: LIVING,
+    SENTENCE_TYPES: SENTENCE_TYPES
   };
 })();

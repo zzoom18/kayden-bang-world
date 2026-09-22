@@ -1530,6 +1530,9 @@
   var ANIMAL_GROUPS = PC.ANIMAL_GROUPS, WP_NAMES = PC.WP_NAMES, WP_THINGS = PC.WP_THINGS;
   var HOMOPHONES = PC.HOMOPHONES, ZH_MEASURE = PC.ZH_MEASURE, ZH_STROKES = PC.ZH_STROKES;
   var MAGNETIC = PC.MAGNETIC;
+  var POLES = PC.POLES, FORCES = PC.FORCES, MATERIALS = PC.MATERIALS;
+  var CONDUCTORS = PC.CONDUCTORS, VERTEBRATES = PC.VERTEBRATES, LIVING = PC.LIVING;
+  var SENTENCE_TYPES = PC.SENTENCE_TYPES;
 
   /* Age bands. Everything a child is shown is chosen against these. */
   var BANDS = [
@@ -2071,7 +2074,7 @@
     {id:"shapes",  nm:"Shapes & Colours", sub:"Tap the one I name",        emo:"🔷", bg:"linear-gradient(150deg,#8FE3FF,#3FA9FF)", ages:"3–6",  levels:["N","K1","K2"],     sg:"Nursery – K2", free:true, cat:"maths", topic:"Shapes & Measurement"},
     {id:"numbers", nm:"Number Quest",  sub:"Counting, sums and tables",    emo:"🔢", bg:"linear-gradient(150deg,#FFC43D,#FF9E3D)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"sounds",  nm:"Letter Sounds", sub:"Match the sound to a picture", emo:"🔤", bg:"linear-gradient(150deg,#FF8AB0,#FF5D8F)", ages:"3–8",  levels:["N","K1","K2","P1"],   sg:"Nursery – P1", free:true, cat:"english", topic:"Sounds & Rhymes"},
-    {id:"spell",   nm:"Word Builder",  sub:"Tap letters to spell it",      emo:"✏️", bg:"linear-gradient(150deg,#63D6FF,#2FB6E6)", ages:"4–12", levels:["K2","P1","P2","P3","P4"],   sg:"K2 – P4", free:true, cat:"english", topic:"Spelling & Words"},
+    {id:"spell",   nm:"Word Builder",  sub:"Tap letters to spell it",      emo:"✏️", bg:"linear-gradient(150deg,#63D6FF,#2FB6E6)", ages:"4–12", levels:["K2","P1","P2","P3","P4"],   sg:"K2 – P4", free:true, cat:"english", topic:"Spelling & Usage"},
     {id:"memory",  nm:"Memory Match",  sub:"Find every pair",              emo:"🧠", bg:"linear-gradient(150deg,#6FE0B4,#35C48F)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:false, cat:"quick", topic:"Memory & Speed"},
     {id:"odd",     nm:"Odd One Out",   sub:"Which one does not belong?",   emo:"🔍", bg:"linear-gradient(150deg,#FFD08A,#FFA33D)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:false, cat:"think", topic:"Logic & Patterns"},
     {id:"code",    nm:"Code Path",     sub:"Plan the robot's route",       emo:"🤖", bg:"linear-gradient(150deg,#B9A2FF,#9B7BFF)", ages:"4–12", levels:["K1","K2","P1","P2","P3","P4","P5","P6"], sg:"K1 – P6", free:false, cat:"think", topic:"Logic & Patterns"},
@@ -2086,7 +2089,7 @@
     {id:"tenframe",nm:"Ten Frame",     sub:"Count, and make ten",           emo:"🔟", bg:"linear-gradient(150deg,#FFB8D0,#FF5D8F)", ages:"4–7",  levels:["K1","K2","P1"],     sg:"K1 – P1", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"bonds",   nm:"Number Bonds",  sub:"Part, part, whole",             emo:"⭕", bg:"linear-gradient(150deg,#FFDE8A,#FFC43D)", ages:"5–10", levels:["K2","P1","P2"],   sg:"K2 – P2", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"barmodel",nm:"Bar Models",    sub:"Draw it, then solve it",        emo:"📊", bg:"linear-gradient(150deg,#9FD8FF,#2FB6E6)", ages:"7–12", levels:["P3","P4","P5","P6"],     sg:"P3 – P6", free:false, cat:"maths", topic:"Fractions & Problem Solving"},
-    {id:"picgraph",nm:"Picture Graph", sub:"Read the graph, answer it",     emo:"📈", bg:"linear-gradient(150deg,#A8E6C9,#35C48F)", ages:"5–12", levels:["P1","P2","P3"],   sg:"P1 – P3", free:false, cat:"maths", topic:"Data & Graphs"},
+    {id:"picgraph",nm:"Picture Graph", sub:"Read the graph, answer it",     emo:"📈", bg:"linear-gradient(150deg,#A8E6C9,#35C48F)", ages:"5–12", levels:["P1","P2","P3"],   sg:"P1 – P3", free:false, cat:"maths", topic:"Measurement & Data"},
     {id:"areaperim",nm:"Area & Perimeter",sub:"Count squares and edges",    emo:"📐", bg:"linear-gradient(150deg,#C9B4FF,#9B7BFF)", ages:"7–12", levels:["P3","P4","P5"],     sg:"P3 – P5", free:false, cat:"maths", topic:"Shapes & Measurement"},
     {id:"sgmoney",nm:"Money Master",   sub:"Singapore dollars and cents",   emo:"💰", bg:"linear-gradient(150deg,#FFD98A,#E8B33D)", ages:"5–12", levels:["P1","P2","P3"],   sg:"P1 – P3", free:false, cat:"maths", topic:"Money & Time"},
     {id:"senses",  nm:"Five Senses",   sub:"See, hear, smell, taste, touch", emo:"👁️", bg:"linear-gradient(150deg,#FFC2E0,#FF5D8F)", ages:"3–8",  levels:["K2","P1","P2"],   sg:"K2 – P2", free:true,  cat:"science", topic:"Living Things"},
@@ -2117,21 +2120,31 @@
     {id:"ninja",   nm:"Slice the Answer", sub:"Slice the right number before it drops", emo:"\ud83d\udde1\ufe0f", bg:"linear-gradient(150deg,#FF9AA2,#C2185B)", ages:"3\u201312", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery \u2013 P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"numline", nm:"Number Line Leap", sub:"Land on exactly the right spot", emo:"\ud83d\udccd", bg:"linear-gradient(150deg,#8FE3C8,#1E9E80)", ages:"3\u201312", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery \u2013 P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"patterns",nm:"Pattern Train",   sub:"What comes next along the track?", emo:"\ud83d\ude82", bg:"linear-gradient(150deg,#FFC9A3,#E0703C)", ages:"3\u20139", levels:["N","K1","K2","P1","P2","P3"], sg:"Nursery \u2013 P3", free:true, cat:"maths", topic:"Patterns"},
-    {id:"decimal", nm:"Decimal Dash",    sub:"Tenths, hundredths and the point", emo:"\ud83d\udd22", bg:"linear-gradient(150deg,#C3B4FF,#6A4FD6)", ages:"9\u201312", levels:["P4","P5","P6"], sg:"P4 \u2013 P6", free:false, cat:"maths", topic:"Decimals"},
-    {id:"ratio",   nm:"Ratio Rally",     sub:"Ratio, rate and average", emo:"\u2696\ufe0f", bg:"linear-gradient(150deg,#FFB8C6,#C43C63)", ages:"10\u201312", levels:["P5","P6"], sg:"P5 \u2013 P6", free:false, cat:"maths", topic:"Ratio & Proportion"},
-    {id:"catch",   nm:"Basket Catch",    sub:"Catch the right answer as it falls", emo:"\ud83e\uddfa", bg:"linear-gradient(150deg,#FFE083,#E09A1F)", ages:"3\u201312", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery \u2013 P6", free:true, cat:"quick", topic:"Numbers & Counting"},
+    {id:"decimal", nm:"Decimal Dash",    sub:"Tenths, hundredths and the point", emo:"\ud83d\udd22", bg:"linear-gradient(150deg,#C3B4FF,#6A4FD6)", ages:"9\u201312", levels:["P4","P5","P6"], sg:"P4 \u2013 P6", free:false, cat:"maths", topic:"Decimals, Ratio & Proportion"},
+    {id:"ratio",   nm:"Ratio Rally",     sub:"Ratio, rate and average", emo:"\u2696\ufe0f", bg:"linear-gradient(150deg,#FFB8C6,#C43C63)", ages:"10\u201312", levels:["P5","P6"], sg:"P5 \u2013 P6", free:false, cat:"maths", topic:"Decimals, Ratio & Proportion"},
+    {id:"catch",   nm:"Basket Catch",    sub:"Catch the right answer as it falls", emo:"\ud83e\uddfa", bg:"linear-gradient(150deg,#FFE083,#E09A1F)", ages:"3\u201312", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery \u2013 P6", free:true, cat:"quick", topic:"Memory & Speed"},
     {id:"homophone",nm:"Sound Alike",    sub:"their, there or they\u2019re?", emo:"\ud83d\udc42", bg:"linear-gradient(150deg,#A9D9FF,#3B6FC4)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Spelling & Usage"},
     {id:"circuit", nm:"Light It Up",     sub:"Will the bulb light?", emo:"\ud83d\udca1", bg:"linear-gradient(150deg,#FFE9A0,#D9A21B)", ages:"9\u201312", levels:["P4","P5","P6"], sg:"P4 \u2013 P6", free:false, cat:"science", topic:"Electricity"},
     {id:"magnet",  nm:"Magnet or Not",   sub:"Metal is not the same as magnetic", emo:"\ud83e\uddf2", bg:"linear-gradient(150deg,#FFAFAF,#C43030)", ages:"7\u201312", levels:["P3","P4","P5"], sg:"P3 \u2013 P5", free:false, cat:"science", topic:"Magnets"},
-    {id:"zhmeasure",nm:"\u91cf\u8bcd Measure Words", sub:"\u4e00\u53ea\u732b, \u4e00\u672c\u4e66, \u4e00\u6735\u82b1", emo:"\u91cf", bg:"linear-gradient(150deg,#FFB9B9,#C2334E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"chinese", topic:"\u8bed\u6cd5 Grammar"},
-    {id:"zhstroke",nm:"\u7b14\u753b Stroke Count", sub:"How many strokes in the character?", emo:"\u7b14", bg:"linear-gradient(150deg,#FFD9A0,#C4781B)", ages:"3\u201312", levels:["K1","K2","P1","P2","P3","P4"], sg:"K1 \u2013 P4", free:true, cat:"chinese", topic:"\u6c49\u5b57 Characters"},
+    {id:"zhmeasure",nm:"\u91cf\u8bcd Measure Words", sub:"\u4e00\u53ea\u732b, \u4e00\u672c\u4e66, \u4e00\u6735\u82b1", emo:"\u91cf", bg:"linear-gradient(150deg,#FFB9B9,#C2334E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"chinese", topic:"\u6570\u5b57\u4e0e\u91cf\u8bcd Numbers & Measure Words"},
+    {id:"zhstroke",nm:"\u7b14\u753b Stroke Count", sub:"How many strokes in the character?", emo:"\u7b14", bg:"linear-gradient(150deg,#FFD9A0,#C4781B)", ages:"3\u201312", levels:["K1","K2","P1","P2","P3","P4"], sg:"K1 \u2013 P4", free:true, cat:"chinese", topic:"\u8ba4\u5b57\u4e0e\u8bcd\u8bed Characters & Words"},
     {id:"tower",   nm:"Table Tower",    sub:"Stack a block for every table you know", emo:"\ud83c\udfd7\ufe0f", bg:"linear-gradient(150deg,#FFD97D,#E8862F)", ages:"7\u201312", levels:["P2","P3","P4","P5","P6"], sg:"P2 \u2013 P6", free:true, cat:"maths", topic:"Multiplication & Division"},
-    {id:"measure", nm:"Measure Up",     sub:"Read the ruler, the jug and the scale", emo:"\ud83d\udccf", bg:"linear-gradient(150deg,#A7E8C4,#22996B)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5"], sg:"K2 \u2013 P5", free:true, cat:"maths", topic:"Measurement"},
-    {id:"wordprob",nm:"Word Problems",  sub:"The sum is hidden in the story", emo:"\ud83d\udcdd", bg:"linear-gradient(150deg,#B8B5FF,#5A51C9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Word Problems"},
-    {id:"synonym", nm:"Same Meaning",   sub:"A better word than the one you used", emo:"\ud83d\udd01", bg:"linear-gradient(150deg,#FFC4E1,#C2478E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Vocabulary"},
+    {id:"measure", nm:"Measure Up",     sub:"Read the ruler, the jug and the scale", emo:"\ud83d\udccf", bg:"linear-gradient(150deg,#A7E8C4,#22996B)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5"], sg:"K2 \u2013 P5", free:true, cat:"maths", topic:"Measurement & Data"},
+    {id:"wordprob",nm:"Word Problems",  sub:"The sum is hidden in the story", emo:"\ud83d\udcdd", bg:"linear-gradient(150deg,#B8B5FF,#5A51C9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Fractions & Problem Solving"},
+    {id:"synonym", nm:"Same Meaning",   sub:"A better word than the one you used", emo:"\ud83d\udd01", bg:"linear-gradient(150deg,#FFC4E1,#C2478E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Reading & Vocabulary"},
     {id:"tenses",  nm:"Tense Time",     sub:"Yesterday, today or tomorrow?", emo:"\u23f3", bg:"linear-gradient(150deg,#9BD6FF,#2E6FB7)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Grammar"},
     {id:"plural",  nm:"One or Many",    sub:"One mouse, two\u2026?", emo:"\ud83d\udc65", bg:"linear-gradient(150deg,#FFE08A,#D98B14)", ages:"3\u201312", levels:["K1","K2","P1","P2","P3","P4","P5"], sg:"K1 \u2013 P5", free:true, cat:"english", topic:"Grammar"},
     {id:"animals", nm:"Animal Groups",  sub:"Mammal, bird, fish, reptile or insect?", emo:"\ud83d\udc3e", bg:"linear-gradient(150deg,#9EE6A8,#2E8B4F)", ages:"7\u201312", levels:["P3","P4","P5","P6"], sg:"P3 \u2013 P6", free:false, cat:"science", topic:"Diversity of Living Things"},
+    {id:"forces",  nm:"Push or Pull",   sub:"Which force made it move?",      emo:"\ud83d\udeaa", bg:"linear-gradient(150deg,#FFC98A,#E0863C)", ages:"5\u201310", levels:["K2","P1","P2","P3","P4"], sg:"K2 \u2013 P4", free:false, cat:"science", topic:"How Things Work"},
+    {id:"material",nm:"Best Material",  sub:"Pick the material for the job",  emo:"\ud83e\uddf1", bg:"linear-gradient(150deg,#9FE8F5,#2E8FB6)", ages:"7\u201312", levels:["P3","P4","P5"], sg:"P3 \u2013 P5", free:false, cat:"science", topic:"Matter & Materials"},
+    {id:"livingnot",nm:"Living or Not", sub:"Is it alive?",                   emo:"\ud83c\udf31", bg:"linear-gradient(150deg,#BFE9A8,#3D9E56)", ages:"3\u20139", levels:["N","K1","K2","P1","P2"], sg:"Nursery \u2013 P2", free:true, cat:"science", topic:"Living Things"},
+    {id:"conduct", nm:"Conduct or Not", sub:"Will electricity flow through it?", emo:"\u26a1", bg:"linear-gradient(150deg,#FFE9A0,#C4901B)", ages:"9\u201312", levels:["P4","P5","P6"], sg:"P4 \u2013 P6", free:false, cat:"science", topic:"Electricity"},
+    {id:"poles",   nm:"Attract or Repel",sub:"Same poles push apart",         emo:"\ud83e\udde0", bg:"linear-gradient(150deg,#FFAFAF,#A3243C)", ages:"7\u201312", levels:["P3","P4","P5"], sg:"P3 \u2013 P5", free:false, cat:"science", topic:"Magnets"},
+    {id:"vertebrate",nm:"Backbone or Not",sub:"Vertebrate or invertebrate?",  emo:"\ud83e\uddb4", bg:"linear-gradient(150deg,#9EE6A8,#1F7A45)", ages:"7\u201312", levels:["P3","P4","P5","P6"], sg:"P3 \u2013 P6", free:false, cat:"science", topic:"Diversity of Living Things"},
+    {id:"senttype",nm:"Kind of Sentence",sub:"Statement, question, command or exclamation?", emo:"\ud83d\udcac", bg:"linear-gradient(150deg,#A9D9FF,#4A6FC4)", ages:"6\u201312", levels:["P1","P2","P3","P4","P5","P6"], sg:"P1 \u2013 P6", free:false, cat:"english", topic:"Grammar & Sentences"},
+    {id:"division",nm:"Division Derby",  sub:"Split it evenly, fast",         emo:"\u2797", bg:"linear-gradient(150deg,#FFD97D,#C46A1B)", ages:"7\u201312", levels:["P2","P3","P4","P5","P6"], sg:"P2 \u2013 P6", free:true, cat:"maths", topic:"Multiplication & Division"},
+    {id:"patternrule",nm:"Pattern Rule", sub:"Find the rule, then the next number", emo:"\ud83d\udd01", bg:"linear-gradient(150deg,#FFC9A3,#C4581B)", ages:"6\u201312", levels:["P1","P2","P3","P4","P5"], sg:"P1 \u2013 P5", free:false, cat:"maths", topic:"Patterns"},
+    {id:"sequence",nm:"What Comes Next", sub:"Spot the rule in the shapes",     emo:"\ud83d\udd3a", bg:"linear-gradient(150deg,#C7B4FF,#6A4FC4)", ages:"4\u201312", levels:["K1","K2","P1","P2","P3","P4"], sg:"K1 \u2013 P4", free:false, cat:"think", topic:"Logic & Patterns"},
 
     /* English past P4. The subject used to stop at Word Builder, which left a
        P5 or P6 child with nothing of their own. */
@@ -2142,14 +2155,14 @@
     {id:"meaning", nm:"Word Meaning",   sub:"Work it out from the sentence",  emo:"📖", bg:"linear-gradient(150deg,#C9B4FF,#8B6BE8)", ages:"7–12", levels:["P1","P2","P3","P4","P5","P6"], sg:"P1 – P6", free:false, cat:"english", topic:"Words & Meaning"},
     {id:"affix",   nm:"Prefix & Suffix",sub:"un-, re-, -ful, -less",          emo:"🔗", bg:"linear-gradient(150deg,#9FE8F5,#2FB6E6)", ages:"8–12", levels:["P2","P3","P4","P5","P6"], sg:"P2 – P6", free:false, cat:"english", topic:"Words & Meaning"},
     {id:"idiom",   nm:"Idioms & Sayings",sub:"What does it really mean?",     emo:"💬", bg:"linear-gradient(150deg,#FFB98A,#FF7A3D)", ages:"8–12", levels:["P3","P4","P5","P6"], sg:"P3 – P6", free:false, cat:"english", topic:"Words & Meaning"},
-    {id:"reading", nm:"Reading Detective",sub:"Read it, then answer",         emo:"🔦", bg:"linear-gradient(150deg,#A8E6C9,#3FBF87)", ages:"8–12", levels:["P2","P3","P4","P5","P6"], sg:"P2 – P6", free:false, cat:"english", topic:"Reading & Comprehension"},
+    {id:"reading", nm:"Reading Detective",sub:"Read it, then answer",         emo:"🔦", bg:"linear-gradient(150deg,#A8E6C9,#3FBF87)", ages:"8–12", levels:["P2","P3","P4","P5","P6"], sg:"P2 – P6", free:false, cat:"english", topic:"Reading & Vocabulary"},
 
     /* 华文. A Singapore child meets Chinese from Nursery, so it stands beside
        English rather than inside it. */
-    {id:"zhpic",   nm:"认字 Picture & Character", sub:"Match the character to the picture", emo:"汉", bg:"linear-gradient(150deg,#FF8A7A,#E8453C)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"chinese", topic:"认字 Characters"},
-    {id:"zhpinyin",nm:"拼音 Pinyin Match",       sub:"How do you read this one?",          emo:"拼", bg:"linear-gradient(150deg,#FFBE6B,#F58220)", ages:"4–12", levels:["K1","K2","P1","P2","P3","P4","P5","P6"], sg:"K1 – P6", free:false, cat:"chinese", topic:"认字 Characters"},
-    {id:"zhnum",   nm:"数字 Chinese Numbers",    sub:"一二三 and how high can you go",      emo:"数", bg:"linear-gradient(150deg,#FFD66B,#F2A93B)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"chinese", topic:"数字 Numbers"},
-    {id:"zhword",  nm:"词语 Make a Word",        sub:"Join two characters together",       emo:"词", bg:"linear-gradient(150deg,#FF9BA8,#E8566E)", ages:"5–12", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 – P6", free:false, cat:"chinese", topic:"词语 Words"},
+    {id:"zhpic",   nm:"认字 Picture & Character", sub:"Match the character to the picture", emo:"汉", bg:"linear-gradient(150deg,#FF8A7A,#E8453C)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"chinese", topic:"认字与词语 Characters & Words"},
+    {id:"zhpinyin",nm:"拼音 Pinyin Match",       sub:"How do you read this one?",          emo:"拼", bg:"linear-gradient(150deg,#FFBE6B,#F58220)", ages:"4–12", levels:["K1","K2","P1","P2","P3","P4","P5","P6"], sg:"K1 – P6", free:false, cat:"chinese", topic:"认字与词语 Characters & Words"},
+    {id:"zhnum",   nm:"数字 Chinese Numbers",    sub:"一二三 and how high can you go",      emo:"数", bg:"linear-gradient(150deg,#FFD66B,#F2A93B)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"chinese", topic:"数字与量词 Numbers & Measure Words"},
+    {id:"zhword",  nm:"词语 Make a Word",        sub:"Join two characters together",       emo:"词", bg:"linear-gradient(150deg,#FF9BA8,#E8566E)", ages:"5–12", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 – P6", free:false, cat:"chinese", topic:"认字与词语 Characters & Words"},
 
     {id:"duomaths", nm:"Maths Duel",    sub:"Two players — first to answer",  emo:"⚔️", bg:"linear-gradient(150deg,#FFB36B,#FF6B4A)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"duo", topic:"Head to Head"},
     {id:"duoword",  nm:"Word Duel",     sub:"Two players — beat them to it",  emo:"🏁", bg:"linear-gradient(150deg,#FF9BD2,#E85BB0)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:false, cat:"duo", topic:"Head to Head"},
@@ -5129,6 +5142,16 @@
     if(world.id === "plural")   return startPlurals(world);
     if(world.id === "animals")  return startAnimalGroups(world);
     if(world.id === "duomemory")return startDuoMemory(world);
+    if(world.id === "forces")   return startForces(world);
+    if(world.id === "material") return startMaterial(world);
+    if(world.id === "livingnot")return startLiving(world);
+    if(world.id === "conduct")  return startConduct(world);
+    if(world.id === "poles")    return startPoles(world);
+    if(world.id === "vertebrate")return startVertebrate(world);
+    if(world.id === "senttype") return startSentenceTypes(world);
+    if(world.id === "division") return startDivision(world);
+    if(world.id === "patternrule")return startPatternRule(world);
+    if(world.id === "sequence") return startSequence(world);
   }
 
 
@@ -5715,6 +5738,261 @@
         markDot(shell.dots, i, ok);
         i++;
         setTimeout(next, ok ? 1000 : 1400);
+      }, false));
+    }
+    next();
+  }
+
+  /* A reusable shape for "is it true or false about this thing?" science
+     quizzes — Push or Pull, Living or Not, Conduct or Not, Attract or Repel,
+     Backbone or Not all ask a yes/no question about one picture and a label,
+     then say why once the child has answered. */
+  function startYesNoQuiz(world, data, prompt, opts){
+    var rounds = 8;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0, order = dealBand(world.id, data, rounds);
+    var yes = opts.yes || "Yes", no = opts.no || "No";
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var it = order[i];
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:prompt}));
+      if(it.e) shell.stage.appendChild(el("div",{"class":"countrow", text:it.e}));
+      shell.stage.appendChild(el("div",{"class":"bigq",
+        style:"font-size:clamp(20px,5vw,30px)", text:opts.label(it)}));
+      speak(opts.speak(it));
+      var answer = opts.isYes(it) ? yes : no;
+      shell.stage.appendChild(choiceGrid([yes, no], answer, function(ok){
+        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(opts.why) shell.stage.appendChild(el("div",{"class":"why", text: opts.why(it)}));
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 1300 : 1800);
+      }, false));
+    }
+    next();
+  }
+
+  function startForces(world){
+    startYesNoQuiz(world, FORCES, "Is this a push?", {
+      label: function(it){ return it.w; },
+      speak: function(it){ return "Is this a push: " + it.w + "?"; },
+      isYes: function(it){ return it.push; },
+      why: function(it){ return it.push
+        ? "A push moves something away from you."
+        : "A pull moves something towards you."; }
+    });
+  }
+
+  function startMaterial(world){
+    var rounds = 8;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0, order = dealBand(world.id, MATERIALS, rounds);
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var it = order[i];
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"What is the best material for…"}));
+      shell.stage.appendChild(el("div",{"class":"bigq",
+        style:"font-size:clamp(20px,5vw,30px)", text:it.w}));
+      speak("What is the best material for " + it.w + "?");
+      shell.stage.appendChild(choiceGrid(shuffle([it.a].concat(it.x)), it.a, function(ok){
+        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 1000 : 1500);
+      }, false));
+    }
+    next();
+  }
+
+  function startLiving(world){
+    startYesNoQuiz(world, LIVING, "Is it alive?", {
+      label: function(it){ return it.w; },
+      speak: function(it){ return "Is " + it.w + " alive?"; },
+      isYes: function(it){ return it.l; },
+      why: function(it){ return it.l
+        ? "It grows, needs food, and can make more of itself."
+        : "It doesn't grow, eat or reproduce on its own."; }
+    });
+  }
+
+  function startConduct(world){
+    startYesNoQuiz(world, CONDUCTORS, "Will electricity flow through it?", {
+      yes:"Conductor", no:"Insulator",
+      label: function(it){ return it.w; },
+      speak: function(it){ return "Will electricity flow through a " + it.w + "?"; },
+      isYes: function(it){ return it.c; },
+      why: function(it){ return it.c
+        ? "Metals let electricity flow through — that makes it a conductor."
+        : "It blocks electricity from flowing — that makes it an insulator."; }
+    });
+  }
+
+  function startPoles(world){
+    startYesNoQuiz(world, POLES, "Attract or repel?", {
+      yes:"Repel", no:"Attract",
+      label: function(it){ return it.a + "  ⟷  " + it.z; },
+      speak: function(it){ return it.a + " pole facing " + it.z + " pole: attract or repel?"; },
+      isYes: function(it){ return it.r; },
+      why: function(it){ return it.r
+        ? "Same poles push apart — they repel."
+        : "Opposite poles pull together — they attract."; }
+    });
+  }
+
+  function startVertebrate(world){
+    startYesNoQuiz(world, VERTEBRATES, "Does it have a backbone?", {
+      yes:"Vertebrate", no:"Invertebrate",
+      label: function(it){ return it.w; },
+      speak: function(it){ return "Does a " + it.w + " have a backbone?"; },
+      isYes: function(it){ return it.v; },
+      why: function(it){ return it.v
+        ? "It has a backbone inside its body — that makes it a vertebrate."
+        : "It has no backbone — that makes it an invertebrate."; }
+    });
+  }
+
+  function startSentenceTypes(world){
+    var types = ["Statement", "Question", "Command", "Exclamation"];
+    var rounds = 8;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0, order = dealBand(world.id, SENTENCE_TYPES, rounds);
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var it = order[i];
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"What kind of sentence is this?"}));
+      shell.stage.appendChild(el("div",{"class":"sentence", text:it.s}));
+      shell.stage.appendChild(choiceGrid(shuffle(types.slice()), it.t, function(ok){
+        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 900 : 1400);
+      }, false));
+    }
+    next();
+  }
+
+  /* Division facts, the other half of the times tables Table Tower already
+     covers — generated fresh each round rather than from a fixed list, the
+     same way Number Rally and Maths Quest make up their own sums. */
+  function startDivision(world){
+    var b = band();
+    var divisors = b <= 1 ? [1,2,3,4,5] : b === 2 ? [2,3,4,5,6,8,10] : [3,4,6,7,8,9,11,12];
+    var maxQ = b <= 1 ? 5 : b === 2 ? 10 : 12;
+    var rounds = 8;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0;
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var divisor = divisors[Math.floor(Math.random() * divisors.length)];
+      var quotient = 1 + Math.floor(Math.random() * maxQ);
+      var dividend = divisor * quotient;
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"Divide it evenly"}));
+      shell.stage.appendChild(el("div",{"class":"bigq", text: dividend + " ÷ " + divisor + " = ?"}));
+      speak(dividend + " divided by " + divisor + "?");
+      /* A small quotient (1 or 2) has too few distinct nearby positive
+         numbers for a random-offset guess to reliably find three, so the
+         candidate pool is built once and picked from rather than retried. */
+      var pool = [];
+      for(var off = -4; off <= 4; off++){
+        var d = quotient + off;
+        if(d > 0 && d !== quotient) pool.push(d);
+      }
+      var wrongs = shuffle(pool).slice(0, 3);
+      shell.stage.appendChild(choiceGrid(shuffle([quotient].concat(wrongs)), quotient, function(ok){
+        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 800 : 1300);
+      }, false));
+    }
+    next();
+  }
+
+  /* Number-sequence rules — the arithmetic sibling of Pattern Train's shape
+     sequences, generated fresh each round the same way. */
+  function startPatternRule(world){
+    var b = band();
+    var rounds = 8;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0;
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var kind = b <= 2 || Math.random() < 0.6 ? "add" : (Math.random() < 0.5 ? "sub" : "mul");
+      var start, step, seq = [], next4;
+      if(kind === "add"){
+        step = 1 + Math.floor(Math.random() * (b <= 1 ? 3 : b === 2 ? 5 : 9));
+        start = 1 + Math.floor(Math.random() * 10);
+        seq = [start, start + step, start + step * 2, start + step * 3];
+        next4 = start + step * 4;
+      } else if(kind === "sub"){
+        step = 1 + Math.floor(Math.random() * 6);
+        start = 30 + Math.floor(Math.random() * 40);
+        seq = [start, start - step, start - step * 2, start - step * 3];
+        next4 = start - step * 4;
+      } else {
+        step = 2 + Math.floor(Math.random() * 2);
+        start = 1 + Math.floor(Math.random() * 4);
+        seq = [start, start * step, start * step * step, start * step * step * step];
+        next4 = start * Math.pow(step, 4);
+      }
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"Find the rule, then the next number"}));
+      shell.stage.appendChild(el("div",{"class":"bigq", style:"font-size:clamp(24px,6vw,38px)",
+        text: seq.join(", ") + ", ?"}));
+      speak(seq.join(", ") + ", what comes next?");
+      var magnitude = Math.max(1, Math.round(Math.abs(next4 - seq[3]) * 0.3));
+      var pool = [];
+      [-3, -2, -1, 1, 2, 3].forEach(function(off){
+        var d = next4 + off * magnitude;
+        if(d > 0 && d !== next4 && pool.indexOf(d) < 0) pool.push(d);
+      });
+      var wrongs = shuffle(pool).slice(0, 3);
+      shell.stage.appendChild(choiceGrid(shuffle([next4].concat(wrongs)), next4, function(ok){
+        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 900 : 1500);
+      }, false));
+    }
+    next();
+  }
+
+  /* A shape/emoji repeating pattern rather than a numeric one — the logic
+     skill of spotting a repeat unit, not the arithmetic of Pattern Rule. */
+  var SEQUENCE_SETS = [
+    ["🔴","🔵"], ["🟩","🟨","🟦"], ["⭐","🌙"], ["🐱","🐶","🐭"],
+    ["🔺","🔻"], ["🍎","🍌"], ["🟢","🟣","🟠"], ["🌞","🌧️"]
+  ];
+  function startSequence(world){
+    var rounds = 8;
+    var shell = gameShell(world, rounds);
+    var i = 0, correct = 0;
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var set = SEQUENCE_SETS[Math.floor(Math.random() * SEQUENCE_SETS.length)];
+      var repeats = 3;
+      var seq = [];
+      for(var r = 0; r < repeats; r++) seq = seq.concat(set);
+      var answer = set[0];
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"What comes next in the pattern?"}));
+      shell.stage.appendChild(el("div",{"class":"bigq", style:"font-size:clamp(26px,7vw,42px); letter-spacing:6px",
+        text: seq.join(" ") + " ?"}));
+      var others = SEQUENCE_SETS.filter(function(s){ return s !== set; });
+      var wrongs = [];
+      shuffle(others.slice()).forEach(function(s){
+        if(wrongs.length < 3 && s[0] !== answer && wrongs.indexOf(s[0]) < 0) wrongs.push(s[0]);
+      });
+      while(wrongs.length < 3) wrongs.push(set[1 + wrongs.length % (set.length - 1 || 1)]);
+      shell.stage.appendChild(choiceGrid(shuffle([answer].concat(wrongs.slice(0,3))), answer, function(ok){
+        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        markDot(shell.dots, i, ok);
+        i++;
+        setTimeout(next, ok ? 900 : 1400);
       }, false));
     }
     next();
