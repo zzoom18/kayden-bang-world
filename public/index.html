@@ -156,6 +156,14 @@
   .dot{width:13px; height:13px; border-radius:50%; background:rgba(255,255,255,.22)}
   .dot.on{background:var(--sun)} .dot.bad{background:var(--berry)}
   .stage{flex:1; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; padding:16px 18px 30px; text-align:center}
+
+  /* ---- a scratchpad for working out maths sums by hand ---- */
+  .scratchpad{position:absolute; inset:0; z-index:20; display:flex; flex-direction:column;
+    background:#F3ECDD; animation:rise .2s var(--ease)}
+  .scratchpad canvas{flex:1; min-height:0; width:100%; touch-action:none; cursor:crosshair; display:block}
+  .scratch-bar{display:flex; align-items:center; gap:10px; padding:12px 16px;
+    background:rgba(0,0,0,.06); flex:none}
+  .scratch-bar .lbl{font-family:"Baloo 2",sans-serif; font-weight:800; color:#6B5E3C; margin-right:auto; font-size:14.5px}
   .prompt{font-size:18px; font-weight:800; color:var(--ink-soft); letter-spacing:.4px}
 
   /* ---- two-player games: one iPad flat on the table, a child on each side ---- */
@@ -2441,7 +2449,7 @@
 
   /* ---------- shell shared by every game ---------- */
   function gameShell(world, total){
-    var wrap = el("div",{style:"flex:1; min-height:0; display:flex; flex-direction:column"});
+    var wrap = el("div",{style:"flex:1; min-height:0; display:flex; flex-direction:column; position:relative"});
     var bar = el("div",{"class":"gamebar"});
     var back = el("button",{"class":"iconbtn","aria-label":"Back to the games", text:"←"});
     back.addEventListener("click", function(){ sfx.tap(); runStreak = 0; music.stop(); renderHome(); });
@@ -2450,11 +2458,78 @@
     for(var i=0;i<total;i++) dots.appendChild(el("div",{"class":"dot"}));
     bar.appendChild(dots);
     bar.appendChild(el("div",{"class":"tally"}, world.emo, el("b",{text:"Lv " + levelOf(world.id)})));
+    if(world.cat === "maths") bar.appendChild(scratchToggle(wrap));
     wrap.appendChild(bar);
     var stage = el("div",{"class":"stage"});
     wrap.appendChild(stage);
     show(wrap);
     return {stage:stage, dots:dots};
+  }
+
+  /* A place to work sums out by hand — every maths game gets a pencil icon
+     in its bar that lays a sheet of paper over the stage. It sits as a
+     sibling of .stage, not inside it, so a game clearing the stage between
+     rounds (most of them do, via stage.textContent = "") never wipes out
+     what a child is in the middle of working out. */
+  function scratchToggle(wrap){
+    var btn = el("button",{"class":"iconbtn", "aria-label":"Scratchpad for working out", text:"✏️"});
+    var pad = null;
+    btn.addEventListener("click", function(){
+      sfx.tap();
+      if(pad){ pad.remove(); pad = null; return; }
+      pad = buildScratchpad(wrap, function(){ pad.remove(); pad = null; });
+    });
+    return btn;
+  }
+  /* The canvas has to be in the document, sized by CSS, before its pixel
+     dimensions can be measured — appending it to wrap happens first, and
+     only then is getBoundingClientRect() meaningful. */
+  function buildScratchpad(wrap, onDone){
+    var overlay = el("div",{"class":"scratchpad"});
+    var toolbar = el("div",{"class":"scratch-bar"});
+    toolbar.appendChild(el("div",{"class":"lbl", text:"Work it out here"}));
+    var clearBtn = el("button",{"class":"btn btn-ghost btn-sm", text:"Clear"});
+    var doneBtn = el("button",{"class":"btn btn-pink btn-sm", text:"Done"});
+    toolbar.appendChild(clearBtn); toolbar.appendChild(doneBtn);
+    overlay.appendChild(toolbar);
+    var canvas = el("canvas");
+    overlay.appendChild(canvas);
+    wrap.appendChild(overlay);
+
+    var ctx = canvas.getContext("2d");
+    function sizeCanvas(){
+      var r = canvas.getBoundingClientRect();
+      var dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(r.width * dpr);
+      canvas.height = Math.round(r.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.strokeStyle = "#3A3286"; ctx.lineWidth = 4;
+    }
+    sizeCanvas();
+
+    var drawing = false, lastX = 0, lastY = 0;
+    function pos(e){
+      var r = canvas.getBoundingClientRect();
+      return {x: e.clientX - r.left, y: e.clientY - r.top};
+    }
+    canvas.addEventListener("pointerdown", function(e){
+      drawing = true; canvas.setPointerCapture(e.pointerId);
+      var p = pos(e); lastX = p.x; lastY = p.y;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI * 2); ctx.fill();
+    });
+    canvas.addEventListener("pointermove", function(e){
+      if(!drawing) return;
+      var p = pos(e);
+      ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(p.x, p.y); ctx.stroke();
+      lastX = p.x; lastY = p.y;
+    });
+    ["pointerup","pointercancel","pointerleave"].forEach(function(ev){
+      canvas.addEventListener(ev, function(){ drawing = false; });
+    });
+    clearBtn.addEventListener("click", function(){ sfx.tap(); ctx.clearRect(0, 0, canvas.width, canvas.height); });
+    doneBtn.addEventListener("click", function(){ sfx.tap(); onDone(); });
+    return overlay;
   }
   function markDot(dots, i, ok){
     var d = dots.children[i];
