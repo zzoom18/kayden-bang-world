@@ -6492,6 +6492,28 @@
 
   var NINJA_SKINS = ["🍉","🍎","🍊","🍍","🥝","🍑"];
 
+  /* Slice the Answer is a fast reflex game: the numbers have to be read and
+     tapped in a second or two, on a small round fruit. numberQuestion()
+     scales all the way up to P4-P6 syllabus content (fractions, ratio,
+     multi-thousand sums) for older/higher-level kids, which is fine for a
+     sit-and-think quiz but produces answers and distractors with five or
+     six digits here — unreadable on a falling fruit and far too slow to
+     work out while it drops. Band 3 always gets the same simple
+     times/divide/missing/half question set instead, whatever the child's
+     actual level or rank. */
+  function ninjaQuestion(b, level){
+    if(b < 3) return numberQuestion(b, level);
+    var a, c, ans, k3 = pick(["times","divide","missing","half"]);
+    if(k3 === "times"){ a = ri(3, 12); c = ri(3, 12); return {q:a+" × "+c, prompt:"What is…", a:a*c, opts:numberOptions(a*c, 12)}; }
+    if(k3 === "divide"){ c = ri(2, 12); ans = ri(2, 12); a = c * ans; return {q:a+" ÷ "+c, prompt:"What is…", a:ans, opts:numberOptions(ans, 5)}; }
+    if(k3 === "missing"){
+      a = ri(4, 30); c = ri(2, 25);
+      return {q: a + " + ? = " + (a + c), prompt:"What is missing?", a:c, opts:numberOptions(c, 7)};
+    }
+    ans = ri(4, 40); a = ans * 2;
+    return {q:"Half of " + a, prompt:"What is…", a:ans, opts:numberOptions(ans, 6)};
+  }
+
   function startNinja(world){
     var b = band();
     var rounds = b === 0 ? 5 : b === 1 ? 6 : 8;
@@ -6512,7 +6534,7 @@
       if(over) return;
       if(i >= rounds){ over = true; finish(world, correct, rounds); return; }
       arena.textContent = "";
-      var Q = numberQuestion(b, Math.max(1, levelOf("numbers")));
+      var Q = ninjaQuestion(b, Math.max(1, levelOf("numbers")));
       qline.textContent = qLine(Q);
       speak(Q.prompt ? Q.prompt : qLine(Q));
 
@@ -6979,11 +7001,13 @@
       lastSpoken = stageQuestion(shell.stage);
       shell.stage.appendChild(choiceGrid(shuffle([R.a].concat(R.x.slice(0, 3))), R.a,
         function(ok){
-          if(ok){ correct++; sfx.good(); flash("⭐"); if(R.after) speak(R.after); }
+          if(ok){ correct++; sfx.good(); flash("⭐"); }
           else { sfx.bad(); }
+          if(R.after) speak(R.after);
           markDot(shell.dots, i, ok);
+          if(R.after) shell.stage.appendChild(el("div",{"class":"fact", text:"💡 " + R.after}));
           i++;
-          afterSpeech(next, ok ? 700 : 1150);
+          afterSpeech(next, ok ? 1200 : 1900);
         }, false));
     }
     next();
@@ -6994,7 +7018,8 @@
     wordRound(world, 8, function(i){
       var it = pool[i];
       return {prompt:"Which word means nearly the same as…", subject:it.w,
-        a:it.s, x:it.x, after:it.w + " … " + it.s};
+        emo:"💬", a:it.s, x:it.x,
+        after:"“" + it.w + "” means nearly the same as “" + it.s + "”"};
     });
   }
 
