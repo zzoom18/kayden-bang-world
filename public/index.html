@@ -5934,11 +5934,16 @@
       speak(opts.speak(it));
       var answer = opts.isYes(it) ? yes : no;
       shell.stage.appendChild(choiceGrid([yes, no], answer, function(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
-        if(opts.why) shell.stage.appendChild(el("div",{"class":"why", text: opts.why(it)}));
+        if(ok){ correct++; sfx.good(); flash("⭐"); speak(answer); }
+        else {
+          sfx.bad();
+          var why = opts.why && opts.why(it);
+          if(why) shell.stage.appendChild(el("div",{"class":"why", text: why}));
+          speak(why ? answer + ". " + why : answer);
+        }
         markDot(shell.dots, i, ok);
         i++;
-        setTimeout(next, ok ? 1300 : 1800);
+        afterSpeech(next, ok ? 1300 : 2400);
       }, false));
     }
     next();
@@ -5971,10 +5976,15 @@
         style:"font-size:clamp(20px,5vw,30px)", text:it.w}));
       speak("What is the best material for " + it.w + "?");
       shell.stage.appendChild(choiceGrid(shuffle([it.a].concat(it.x)), it.a, function(ok){
-        if(ok){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        if(ok){ correct++; sfx.good(); flash("⭐"); speak(it.a); }
+        else {
+          sfx.bad();
+          shell.stage.appendChild(el("div",{"class":"why", text: it.why}));
+          speak(it.a + ". " + it.why);
+        }
         markDot(shell.dots, i, ok);
         i++;
-        setTimeout(next, ok ? 1000 : 1500);
+        afterSpeech(next, ok ? 1000 : 2400);
       }, false));
     }
     next();
@@ -7793,9 +7803,10 @@
         /* The rule matters more than the mark, so it is always shown. */
         shell.stage.appendChild(el("div",{"class":"why", text: it.r}));
         if(ok) speak(it.q.replace("___", it.a));
+        else speak(it.a + ". " + it.r);
         markDot(shell.dots, i, ok);
         i++;
-        afterSpeech(next, ok ? 1100 : 1700);
+        afterSpeech(next, ok ? 1100 : 2400);
       }, false));
     }
     next();

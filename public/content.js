@@ -1921,18 +1921,30 @@ window.PC = (function(){
 
   /* ---------- best material for the job (Matter & Materials) ---------- */
   var MATERIALS = [
-    {b:2, e:"☂️", w:"an umbrella canopy",    a:"waterproof nylon", x:["cotton wool","paper","sponge"]},
-    {b:2, e:"🪟", w:"a window pane",         a:"glass",            x:["fabric","cardboard","rubber"]},
-    {b:2, e:"🧥", w:"a winter jacket lining",a:"wool",             x:["glass","steel","cling wrap"]},
-    {b:2, e:"🍳", w:"a saucepan handle",     a:"plastic",          x:["steel","aluminium","copper"]},
-    {b:3, e:"👢", w:"a rain boot",           a:"rubber",           x:["paper","wool","glass"]},
-    {b:3, e:"🧽", w:"a kitchen sponge",      a:"foam",             x:["steel","glass","stone"]},
-    {b:3, e:"🚲", w:"a bicycle frame",       a:"aluminium",        x:["cotton","paper","foam"]},
-    {b:3, e:"🥛", w:"a drinking glass",      a:"glass",            x:["fabric","foam","cardboard"]},
-    {b:3, e:"🎒", w:"a school bag",         a:"canvas fabric",     x:["glass","steel","brick"]},
-    {b:3, e:"🔌", w:"electrical wiring",     a:"copper",           x:["wood","rubber","paper"]},
-    {b:3, e:"📦", w:"a cereal box",         a:"cardboard",         x:["glass","steel","rubber"]},
-    {b:3, e:"🥽", w:"a swimming goggle lens",a:"plastic",          x:["cotton","paper","wool"]}
+    {b:2, e:"☂️", w:"an umbrella canopy",    a:"waterproof nylon", x:["cotton wool","paper","sponge"],
+     why:"Waterproof nylon keeps rain out instead of soaking it up."},
+    {b:2, e:"🪟", w:"a window pane",         a:"glass",            x:["fabric","cardboard","rubber"],
+     why:"Glass is transparent, so light can pass straight through it."},
+    {b:2, e:"🧥", w:"a winter jacket lining",a:"wool",             x:["glass","steel","cling wrap"],
+     why:"Wool traps warm air close to the body, keeping the wearer warm."},
+    {b:2, e:"🍳", w:"a saucepan handle",     a:"plastic",          x:["steel","aluminium","copper"],
+     why:"Plastic does not conduct heat well, so the handle stays cool to hold."},
+    {b:3, e:"👢", w:"a rain boot",           a:"rubber",           x:["paper","wool","glass"],
+     why:"Rubber is waterproof and flexible enough to bend as you walk."},
+    {b:3, e:"🧽", w:"a kitchen sponge",      a:"foam",             x:["steel","glass","stone"],
+     why:"Foam is full of tiny holes that soak up and hold water."},
+    {b:3, e:"🚲", w:"a bicycle frame",       a:"aluminium",        x:["cotton","paper","foam"],
+     why:"Aluminium is strong but light, so the bicycle is easy to pedal and carry."},
+    {b:3, e:"🥛", w:"a drinking glass",      a:"glass",            x:["fabric","foam","cardboard"],
+     why:"Glass is transparent and does not change the taste of a drink."},
+    {b:3, e:"🎒", w:"a school bag",         a:"canvas fabric",     x:["glass","steel","brick"],
+     why:"Canvas fabric is tough, bendable and light enough to carry all day."},
+    {b:3, e:"🔌", w:"electrical wiring",     a:"copper",           x:["wood","rubber","paper"],
+     why:"Copper is a metal that lets electricity flow through it easily."},
+    {b:3, e:"📦", w:"a cereal box",         a:"cardboard",         x:["glass","steel","rubber"],
+     why:"Cardboard is light, cheap and stiff enough to hold its shape."},
+    {b:3, e:"🥽", w:"a swimming goggle lens",a:"plastic",          x:["cotton","paper","wool"],
+     why:"Plastic is transparent, light and moulds easily into a lens shape."}
   ];
 
   /* ---------- conductor or insulator (Electricity) ---------- */
