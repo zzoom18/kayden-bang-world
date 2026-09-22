@@ -1459,15 +1459,19 @@
        carries on. */
     return bits.filter(Boolean).join(". ").replace(/_{2,}/g, "...").replace(/\s+/g, " ").trim();
   }
+  var CJK_RE = /[一-鿿]/;
   function readStage(){
     if(!CAN_SPEAK || (state && state.sound === false) || (state && state.readAloud === false)) return;
     var stage = document.querySelector(".stage");
     var text = stageQuestion(stage);
     /* Chinese games say their own character in Mandarin a moment later, and
-       that call cancels this one, which is the order we want. */
+       that call cancels this one, which is the order we want. Now that a
+       Chinese game's own .prompt line is itself in Chinese, this needs to
+       recognise that and reach for the Mandarin voice too — the default
+       en-SG one would otherwise try to sound out hanzi as English. */
     if(!text || text === lastSpoken || text.length > 240) return;
     lastSpoken = text;
-    speak(text);
+    speak(text, CJK_RE.test(text) ? {lang:"zh-CN", rate:0.8} : undefined);
   }
   var readTimer = null;
   function watchStage(){
@@ -5417,8 +5421,8 @@
     if(world.id === "sequence") return startSequence(world);
     if(world.id === "readaloud") return startReadAloud(world, {items:READ_ALOUD_EN, lang:"en-SG", text:function(it){ return it.s; }});
     if(world.id === "readstory") return startReadAloud(world, {items:PASSAGES.filter(function(p){ return p.b <= 2; }), lang:"en-SG", text:function(it){ return it.p; }});
-    if(world.id === "zhreadaloud") return startReadAloud(world, {items:READ_ALOUD_ZH, lang:"zh-CN", text:function(it){ return it.s; }, gloss:function(it){ return it.en; }});
-    if(world.id === "zhreadstory") return startReadAloud(world, {items:READ_STORY_ZH, lang:"zh-CN", text:function(it){ return it.s; }, gloss:function(it){ return it.en; }});
+    if(world.id === "zhreadaloud") return startReadAloud(world, {items:READ_ALOUD_ZH, lang:"zh-CN", text:function(it){ return it.s; }, gloss:function(it){ return it.en; }, prompt:"请大声读出来"});
+    if(world.id === "zhreadstory") return startReadAloud(world, {items:READ_STORY_ZH, lang:"zh-CN", text:function(it){ return it.s; }, gloss:function(it){ return it.en; }, prompt:"请大声读出来"});
   }
 
 
@@ -6335,7 +6339,7 @@
       var it = order[i];
       var target = opts.text(it);
       shell.stage.textContent = "";
-      shell.stage.appendChild(el("div",{"class":"prompt", text:"Read this out loud"}));
+      shell.stage.appendChild(el("div",{"class":"prompt", text: opts.prompt || "Read this out loud"}));
       shell.stage.appendChild(el("div",{"class":"read-passage", text:target}));
       if(opts.gloss) shell.stage.appendChild(el("div",{"class":"hintline", text:opts.gloss(it)}));
       var hear = el("button",{"class":"btn btn-ghost btn-sm", text:"🔊 Hear it first"});
@@ -6427,7 +6431,7 @@
       if(i >= 8){ finish(world, correct, 8); return; }
       var it = pool[i];
       shell.stage.textContent = "";
-      shell.stage.appendChild(el("div",{"class":"prompt", text:"Which measure word fits?"}));
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"填入正确的量词"}));
       shell.stage.appendChild(el("div",{"class":"countrow", text:it.e}));
       var row = el("div",{"class":"sayrow"});
       row.appendChild(el("div",{"class":"bigq zhbig", text:"一 ？ " + it.n}));
@@ -6457,7 +6461,7 @@
       var it = pool[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt",
-        text:"How many strokes does this character take?"}));
+        text:"这个字有几画？"}));
       var row = el("div",{"class":"sayrow"});
       row.appendChild(el("div",{"class":"zhhuge", text:it.c}));
       var say = sayButton(it.c, {lang:"zh-CN"});
@@ -8256,7 +8260,7 @@
 
       shell.stage.textContent = "";
       if(charFirst){
-        shell.stage.appendChild(el("div",{"class":"prompt", text:"Which picture is this?"}));
+        shell.stage.appendChild(el("div",{"class":"prompt", text:"这是什么？"}));
         /* Chinese is a spoken language first. The device's Mandarin voice
            reads the character, slowly, and will say it again on tap. */
         var crow = el("div",{"class":"sayrow"});
@@ -8270,7 +8274,7 @@
           shuffle([right].concat(others)).map(function(x){ return {label:x.e, value:x.e}; }),
           right.e, done, true));
       } else {
-        shell.stage.appendChild(el("div",{"class":"prompt", text:"Which character means this?"}));
+        shell.stage.appendChild(el("div",{"class":"prompt", text:"哪个字是这个意思？"}));
         shell.stage.appendChild(el("div",{"class":"bigq", text:right.e}));
         shell.stage.appendChild(el("div",{"class":"zh-pinyin", text:right.m}));
         shell.stage.appendChild(choiceGrid(
@@ -8307,7 +8311,7 @@
       var others = shuffle(pool.filter(function(x){ return x.p !== right.p; })).slice(0, 3);
 
       shell.stage.textContent = "";
-      shell.stage.appendChild(el("div",{"class":"prompt", text:"How do you read this?"}));
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"这个字怎么读？"}));
       var prow = el("div",{"class":"sayrow"});
       prow.appendChild(zhCharCard(right.c));
       var psay = sayButton(right.c, {lang:"zh-CN", rate:0.72});
@@ -8342,7 +8346,7 @@
 
       shell.stage.textContent = "";
       if(toNumber){
-        shell.stage.appendChild(el("div",{"class":"prompt", text:"Which number is this?"}));
+        shell.stage.appendChild(el("div",{"class":"prompt", text:"这是数字几？"}));
         var nrow = el("div",{"class":"sayrow"});
         nrow.appendChild(zhCharCard(right.c, right.c.length > 2 ? "64px" : ""));
         var nsay = sayButton(right.c, {lang:"zh-CN", rate:0.72});
@@ -8354,7 +8358,7 @@
           shuffle([right].concat(others)).map(function(x){ return {label:String(x.n), value:String(x.n)}; }),
           String(right.n), done, false));
       } else {
-        shell.stage.appendChild(el("div",{"class":"prompt", text:"Which one says this number?"}));
+        shell.stage.appendChild(el("div",{"class":"prompt", text:"哪一个是这个数字？"}));
         shell.stage.appendChild(el("div",{"class":"bigq", text:String(right.n)}));
         shell.stage.appendChild(choiceGrid(
           shuffle([right].concat(others)).map(function(x){ return {label:x.c, value:x.c}; }),
@@ -8388,7 +8392,7 @@
       wrongs.forEach(function(z){ if(!seen[z] && opts.length < 3){ seen[z] = 1; opts.push(z); } });
 
       shell.stage.textContent = "";
-      shell.stage.appendChild(el("div",{"class":"prompt", text:"Finish the word"}));
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"完成这个词语"}));
       shell.stage.appendChild(el("div",{"class":"bigq", text:right.e}));
       shell.stage.appendChild(el("div",{"class":"zh-build"},
         el("span",{"class":"zh-slot", text:right.a}),
