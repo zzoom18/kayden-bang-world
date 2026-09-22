@@ -1469,6 +1469,72 @@
   function schoolLevel(){ return levelForAge(state.age || 5); }
   function levelName(l){ return l === "N" ? "Nursery" : l; }
   /* Pick items for this band, falling back to the nearest ones if a bank is thin. */
+
+  /* ---------- not asking the same thing twice ----------
+     Shuffling a pool at the start of a round is not enough. A round is eight
+     questions and some of these banks hold six items for a child's age, so
+     the same round asked one of them twice and the next sitting was the same
+     six cards in a new order. A child notices that in about four minutes.
+
+     So each game keeps a bag. Items are dealt out of it and not put back, so
+     nothing is asked again until everything else has been; the bag lives in
+     saved state, so closing the app and coming back tomorrow carries on where
+     she left off rather than starting the same six questions again. When the
+     bag empties a fresh cycle begins.
+
+     If a bank is smaller than a round it must repeat, but only after every
+     other item has had its turn.  */
+  function bagOf(id){
+    if(!state.bags) state.bags = {};
+    var b = state.bags[id];
+    return (b && b.length !== undefined) ? b : [];
+  }
+  function deal(id, pool, keyOf, n){
+    if(!pool || !pool.length) return [];
+    var bag = bagOf(id), out = [], i, left, it;
+    for(i = 0; i < n; i++){
+      left = pool.filter(function(x){ return bag.indexOf(keyOf(x)) < 0; });
+      if(!left.length){
+        /* The bag ran out. A new cycle carries the most recent quarter of the
+           old one forward, and keeps what this round has already asked out of
+           it, so the cycle boundary does not hand straight back the question
+           before last. */
+        bag = bag.slice(Math.max(0, bag.length - Math.floor(pool.length / 4)));
+        left = pool.filter(function(x){
+          return bag.indexOf(keyOf(x)) < 0 && out.indexOf(x) < 0; });
+        if(!left.length) left = pool.filter(function(x){ return out.indexOf(x) < 0; });
+        if(!left.length) left = pool.slice();
+      }
+      it = pick(left);
+      out.push(it);
+      bag.push(keyOf(it));
+    }
+    if(!state.bags) state.bags = {};
+    state.bags[id] = bag;
+    save();
+    return out;
+  }
+  /* An item's identity is the whole item, not one of its fields. Picking a
+     likely-looking field guesses wrong: in the measure-word bank "w" is the
+     measure word, so every noun taking 只 counted as the same question and
+     the bag thought it had dealt them all after three. Hashing the entry
+     cannot collide that way, and the keys stay short enough to save. */
+  function hashKey(str){
+    var h = 5381, i;
+    for(i = 0; i < str.length; i++) h = (((h << 5) + h) ^ str.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  }
+  function keyer(){
+    return function(it){
+      if(it == null) return "";
+      return hashKey(typeof it === "object" ? JSON.stringify(it) : String(it));
+    };
+  }
+  /* The usual call: deal a round's worth out of a band's pool. */
+  function dealBand(id, list, n){
+    return deal(id, forBand(list, band()), keyer(), n);
+  }
+
   function forBand(list, b){
     var exact = list.filter(function(x){ return x.b === b; });
     if(exact.length >= 4) return exact;
@@ -1482,7 +1548,7 @@
      without being asked. */
   var DEFAULT = { name:"", age:5, avatar:"🦊", setup:false, stars:0, streak:0, perfects:0,
     lastPlayed:"", motion:true, sound:true, music:true, readAloud:true,
-    quest:null, progress:{} };
+    quest:null, progress:{}, bags:{} };
   var state = JSON.parse(JSON.stringify(DEFAULT));
   var licence = null;
   var licenceExp = null;
@@ -2573,9 +2639,9 @@
   /* ---------- Letter Sounds ---------- */
   function buildSounds(level){
     var b = band(), qs = [], i;
-    var pool = shuffle(PICS.slice());
+    var pool = deal("sounds", PICS, keyer(), 8);
     for(i=0;i<8;i++){
-      var right = pool[i % pool.length];
+      var right = pool[i];
       /* Older children get asked about the sound a word ends with, which is
          harder to hear than the one it starts with. */
       var useEnd = b >= 2 && (i % 2 === 1);
@@ -2625,7 +2691,7 @@
     var pool = SPELL.filter(function(x){ return x.w.length <= maxLen && x.w.length >= Math.min(minLen, maxLen); });
     if(pool.length < 6) pool = SPELL.filter(function(x){ return x.w.length <= maxLen; });
     if(pool.length < 6) pool = SPELL;
-    var words = shuffle(pool.slice()).slice(0, 6);
+    var words = deal(world.id + ":" + maxLen, pool, keyer(), 6);
     var shell = gameShell(world, words.length);
     var i = 0, correct = 0;
 
@@ -2845,7 +2911,7 @@
 
   /* ---------- Quiz Lab ---------- */
   function startQuiz(world){
-    var qs = shuffle(forBand(QUIZ, band()).slice()).slice(0, 6);
+    var qs = dealBand(world.id, QUIZ, 6);
     var shell = gameShell(world, qs.length);
     var i = 0, correct = 0;
 
@@ -2968,7 +3034,7 @@
 
   /* ---------- Odd One Out ---------- */
   function startOdd(world){
-    var sets = shuffle(forBand(ODD, band()).slice()).slice(0, 6);
+    var sets = dealBand(world.id, ODD, 6);
     var shell = gameShell(world, sets.length);
     var i = 0, correct = 0;
 
@@ -3371,7 +3437,8 @@
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var fam = pick(RHYMES.filter(function(f){ return f.length >= 2; }));
+      var fam = deal(world.id, RHYMES.filter(function(f){ return f.length >= 2; }),
+        keyer(), 1)[0];
       var two = shuffle(fam.slice()).slice(0,2);
       var target = two[0], answer = two[1];
       var others = shuffle(RHYMES.filter(function(f){ return f !== fam; })).slice(0,2).map(function(f){ return pick(f); });
@@ -3874,11 +3941,11 @@
     var rounds = 8;
     var shell = gameShell(world, rounds);
     var i = 0, correct = 0;
-    var pool = shuffle(SENSES.slice());
+    var pool = deal(world.id, SENSES, keyer(), rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var item = pool[i % pool.length];
+      var item = pool[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Which sense do you use for…"}));
       shell.stage.appendChild(el("div",{"class":"bigemo", text:item.e}));
@@ -3916,11 +3983,11 @@
     var rounds = 8;
     var shell = gameShell(world, rounds);
     var i = 0, correct = 0;
-    var pool = shuffle(HOMES.slice());
+    var pool = deal(world.id, HOMES, keyer(), rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var item = pool[i % pool.length];
+      var item = pool[i];
       var others = shuffle(HOMES.filter(function(h){ return h.hn !== item.hn; })).slice(0, 2);
 
       shell.stage.textContent = "";
@@ -3957,11 +4024,11 @@
     var rounds = 5;
     var shell = gameShell(world, rounds);
     var i = 0, correct = 0;
-    var pool = shuffle(LIFECYCLES.slice());
+    var pool = deal(world.id, LIFECYCLES, keyer(), rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var cyc = pool[i % pool.length];
+      var cyc = pool[i];
       var placed = 0, wrongTaps = 0, done = false;
 
       shell.stage.textContent = "";
@@ -4129,11 +4196,11 @@
     var rounds = 5;
     var shell = gameShell(world, rounds);
     var i = 0, correct = 0;
-    var pool = shuffle(FOODCHAINS.slice());
+    var pool = deal(world.id, FOODCHAINS, keyer(), rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var chain = pool[i % pool.length].slice(0, band() >= 3 ? 5 : 4).filter(Boolean);
+      var chain = pool[i].slice(0, band() >= 3 ? 5 : 4).filter(Boolean);
       var placed = 0, wrongTaps = 0, done = false;
 
       shell.stage.textContent = "";
@@ -4273,11 +4340,11 @@
     var rounds = 5;
     var shell = gameShell(world, rounds);
     var i = 0, correct = 0;
-    var pool = shuffle(ANIMAL_CLUES.slice());
+    var pool = deal(world.id, ANIMAL_CLUES, keyer(), rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var item = pool[i % pool.length];
+      var item = pool[i];
       var shown = 1, done = false;
 
       shell.stage.textContent = "";
@@ -4331,13 +4398,13 @@
   /* ---------- Riddle Time ---------- */
   function startRiddles(world){
     var rounds = 6;
-    var pool = shuffle(forBand(RIDDLES, band()).slice());
+    var pool = dealBand(world.id, RIDDLES, rounds);
     var shell = gameShell(world, rounds);
     var i = 0, correct = 0;
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var r = pool[i % pool.length];
+      var r = pool[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Riddle " + (i+1) + " of " + rounds}));
       shell.stage.appendChild(el("div",{"class":"story", style:"font-size:clamp(17px,4.4vw,22px)", text:r.q}));
@@ -5370,9 +5437,9 @@
      ========================================================================== */
 
   function startHomophones(world){
-    var pool = shuffle(forBand(HOMOPHONES, band()).slice());
+    var pool = dealBand(world.id, HOMOPHONES, 8);
     wordRound(world, 8, function(i){
-      var it = pool[i % pool.length];
+      var it = pool[i];
       return {prompt:"Which word fits the gap?", subject:it.q, small:true,
         a:it.a, x:it.x, speak:it.q.replace("___", "blank"),
         after:it.q.replace("___", it.a)};
@@ -5438,7 +5505,7 @@
     var i = 0, correct = 0, order = shuffle(CIRCUIT_FAULTS.slice());
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var f = order[i % order.length];
+      var f = order[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Will the bulb light?"}));
       speak("Will the bulb light?");
@@ -5475,7 +5542,7 @@
     var i = 0, correct = 0, order = shuffle(MAGNETIC.slice());
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var it = order[i % order.length];
+      var it = order[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt",
         text:"Will the magnet pick this up?"}));
@@ -5503,14 +5570,14 @@
      ========================================================================== */
 
   function startZhMeasure(world){
-    var pool = shuffle(forBand(ZH_MEASURE, band()).slice());
+    var pool = dealBand(world.id, ZH_MEASURE, 8);
     var all = [];
     ZH_MEASURE.forEach(function(m){ if(all.indexOf(m.w) < 0) all.push(m.w); });
     var shell = gameShell(world, 8);
     var i = 0, correct = 0;
     function next(){
       if(i >= 8){ finish(world, correct, 8); return; }
-      var it = pool[i % pool.length];
+      var it = pool[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Which measure word fits?"}));
       shell.stage.appendChild(el("div",{"class":"countrow", text:it.e}));
@@ -5534,12 +5601,12 @@
   }
 
   function startZhStrokes(world){
-    var pool = shuffle(forBand(ZH_STROKES, band()).slice());
+    var pool = dealBand(world.id, ZH_STROKES, 8);
     var shell = gameShell(world, 8);
     var i = 0, correct = 0;
     function next(){
       if(i >= 8){ finish(world, correct, 8); return; }
-      var it = pool[i % pool.length];
+      var it = pool[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt",
         text:"How many strokes does this character take?"}));
@@ -6023,18 +6090,18 @@
   }
 
   function startSynonyms(world){
-    var pool = shuffle(forBand(SYNONYMS, band()).slice());
+    var pool = dealBand(world.id, SYNONYMS, 8);
     wordRound(world, 8, function(i){
-      var it = pool[i % pool.length];
+      var it = pool[i];
       return {prompt:"Which word means nearly the same as…", subject:it.w,
         a:it.s, x:it.x, after:it.w + " … " + it.s};
     });
   }
 
   function startTenses(world){
-    var pool = shuffle(forBand(TENSES, band()).slice());
+    var pool = dealBand(world.id, TENSES, 8);
     wordRound(world, 8, function(i){
-      var it = pool[i % pool.length];
+      var it = pool[i];
       return {prompt:"Choose the right form of “" + it.v + "”", subject:it.q,
         small:true, a:it.a, x:it.x, speak:it.q.replace("___","blank"),
         after:it.q.replace("___", it.a)};
@@ -6042,9 +6109,9 @@
   }
 
   function startPlurals(world){
-    var pool = shuffle(forBand(PLURALS, band()).slice());
+    var pool = dealBand(world.id, PLURALS, 8);
     wordRound(world, 8, function(i){
-      var it = pool[i % pool.length];
+      var it = pool[i];
       return {prompt:"One " + it.w + ", two…?", subject:it.w,
         a:it.a, x:it.x, speak:"One " + it.w + ". Two what?",
         after:"One " + it.w + ", two " + it.a};
@@ -6052,11 +6119,11 @@
   }
 
   function startAnimalGroups(world){
-    var pool = shuffle(ANIMAL_GROUPS.slice());
+    var pool = deal(world.id, ANIMAL_GROUPS, keyer(), 8);
     var groups = [];
     ANIMAL_GROUPS.forEach(function(a){ if(groups.indexOf(a.g) < 0) groups.push(a.g); });
     wordRound(world, 8, function(i){
-      var it = pool[i % pool.length];
+      var it = pool[i];
       var wrongs = shuffle(groups.filter(function(g){ return g !== it.g; })).slice(0, 3);
       return {prompt:"Which group does this animal belong to?", emo:it.e, subject:it.w,
         a:it.g, x:wrongs, after:"A " + it.w + " is a " + it.g.toLowerCase()};
@@ -6872,11 +6939,11 @@
   function startOpposites(world){
     var pool = forBand(OPPOSITES, band()), rounds = 8;
     var shell = gameShell(world, rounds);
-    var i = 0, correct = 0, order = shuffle(pool.slice());
+    var i = 0, correct = 0, order = dealBand(world.id, OPPOSITES, rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var it = order[i % order.length];
+      var it = order[i];
       /* One extra distractor is pulled from another pair, so three of the four
          are real words a child has met. */
       var extra = pick(pool.filter(function(x){ return x.w !== it.w; }));
@@ -6906,11 +6973,11 @@
   function startGrammar(world){
     var pool = forBand(GRAMMAR, band()), rounds = 8;
     var shell = gameShell(world, rounds);
-    var i = 0, correct = 0, order = shuffle(pool.slice());
+    var i = 0, correct = 0, order = dealBand(world.id, GRAMMAR, rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var it = order[i % order.length];
+      var it = order[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Which word fits the gap?"}));
       shell.stage.appendChild(el("div",{"class":"sentence", text:it.q}));
@@ -6931,11 +6998,11 @@
   function startSentence(world){
     var pool = forBand(SENTENCES, band()), rounds = 5;
     var shell = gameShell(world, rounds);
-    var i = 0, correct = 0, order = shuffle(pool.slice());
+    var i = 0, correct = 0, order = dealBand(world.id, SENTENCES, rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var words = order[i % order.length].s.split(" ");
+      var words = order[i].s.split(" ");
       var built = [], wrong = false;
 
       shell.stage.textContent = "";
@@ -6991,11 +7058,11 @@
   function startPunct(world){
     var pool = forBand(PUNCT, band()), rounds = 6;
     var shell = gameShell(world, rounds);
-    var i = 0, correct = 0, order = shuffle(pool.slice());
+    var i = 0, correct = 0, order = dealBand(world.id, PUNCT, rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var it = order[i % order.length];
+      var it = order[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Which one is written correctly?"}));
       var opts = shuffle([it.a].concat(it.x));
@@ -7029,11 +7096,11 @@
   function startMeaning(world){
     var pool = forBand(MEANINGS, band()), rounds = 8;
     var shell = gameShell(world, rounds);
-    var i = 0, correct = 0, order = shuffle(pool.slice());
+    var i = 0, correct = 0, order = dealBand(world.id, MEANINGS, rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var it = order[i % order.length];
+      var it = order[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:"What does the word in bold mean?"}));
       /* The sentence is given because context is how the syllabus wants these
@@ -7059,11 +7126,11 @@
   function startIdioms(world){
     var pool = forBand(IDIOMS, band()), rounds = 6;
     var shell = gameShell(world, rounds);
-    var i = 0, correct = 0, order = shuffle(pool.slice());
+    var i = 0, correct = 0, order = dealBand(world.id, IDIOMS, rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var it = order[i % order.length];
+      var it = order[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:"What does this saying mean?"}));
       var row = el("div",{"class":"sayrow"});
@@ -7086,11 +7153,11 @@
   function startAffix(world){
     var pool = forBand(AFFIXES, band()), rounds = 8;
     var shell = gameShell(world, rounds);
-    var i = 0, correct = 0, order = shuffle(pool.slice());
+    var i = 0, correct = 0, order = dealBand(world.id, AFFIXES, rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var it = order[i % order.length];
+      var it = order[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Which word means…"}));
       shell.stage.appendChild(el("div",{"class":"bigq", style:"font-size:clamp(24px,5.5vw,38px)", text:it.q}));
@@ -7108,8 +7175,7 @@
   /* A short passage, then one question about what it says and one about what
      it means — the two halves of comprehension the syllabus separates. */
   function startReading(world){
-    var pool = forBand(PASSAGES, band());
-    var piece = pick(pool);
+    var piece = dealBand(world.id, PASSAGES, 1)[0];
     var qs = piece.qs;
     var shell = gameShell(world, qs.length);
     var i = 0, correct = 0;
@@ -7171,7 +7237,7 @@
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var right = order[i % order.length];
+      var right = order[i];
       var others = shuffle(pool.filter(function(x){ return x.c !== right.c; })).slice(0, 3);
       /* Half the rounds go the other way round: picture first, then character.
          Reading a character and recalling one are different skills. */
@@ -7224,7 +7290,7 @@
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var right = order[i % order.length];
+      var right = order[i];
       /* Wrong answers are drawn from other characters, so they are real pinyin
          a child might confuse it with rather than nonsense syllables. */
       var others = shuffle(pool.filter(function(x){ return x.p !== right.p; })).slice(0, 3);
@@ -7255,11 +7321,11 @@
     var pool = forBand(ZH_NUMBERS, band()), rounds = 8;
     var shell = gameShell(world, rounds);
     var i = 0, correct = 0;
-    var order = shuffle(pool.slice());
+    var order = dealBand(world.id, ZH_NUMBERS, rounds);
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var right = order[i % order.length];
+      var right = order[i];
       var others = shuffle(pool.filter(function(x){ return x.n !== right.n; })).slice(0, 3);
       var toNumber = i % 2 === 0;
 
@@ -7300,12 +7366,12 @@
     var pool = forBand(ZH_WORDS, band()), rounds = 8;
     var shell = gameShell(world, rounds);
     var i = 0, correct = 0;
-    var order = shuffle(pool.slice());
+    var order = dealBand(world.id, ZH_WORDS, rounds);
     var allSecond = ZH_WORDS.map(function(x){ return x.z; });
 
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
-      var right = order[i % order.length];
+      var right = order[i];
       var wrongs = shuffle(allSecond.filter(function(z){ return z !== right.z; }));
       var seen = {}, opts = [];
       wrongs.forEach(function(z){ if(!seen[z] && opts.length < 3){ seen[z] = 1; opts.push(z); } });
