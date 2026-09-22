@@ -1921,18 +1921,18 @@ window.PC = (function(){
 
   /* ---------- best material for the job (Matter & Materials) ---------- */
   var MATERIALS = [
-    {b:2, w:"an umbrella canopy",    a:"waterproof nylon", x:["cotton wool","paper","sponge"]},
-    {b:2, w:"a window pane",         a:"glass",            x:["fabric","cardboard","rubber"]},
-    {b:2, w:"a winter jacket lining",a:"wool",             x:["glass","steel","cling wrap"]},
-    {b:2, w:"a saucepan handle",     a:"plastic",          x:["steel","aluminium","copper"]},
-    {b:3, w:"a rain boot",           a:"rubber",           x:["paper","wool","glass"]},
-    {b:3, w:"a kitchen sponge",      a:"foam",             x:["steel","glass","stone"]},
-    {b:3, w:"a bicycle frame",       a:"aluminium",        x:["cotton","paper","foam"]},
-    {b:3, w:"a drinking glass",      a:"glass",            x:["fabric","foam","cardboard"]},
-    {b:3, w:"a school bag",         a:"canvas fabric",     x:["glass","steel","brick"]},
-    {b:3, w:"electrical wiring",     a:"copper",           x:["wood","rubber","paper"]},
-    {b:3, w:"a cereal box",         a:"cardboard",         x:["glass","steel","rubber"]},
-    {b:3, w:"a swimming goggle lens",a:"plastic",          x:["cotton","paper","wool"]}
+    {b:2, e:"☂️", w:"an umbrella canopy",    a:"waterproof nylon", x:["cotton wool","paper","sponge"]},
+    {b:2, e:"🪟", w:"a window pane",         a:"glass",            x:["fabric","cardboard","rubber"]},
+    {b:2, e:"🧥", w:"a winter jacket lining",a:"wool",             x:["glass","steel","cling wrap"]},
+    {b:2, e:"🍳", w:"a saucepan handle",     a:"plastic",          x:["steel","aluminium","copper"]},
+    {b:3, e:"👢", w:"a rain boot",           a:"rubber",           x:["paper","wool","glass"]},
+    {b:3, e:"🧽", w:"a kitchen sponge",      a:"foam",             x:["steel","glass","stone"]},
+    {b:3, e:"🚲", w:"a bicycle frame",       a:"aluminium",        x:["cotton","paper","foam"]},
+    {b:3, e:"🥛", w:"a drinking glass",      a:"glass",            x:["fabric","foam","cardboard"]},
+    {b:3, e:"🎒", w:"a school bag",         a:"canvas fabric",     x:["glass","steel","brick"]},
+    {b:3, e:"🔌", w:"electrical wiring",     a:"copper",           x:["wood","rubber","paper"]},
+    {b:3, e:"📦", w:"a cereal box",         a:"cardboard",         x:["glass","steel","rubber"]},
+    {b:3, e:"🥽", w:"a swimming goggle lens",a:"plastic",          x:["cotton","paper","wool"]}
   ];
 
   /* ---------- conductor or insulator (Electricity) ---------- */

@@ -286,6 +286,29 @@
   .magnet-obj.stuck{animation:magstuck .5s ease}
   @keyframes magstuck{0%,100%{transform:none} 30%{transform:translateX(-10px)} 60%{transform:translateX(4px)}}
 
+  /* ---- a bigger, framed picture for the yes/no science quizzes: a soft
+     glowing disc behind the emoji rather than the emoji sitting bare on the
+     stage, and a gentle float so the stage feels alive between taps ---- */
+  .quiz-scene{display:flex; align-items:center; justify-content:center;
+    width:168px; height:168px; margin:4px auto 6px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.22), rgba(255,255,255,.04) 70%);
+    box-shadow:0 14px 34px rgba(0,0,0,.28), inset 0 0 0 3px rgba(255,255,255,.14);
+    animation:quizfloat 3.2s ease-in-out infinite}
+  .quiz-scene .pic{font-size:96px; line-height:1; filter:drop-shadow(0 6px 10px rgba(0,0,0,.3))}
+  @keyframes quizfloat{0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)}}
+
+  /* ---- two magnets facing each other, for Attract or Repel. Each bar shows
+     only the pole facing the gap — the picture illustrates the question
+     without also giving away whether they pull or push. ---- */
+  .poles-scene{display:flex; align-items:center; justify-content:center; gap:38px;
+    margin:4px auto 10px}
+  .poles-scene .bar{width:64px; height:96px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"Baloo 2",sans-serif; font-weight:800; font-size:34px; color:#fff;
+    box-shadow:0 10px 24px rgba(0,0,0,.3)}
+  .poles-scene .bar.n{background:linear-gradient(160deg,#FF7A6B,#C4302A)}
+  .poles-scene .bar.s{background:linear-gradient(160deg,#5BA0E8,#1F5A9E)}
+
   /* ---- Chinese characters at reading size ---- */
   .zhbig{font-size:clamp(30px,7.5vw,50px); letter-spacing:.06em}
   .zhhuge{font-size:clamp(76px,22vw,132px); line-height:1.05; font-weight:800; color:#fff;
@@ -5757,7 +5780,13 @@
       var it = order[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:prompt}));
-      if(it.e) shell.stage.appendChild(el("div",{"class":"countrow", text:it.e}));
+      if(opts.scene){
+        shell.stage.appendChild(opts.scene(it));
+      } else if(it.e){
+        var scene = el("div",{"class":"quiz-scene"});
+        scene.appendChild(el("div",{"class":"pic", text:it.e}));
+        shell.stage.appendChild(scene);
+      }
       shell.stage.appendChild(el("div",{"class":"bigq",
         style:"font-size:clamp(20px,5vw,30px)", text:opts.label(it)}));
       speak(opts.speak(it));
@@ -5793,6 +5822,9 @@
       var it = order[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:"What is the best material for…"}));
+      var mscene = el("div",{"class":"quiz-scene"});
+      mscene.appendChild(el("div",{"class":"pic", text:it.e}));
+      shell.stage.appendChild(mscene);
       shell.stage.appendChild(el("div",{"class":"bigq",
         style:"font-size:clamp(20px,5vw,30px)", text:it.w}));
       speak("What is the best material for " + it.w + "?");
@@ -5834,6 +5866,12 @@
       yes:"Repel", no:"Attract",
       label: function(it){ return it.a + "  ⟷  " + it.z; },
       speak: function(it){ return it.a + " pole facing " + it.z + " pole: attract or repel?"; },
+      scene: function(it){
+        var wrap = el("div",{"class":"poles-scene"});
+        wrap.appendChild(el("div",{"class":"bar " + it.a.toLowerCase(), text:it.a}));
+        wrap.appendChild(el("div",{"class":"bar " + it.z.toLowerCase(), text:it.z}));
+        return wrap;
+      },
       isYes: function(it){ return it.r; },
       why: function(it){ return it.r
         ? "Same poles push apart — they repel."
