@@ -441,6 +441,22 @@
     box-shadow:0 6px 18px rgba(0,0,0,.35); border:2px solid rgba(255,255,255,.18)}
   .flagpic svg{display:block; width:100%; height:auto}
 
+  /* ---- Snake and Ladders ---- */
+  .snl-path{position:relative; display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+    gap:10px 10px; width:100%; max-width:560px; margin:44px 0 18px; padding:0 6px}
+  .snl-stone{flex:none; width:34px; height:34px; border-radius:10px;
+    background:rgba(255,255,255,.14); border:2px solid rgba(255,255,255,.22);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:13px; color:#fff; position:relative}
+  .snl-stone.snake{background:rgba(255,93,143,.35); border-color:#FF5D8F}
+  .snl-stone.ladder{background:rgba(53,196,143,.35); border-color:#35C48F}
+  .snl-stone .snl-icon{position:absolute; top:-16px; font-size:16px}
+  .snl-token{position:absolute; top:-34px; font-size:24px; line-height:1;
+    transform:translate(-50%,0); transition:left .5s var(--ease), top .5s var(--ease);
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}
+  .snl-slide{animation:snlslide .6s ease}
+  @keyframes snlslide{0%{transform:translate(-50%,0) scale(1)} 50%{transform:translate(-50%,10px) scale(.85)} 100%{transform:translate(-50%,0) scale(1)}}
+
   /* ---- Number Quest: the winding path ---- */
   .nq-path{position:relative; display:flex; align-items:center; justify-content:center;
     flex-wrap:wrap; gap:clamp(10px,3vw,20px) clamp(10px,3vw,20px); width:100%; max-width:560px;
@@ -1950,7 +1966,7 @@
     /* Number Quest is the backbone of the subject and stays open from day one
        at every age; the two showy games are worth earning. Adding them ahead
        of it quietly pushed the flagship game behind a 35-star gate. */
-    maths:   ["tenframe","numbers","cannon","quest","race","patterns","bonds","numline","shapes","measure","wordprob","tower","joyboss","sgmoney","money","picgraph","barmodel","fraction","decimal","areaperim","ratio","balance"],
+    maths:   ["tenframe","numbers","cannon","quest","race","patterns","bonds","numline","shapes","measure","wordprob","tower","joyboss","snake","sgmoney","money","picgraph","barmodel","fraction","decimal","areaperim","ratio","balance"],
     english: ["sounds","spell","rhyme","plural","opposites","synonym","grammar","tenses","homophone","sentence","punct","meaning","affix","idiom","reading"],
     think:   ["odd","sort","code"],
     /* Five Senses and Animal Homes suit the very youngest and open the
@@ -2333,6 +2349,7 @@
     {id:"zhstroke",nm:"\u7b14\u753b Stroke Count", sub:"\u8fd9\u4e2a\u5b57\u6709\u51e0\u753b\uff1f", emo:"\u7b14", bg:"linear-gradient(150deg,#FFD9A0,#C4781B)", ages:"3\u201312", levels:["K1","K2","P1","P2","P3","P4"], sg:"K1 \u2013 P4", free:true, cat:"chinese", topic:"\u8ba4\u5b57\u4e0e\u8bcd\u8bed Characters & Words"},
     {id:"tower",   nm:"Table Tower",    sub:"Stack a block for every table you know", emo:"\ud83c\udfd7\ufe0f", bg:"linear-gradient(150deg,#FFD97D,#E8862F)", ages:"7\u201312", levels:["P2","P3","P4","P5","P6"], sg:"P2 \u2013 P6", free:true, cat:"maths", topic:"Multiplication & Division"},
     {id:"joyboss", nm:"Joystick Boss Battle", sub:"Answer to aim, dodge to survive \u2014 by Kayden Bang, Mee Toh Primary School", emo:"\ud83c\udfae", bg:"linear-gradient(150deg,#B9A2FF,#6A2FC9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Fun Education Fun"},
+    {id:"snake",   nm:"Snake and Ladders", sub:"Answer to roll, race to 30 \u2014 by Ellyia, K2", emo:"\ud83d\udc0d", bg:"linear-gradient(150deg,#A8E6C9,#2E9B6B)", ages:"4\u201310", levels:["N","K1","K2","P1","P2","P3","P4"], sg:"Nursery \u2013 P4", free:true, cat:"maths", topic:"Fun Education Fun"},
     {id:"measure", nm:"Measure Up",     sub:"Read the ruler, the jug and the scale", emo:"\ud83d\udccf", bg:"linear-gradient(150deg,#A7E8C4,#22996B)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5"], sg:"K2 \u2013 P5", free:true, cat:"maths", topic:"Measurement & Data"},
     {id:"wordprob",nm:"Word Problems",  sub:"The sum is hidden in the story", emo:"\ud83d\udcdd", bg:"linear-gradient(150deg,#B8B5FF,#5A51C9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Fractions & Problem Solving"},
     {id:"synonym", nm:"Same Meaning",   sub:"A better word than the one you used", emo:"\ud83d\udd01", bg:"linear-gradient(150deg,#FFC4E1,#C2478E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Reading & Vocabulary"},
@@ -5740,6 +5757,7 @@
     if(world.id === "zhstroke") return startZhStrokes(world);
     if(world.id === "tower")    return startTower(world);
     if(world.id === "joyboss")  return startJoyBoss(world);
+    if(world.id === "snake")    return startSnake(world);
     if(world.id === "measure")  return startMeasure(world);
     if(world.id === "wordprob") return startWordProblems(world);
     if(world.id === "synonym")  return startSynonyms(world);
@@ -7355,6 +7373,133 @@
       show(box);
     }
 
+    nextQuestion();
+  }
+
+  /* ==========================================================================
+     Snake and Ladders
+     --------------------------------------------------------------------------
+     Designed by Ellyia (K2): a short 30-square race against a rival rabbit.
+     Answer a sum to roll — get it right and roll a full die (1-6), get it
+     wrong and still roll, just a smaller one (1-3), so nobody is stuck
+     watching the rabbit run away. Every roll moves both racers: yours,
+     then the rabbit's, snakes and ladders included, straight through to
+     whoever reaches square 30 first.
+     ========================================================================== */
+  var SNL_SIZE = 30;
+  var SNL_SNAKES = {12:4, 19:7, 24:11, 27:16};
+  var SNL_LADDERS = {3:14, 8:20, 17:26};
+  function startSnake(world){
+    var shell = gameShell(world, 0);
+    shell.stage.appendChild(el("div",{"class":"byline", text:"🐍 Created by Ellyia, K2"}));
+    shell.stage.appendChild(el("div",{"class":"prompt", text:"Answer to roll — race Bunny to square 30!"}));
+
+    var path = el("div",{"class":"snl-path"});
+    var stones = [];
+    for(var s = 1; s <= SNL_SIZE; s++){
+      var stone = el("div",{"class":"snl-stone" + (SNL_SNAKES[s] ? " snake" : SNL_LADDERS[s] ? " ladder" : ""),
+        text:String(s)});
+      if(SNL_SNAKES[s]) stone.appendChild(el("span",{"class":"snl-icon", text:"🐍"}));
+      if(SNL_LADDERS[s]) stone.appendChild(el("span",{"class":"snl-icon", text:"🪜"}));
+      stones.push(stone);
+      path.appendChild(stone);
+    }
+    var meToken = el("div",{"class":"snl-token", text: state.avatar || "🦊"});
+    var rivalToken = el("div",{"class":"snl-token", text:"🐰"});
+    path.appendChild(meToken); path.appendChild(rivalToken);
+    shell.stage.appendChild(path);
+
+    var status = el("div",{"class":"hintline", text:"Your turn — answer the sum to roll!"});
+    shell.stage.appendChild(status);
+    var card = el("div",{"class":"qbox"});
+    shell.stage.appendChild(card);
+
+    var mePos = 0, rivalPos = 0, over = false;
+
+    function placeToken(tokenEl, pos, offsetX){
+      var idx = Math.max(0, Math.min(SNL_SIZE - 1, pos - 1));
+      var target = stones[idx];
+      var pathRect = path.getBoundingClientRect();
+      var tRect = target.getBoundingClientRect();
+      if(!pathRect.width || !tRect.width) return;
+      tokenEl.style.left = (tRect.left - pathRect.left + tRect.width / 2 + (offsetX || 0)) + "px";
+      tokenEl.style.top = (tRect.top - pathRect.top - 34) + "px";
+    }
+    function placeBoth(){ placeToken(meToken, mePos || 1, -10); placeToken(rivalToken, rivalPos || 1, 10); }
+    setTimeout(placeBoth, 0);
+    window.addEventListener("resize", placeBoth);
+
+    function endGame(won){
+      window.removeEventListener("resize", placeBoth);
+      if(won){ sfx.win(); confettiBurst(90); award(world.id, 3, true); }
+      else { sfx.bad(); award(world.id, 0, false); }
+      save();
+      var box = el("div",{"class":"result"});
+      box.appendChild(el("div",{"class":"stars-big", text: won ? "🏆" : "🐰"}));
+      box.appendChild(el("div",{"class":"score display", text: won ? "You beat Bunny to 30!" : "Bunny got there first!"}));
+      box.appendChild(el("div",{"class":"byline", text:"🐍 Created by Ellyia, K2"}));
+      var again = el("button",{"class":"btn btn-lg btn-go", text:"Play again"});
+      again.addEventListener("click", function(){ sfx.tap(); startSnake(world); });
+      var home = el("button",{"class":"btn btn-lg btn-ghost", text:"Choose another game"});
+      home.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+      box.appendChild(again); box.appendChild(home);
+      show(box);
+    }
+
+    function rivalTurn(){
+      if(over) return;
+      var roll = ri(1, 6);
+      rivalPos = Math.min(SNL_SIZE, rivalPos + roll);
+      placeToken(rivalToken, rivalPos, 10);
+      status.textContent = "🐰 Bunny rolled a " + roll + "!";
+      setTimeout(function(){
+        if(rivalPos >= SNL_SIZE){ over = true; endGame(false); return; }
+        var snake = SNL_SNAKES[rivalPos], ladder = SNL_LADDERS[rivalPos];
+        if(snake){
+          rivalPos = snake; rivalToken.classList.add("snl-slide");
+          status.textContent = "🐍 Bunny hit a snake! Sliding back to " + snake + ".";
+          setTimeout(function(){ rivalToken.classList.remove("snl-slide"); placeToken(rivalToken, rivalPos, 10); nextQuestion(); }, 500);
+        } else if(ladder){
+          rivalPos = ladder; rivalToken.classList.add("snl-slide");
+          status.textContent = "🪜 Bunny found a ladder! Climbing to " + ladder + ".";
+          setTimeout(function(){ rivalToken.classList.remove("snl-slide"); placeToken(rivalToken, rivalPos, 10); nextQuestion(); }, 500);
+        } else {
+          setTimeout(nextQuestion, 500);
+        }
+      }, 700);
+    }
+
+    function nextQuestion(){
+      if(over) return;
+      card.textContent = "";
+      status.textContent = "Your turn — answer the sum to roll!";
+      var Q = numberQuestion(Math.min(1, band()), Math.max(1, levelOf(world.id)));
+      card.appendChild(el("div",{"class":"prompt", text:Q.prompt || "What is…"}));
+      if(Q.emoji) card.appendChild(el("div",{"class":"countrow", text:Q.emoji.trim()}));
+      else card.appendChild(el("div",{"class":"bigq", text: qLine(Q)}));
+      card.appendChild(choiceGrid(Q.opts, Q.a, function(ok){
+        var roll = ok ? ri(1, 6) : ri(1, 3);
+        if(ok){ sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        mePos = Math.min(SNL_SIZE, mePos + roll);
+        placeToken(meToken, mePos, -10);
+        status.textContent = "🎲 You rolled a " + roll + "!";
+        setTimeout(function(){
+          if(mePos >= SNL_SIZE){ over = true; endGame(true); return; }
+          var snake = SNL_SNAKES[mePos], ladder = SNL_LADDERS[mePos];
+          if(snake){
+            mePos = snake; meToken.classList.add("snl-slide");
+            status.textContent = "🐍 Oh no, a snake! Sliding back to " + snake + ".";
+            setTimeout(function(){ meToken.classList.remove("snl-slide"); placeToken(meToken, mePos, -10); rivalTurn(); }, 500);
+          } else if(ladder){
+            mePos = ladder; meToken.classList.add("snl-slide");
+            status.textContent = "🪜 A ladder! Climbing up to " + ladder + ".";
+            setTimeout(function(){ meToken.classList.remove("snl-slide"); placeToken(meToken, mePos, -10); rivalTurn(); }, 500);
+          } else {
+            setTimeout(rivalTurn, 500);
+          }
+        }, 700);
+      }, false));
+    }
     nextQuestion();
   }
 
