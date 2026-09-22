@@ -630,52 +630,48 @@
         tr.appendChild(td5);
 
         var td6 = document.createElement("td");
-        td6.style.textAlign = "right";
-        td6.style.whiteSpace = "nowrap";
+        var actions = document.createElement("div");
+        actions.style.cssText = "display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; max-width:230px; margin-left:auto";
 
         if(isTrial){
           var g = document.createElement("button");
           g.className = "btn btn-sm";
           g.textContent = "Give full";
           g.addEventListener("click", function(){ grant(r.email, "full"); });
-          td6.appendChild(g);
+          actions.appendChild(g);
         }
 
         var ul = document.createElement("button");
         ul.className = "btn btn-sm";
-        ul.style.marginLeft = "6px";
         ul.textContent = r.allUnlocked ? "Lock games" : "Unlock all games";
         ul.addEventListener("click", function(){
           var action = r.allUnlocked ? "lockAll" : "unlockAll";
           if(action === "lockAll" && !confirm("Put the star gates back for " + r.email + "?\n\nGames they haven't yet earned enough stars for will lock again.")) return;
           account(r.email, action);
         });
-        td6.appendChild(ul);
+        actions.appendChild(ul);
 
         var adBtn = document.createElement("button");
         adBtn.className = "btn btn-sm";
-        adBtn.style.marginLeft = "6px";
         adBtn.textContent = r.adsDisabled ? "Turn on ads" : "Turn off ads";
         adBtn.addEventListener("click", function(){
           var action = r.adsDisabled ? "enableAds" : "disableAds";
           if(action === "enableAds" && !confirm("Turn ad breaks back on for " + r.email + "?")) return;
           account(r.email, action);
         });
-        td6.appendChild(adBtn);
+        actions.appendChild(adBtn);
 
         var rs = document.createElement("button");
         rs.className = "btn btn-sm";
-        rs.style.marginLeft = "6px";
         rs.textContent = "Reset stars";
         rs.addEventListener("click", function(){
           if(!confirm("Reset progress for " + r.email + "?\n\nStars, levels and badges go back to zero. The account and its sign-ins are kept.")) return;
           account(r.email, "reset");
         });
-        td6.appendChild(rs);
+        actions.appendChild(rs);
 
         var del = document.createElement("button");
         del.className = "btn btn-sm danger";
-        del.style.marginLeft = "6px";
         del.textContent = "Delete";
         del.addEventListener("click", function(){
           /* Two steps, because this cannot be undone and the rows look alike. */
@@ -687,8 +683,9 @@
           }
           account(r.email, "delete");
         });
-        td6.appendChild(del);
+        actions.appendChild(del);
 
+        td6.appendChild(actions);
         tr.appendChild(td6);
         t.appendChild(tr);
       });
