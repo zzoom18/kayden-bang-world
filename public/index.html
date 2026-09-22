@@ -164,6 +164,17 @@
   .scratch-bar{display:flex; align-items:center; gap:10px; padding:12px 16px;
     background:rgba(0,0,0,.06); flex:none}
   .scratch-bar .lbl{font-family:"Baloo 2",sans-serif; font-weight:800; color:#6B5E3C; margin-right:auto; font-size:14.5px}
+
+  /* ---- read-aloud games ---- */
+  .read-passage{font-family:"Baloo 2",sans-serif; font-weight:800; font-size:clamp(22px,5.5vw,34px);
+    line-height:1.5; max-width:640px}
+  .mic-btn{width:96px; height:96px; border-radius:50%; font-size:44px; display:grid; place-items:center;
+    background:linear-gradient(160deg,#FF7A9A,#C4305B); box-shadow:0 12px 26px rgba(0,0,0,.32); flex:none}
+  .mic-btn:disabled{opacity:.5}
+  .mic-btn.listening{animation:micpulse 1.1s ease-in-out infinite}
+  @keyframes micpulse{0%,100%{box-shadow:0 12px 26px rgba(0,0,0,.32), 0 0 0 0 rgba(255,93,143,.5)}
+    50%{box-shadow:0 12px 26px rgba(0,0,0,.32), 0 0 0 18px rgba(255,93,143,0)}}
+
   .prompt{font-size:18px; font-weight:800; color:var(--ink-soft); letter-spacing:.4px}
 
   /* ---- two-player games: one iPad flat on the table, a child on each side ---- */
@@ -1297,6 +1308,12 @@
      always is, and it ignores a second utterance while one is in flight —
      hence the cancel before each. */
   var CAN_SPEAK = !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
+  /* Reading-aloud scoring needs the browser to listen back, not just talk —
+     a separate, less universally supported API. Safari and Firefox mostly
+     don't have it, so the read-aloud games check this and say so plainly
+     rather than showing a mic button that does nothing. */
+  var SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var CAN_LISTEN = !!SpeechRec;
   var voices = [];
   function refreshVoices(){
     try{ voices = window.speechSynthesis.getVoices() || []; }catch(e){ voices = []; }
@@ -1599,6 +1616,7 @@
   var POLES = PC.POLES, FORCES = PC.FORCES, MATERIALS = PC.MATERIALS;
   var CONDUCTORS = PC.CONDUCTORS, VERTEBRATES = PC.VERTEBRATES, LIVING = PC.LIVING;
   var SENTENCE_TYPES = PC.SENTENCE_TYPES;
+  var READ_ALOUD_EN = PC.READ_ALOUD_EN, READ_ALOUD_ZH = PC.READ_ALOUD_ZH, READ_STORY_ZH = PC.READ_STORY_ZH;
 
   /* Age bands. Everything a child is shown is chosen against these. */
   var BANDS = [
@@ -2198,6 +2216,8 @@
     {id:"measure", nm:"Measure Up",     sub:"Read the ruler, the jug and the scale", emo:"\ud83d\udccf", bg:"linear-gradient(150deg,#A7E8C4,#22996B)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5"], sg:"K2 \u2013 P5", free:true, cat:"maths", topic:"Measurement & Data"},
     {id:"wordprob",nm:"Word Problems",  sub:"The sum is hidden in the story", emo:"\ud83d\udcdd", bg:"linear-gradient(150deg,#B8B5FF,#5A51C9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Fractions & Problem Solving"},
     {id:"synonym", nm:"Same Meaning",   sub:"A better word than the one you used", emo:"\ud83d\udd01", bg:"linear-gradient(150deg,#FFC4E1,#C2478E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Reading & Vocabulary"},
+    {id:"readaloud",nm:"Read It Aloud", sub:"Read the sentence, get a score",  emo:"\ud83c\udf99\ufe0f", bg:"linear-gradient(150deg,#9BD6FF,#4A8FE8)", ages:"5\u20139", levels:["K2","P1","P2","P3"], sg:"K2 \u2013 P3", free:true, cat:"english", topic:"Read Aloud"},
+    {id:"readstory",nm:"Read a Story",  sub:"A little longer, out loud",       emo:"\ud83d\udcd6", bg:"linear-gradient(150deg,#A8D8FF,#3B6FC4)", ages:"6\u20139", levels:["K2","P1","P2","P3"], sg:"K2 \u2013 P3", free:false, cat:"english", topic:"Read Aloud"},
     {id:"tenses",  nm:"Tense Time",     sub:"Yesterday, today or tomorrow?", emo:"\u23f3", bg:"linear-gradient(150deg,#9BD6FF,#2E6FB7)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Grammar"},
     {id:"plural",  nm:"One or Many",    sub:"One mouse, two\u2026?", emo:"\ud83d\udc65", bg:"linear-gradient(150deg,#FFE08A,#D98B14)", ages:"3\u201312", levels:["K1","K2","P1","P2","P3","P4","P5"], sg:"K1 \u2013 P5", free:true, cat:"english", topic:"Grammar"},
     {id:"animals", nm:"Animal Groups",  sub:"Mammal, bird, fish, reptile or insect?", emo:"\ud83d\udc3e", bg:"linear-gradient(150deg,#9EE6A8,#2E8B4F)", ages:"7\u201312", levels:["P3","P4","P5","P6"], sg:"P3 \u2013 P6", free:false, cat:"science", topic:"Diversity of Living Things"},
@@ -2229,6 +2249,8 @@
     {id:"zhpinyin",nm:"拼音 Pinyin Match",       sub:"How do you read this one?",          emo:"拼", bg:"linear-gradient(150deg,#FFBE6B,#F58220)", ages:"4–12", levels:["K1","K2","P1","P2","P3","P4","P5","P6"], sg:"K1 – P6", free:false, cat:"chinese", topic:"认字与词语 Characters & Words"},
     {id:"zhnum",   nm:"数字 Chinese Numbers",    sub:"一二三 and how high can you go",      emo:"数", bg:"linear-gradient(150deg,#FFD66B,#F2A93B)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"chinese", topic:"数字与量词 Numbers & Measure Words"},
     {id:"zhword",  nm:"词语 Make a Word",        sub:"Join two characters together",       emo:"词", bg:"linear-gradient(150deg,#FF9BA8,#E8566E)", ages:"5–12", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 – P6", free:false, cat:"chinese", topic:"认字与词语 Characters & Words"},
+    {id:"zhreadaloud",nm:"朗读句子 Read a Sentence", sub:"Read it out loud, get a score", emo:"🎙️", bg:"linear-gradient(150deg,#FFB9B9,#E8453C)", ages:"5–9", levels:["K2","P1","P2","P3"], sg:"K2 – P3", free:true, cat:"chinese", topic:"朗读 Read Aloud"},
+    {id:"zhreadstory",nm:"朗读短文 Read a Story",  sub:"Two sentences, out loud",       emo:"📖", bg:"linear-gradient(150deg,#FF9BA8,#C4302A)", ages:"6–9", levels:["K2","P1","P2","P3"], sg:"K2 – P3", free:false, cat:"chinese", topic:"朗读 Read Aloud"},
 
     {id:"duomaths", nm:"Maths Duel",    sub:"Two players — first to answer",  emo:"⚔️", bg:"linear-gradient(150deg,#FFB36B,#FF6B4A)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:true,  cat:"duo", topic:"Head to Head"},
     {id:"duoword",  nm:"Word Duel",     sub:"Two players — beat them to it",  emo:"🏁", bg:"linear-gradient(150deg,#FF9BD2,#E85BB0)", ages:"3–12", levels:["N","K1","K2","P1","P2","P3","P4","P5","P6"], sg:"Nursery – P6", free:false, cat:"duo", topic:"Head to Head"},
@@ -5285,6 +5307,10 @@
     if(world.id === "division") return startDivision(world);
     if(world.id === "patternrule")return startPatternRule(world);
     if(world.id === "sequence") return startSequence(world);
+    if(world.id === "readaloud") return startReadAloud(world, {items:READ_ALOUD_EN, lang:"en-SG", text:function(it){ return it.s; }});
+    if(world.id === "readstory") return startReadAloud(world, {items:PASSAGES.filter(function(p){ return p.b <= 2; }), lang:"en-SG", text:function(it){ return it.p; }});
+    if(world.id === "zhreadaloud") return startReadAloud(world, {items:READ_ALOUD_ZH, lang:"zh-CN", text:function(it){ return it.s; }, gloss:function(it){ return it.en; }});
+    if(world.id === "zhreadstory") return startReadAloud(world, {items:READ_STORY_ZH, lang:"zh-CN", text:function(it){ return it.s; }, gloss:function(it){ return it.en; }});
   }
 
 
@@ -6142,6 +6168,117 @@
         i++;
         setTimeout(next, ok ? 900 : 1400);
       }, false));
+    }
+    next();
+  }
+
+  /* ==========================================================================
+     Read It Aloud / Read a Story / 朗读句子 / 朗读短文
+     --------------------------------------------------------------------------
+     Shows a sentence (or a short story), lets a child hear it once, then
+     listens back through the browser's speech recognition and scores how
+     much of it came through — a plain word-overlap score, not a linguistic
+     pronunciation judge, which is enough to tell "read it" from "skipped
+     it" without pretending to be more precise than it is.
+     ========================================================================== */
+  function scoreReading(target, heard, zh){
+    function tokenize(s){
+      s = String(s || "").toLowerCase().replace(/[.,!?;:'"“”，。!?;:、\s]+/g, zh ? "" : " ").trim();
+      return zh ? s.split("") : s.split(/\s+/).filter(Boolean);
+    }
+    var t = tokenize(target), h = tokenize(heard);
+    if(!t.length) return 0;
+    var pool = h.slice(), hits = 0;
+    t.forEach(function(tok){
+      var idx = pool.indexOf(tok);
+      if(idx >= 0){ hits++; pool.splice(idx, 1); }
+    });
+    return Math.round((hits / t.length) * 100);
+  }
+
+  function startReadAloud(world, opts){
+    var rounds = Math.min(6, opts.items.length);
+    var shell = gameShell(world, rounds);
+    var order = dealBand(world.id, opts.items, rounds);
+    var i = 0, correct = 0;
+
+    if(!CAN_LISTEN){
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"This game needs a browser that can listen"}));
+      shell.stage.appendChild(el("div",{"class":"bigq", style:"font-size:19px; max-width:420px; line-height:1.5",
+        text:"Reading practice works best in Chrome or Edge. Try opening kayden.sg there to play this one."}));
+      var back = el("button",{"class":"btn btn-lg btn-go", text:"Choose another game"});
+      back.addEventListener("click", function(){ sfx.tap(); renderHome(); });
+      shell.stage.appendChild(back);
+      return;
+    }
+
+    function next(){
+      if(i >= rounds){ finish(world, correct, rounds); return; }
+      var it = order[i];
+      var target = opts.text(it);
+      shell.stage.textContent = "";
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"Read this out loud"}));
+      shell.stage.appendChild(el("div",{"class":"read-passage", text:target}));
+      if(opts.gloss) shell.stage.appendChild(el("div",{"class":"hintline", text:opts.gloss(it)}));
+      var hear = el("button",{"class":"btn btn-ghost btn-sm", text:"🔊 Hear it first"});
+      hear.addEventListener("click", function(){ sfx.tap(); speak(target, {lang:opts.lang}); });
+      shell.stage.appendChild(hear);
+
+      var mic = el("button",{"class":"mic-btn", "aria-label":"Tap to read", text:"🎙️"});
+      var status = el("div",{"class":"hintline", text:"Tap the mic, then read it out loud"});
+      shell.stage.appendChild(mic);
+      shell.stage.appendChild(status);
+      var skip = el("button",{"class":"linkbtn", text:"Skip this one"});
+      shell.stage.appendChild(skip);
+
+      var rec = new SpeechRec();
+      rec.lang = opts.lang;
+      rec.continuous = false;
+      rec.interimResults = false;
+      var done = false, listening = false;
+
+      function finishRound(score){
+        if(done) return;
+        done = true;
+        mic.disabled = true; skip.disabled = true;
+        var passed = score >= 40;
+        if(passed){ correct++; sfx.good(); flash("⭐"); } else { sfx.bad(); }
+        status.textContent = (score >= 90 ? "Amazing reading!" : score >= 70 ? "Nice reading!"
+          : score >= 40 ? "Good try!" : "Let's try that kind again soon.") + "  (" + score + "%)";
+        markDot(shell.dots, i, passed);
+        i++;
+        afterSpeech(next, 2200);
+      }
+
+      mic.addEventListener("click", function(){
+        if(mic.disabled || listening) return;
+        sfx.tap();
+        listening = true;
+        mic.classList.add("listening");
+        status.textContent = "Listening…";
+        try{ rec.start(); }
+        catch(e){ listening = false; mic.classList.remove("listening"); status.textContent = "Couldn't start listening — tap the mic to try again."; }
+      });
+      rec.addEventListener("result", function(e){
+        listening = false;
+        mic.classList.remove("listening");
+        var heard = e.results[0][0].transcript;
+        finishRound(scoreReading(target, heard, opts.lang === "zh-CN"));
+      });
+      rec.addEventListener("error", function(e){
+        listening = false;
+        mic.classList.remove("listening");
+        if(done) return;
+        status.textContent = e.error === "not-allowed" || e.error === "service-not-allowed"
+          ? "Microphone access is blocked — allow it in the browser to play this game."
+          : e.error === "no-speech" ? "Didn't catch that — tap the mic and try again."
+          : "Something went wrong listening — tap the mic to try again.";
+      });
+      rec.addEventListener("end", function(){
+        listening = false;
+        mic.classList.remove("listening");
+      });
+      skip.addEventListener("click", function(){ sfx.tap(); try{ rec.abort(); }catch(e){} finishRound(0); });
     }
     next();
   }

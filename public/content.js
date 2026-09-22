@@ -2003,6 +2003,52 @@ window.PC = (function(){
     {b:3, s:"That is the best goal I have ever seen!", t:"Exclamation"}
   ];
 
+  /* ---------- read it out loud (English), for the read-along scoring game ----------
+     Short and simple at first — this is being read aloud, not silently, so a
+     sentence that is easy to decode matters more than one that is short to
+     type. Length and clause complexity grow with band. */
+  var READ_ALOUD_EN = [
+    {b:0, s:"The cat sat on the mat."},
+    {b:0, s:"I like to eat rice."},
+    {b:0, s:"The sun is hot today."},
+    {b:1, s:"My dog can run very fast."},
+    {b:1, s:"We went to the park after school."},
+    {b:1, s:"She has a red bag and a blue hat."},
+    {b:1, s:"The bird flew over the tall tree."},
+    {b:2, s:"On Saturday morning, we visited my grandmother's house."},
+    {b:2, s:"The little boy shared his umbrella with his friend."},
+    {b:2, s:"Before dinner, everyone washed their hands and sat down together."},
+    {b:2, s:"The library was quiet, so I could read my favourite book in peace."},
+    {b:2, s:"Even though it was raining, the children still wanted to play outside."}
+  ];
+
+  /* ---------- read it out loud (Chinese) ----------
+     Everyday sentences built from characters a young reader already meets
+     elsewhere in the app, so the words are familiar even where the
+     sentence itself is new. */
+  var READ_ALOUD_ZH = [
+    {b:0, s:"这是我的猫。", en:"This is my cat."},
+    {b:0, s:"我喜欢吃苹果。", en:"I like eating apples."},
+    {b:0, s:"今天天气很好。", en:"The weather is nice today."},
+    {b:1, s:"我的狗跑得很快。", en:"My dog runs very fast."},
+    {b:1, s:"妈妈在厨房做饭。", en:"Mum is cooking in the kitchen."},
+    {b:1, s:"哥哥在公园里踢足球。", en:"My brother plays football in the park."},
+    {b:2, s:"星期六早上,我和爸爸去买菜。", en:"On Saturday morning, I go grocery shopping with dad."},
+    {b:2, s:"这本书很有趣,我想再读一次。", en:"This book is interesting, I want to read it again."},
+    {b:2, s:"虽然外面在下雨,我们还是很开心。", en:"Even though it is raining outside, we are still happy."}
+  ];
+
+  /* ---------- read a short story out loud (Chinese) — two sentences
+     instead of one, for a child ready to move past single lines ---------- */
+  var READ_STORY_ZH = [
+    {b:1, s:"今天是星期天。我和妈妈去公园玩。", en:"Today is Sunday. My mum and I go to the park to play."},
+    {b:1, s:"小狗很饿了。爸爸给它吃饭。", en:"The puppy is hungry. Dad gives it food."},
+    {b:2, s:"哥哥喜欢踢足球。他每天在公园练习。", en:"My brother likes football. He practises in the park every day."},
+    {b:2, s:"今天下雨了。我们只好在家里看书。", en:"It rained today. We had to stay home and read instead."},
+    {b:2, s:"奶奶做的面很好吃。全家人都喜欢吃。", en:"Grandma's noodles are delicious. The whole family loves them."},
+    {b:2, s:"这个星期六,我们要去动物园。我很期待。", en:"This Saturday, we are going to the zoo. I can't wait."}
+  ];
+
   return {
     PICS: PICS, SPELL: SPELL, QUIZ: QUIZ, ODD: ODD, RHYMES: RHYMES, SORT_ADV: SORT_ADV,
     ANIMAL_CLUES: ANIMAL_CLUES, RIDDLES: RIDDLES,
@@ -2017,6 +2063,7 @@ window.PC = (function(){
     HOMOPHONES: HOMOPHONES, ZH_MEASURE: ZH_MEASURE, ZH_STROKES: ZH_STROKES,
     MAGNETIC: MAGNETIC, POLES: POLES, FORCES: FORCES, MATERIALS: MATERIALS,
     CONDUCTORS: CONDUCTORS, VERTEBRATES: VERTEBRATES, LIVING: LIVING,
-    SENTENCE_TYPES: SENTENCE_TYPES
+    SENTENCE_TYPES: SENTENCE_TYPES, READ_ALOUD_EN: READ_ALOUD_EN, READ_ALOUD_ZH: READ_ALOUD_ZH,
+    READ_STORY_ZH: READ_STORY_ZH
   };
 })();
