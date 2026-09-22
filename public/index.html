@@ -3306,6 +3306,36 @@
     draw();
   }
 
+  /* A picture for a general-knowledge question without one is trickier than
+     for the science identification games: there is no single object the
+     question is "about" that wouldn't also give the answer away (an animal
+     emoji next to "Which animal says moo?" answers itself). What is safe is
+     the question's broad subject — an animal icon for any animal question,
+     a planet for any space one — which pictures the question without
+     picturing the answer. Checked in order, since a question can match more
+     than one (a bones question is body-shaped before it is a number one). */
+  var QUIZ_TOPIC_ICONS = [
+    {re:/\bbody\b|bone|blood|heart|lung|brain|organ|vitamin|sense organ|smell|see\b/i, e:"🫀"},
+    {re:/planet|solar system|\bsun\b|\bmoon\b|\bstar\b|space|eclipse|orbit/i, e:"🪐"},
+    {re:/animal|mammal|\bbird\b|\bfish\b|insect|spider|reptile|scales|nocturnal/i, e:"🦁"},
+    {re:/plant|\bseed\b|\bleaf\b|leaves|flower|photosynthesis|food chain/i, e:"🌱"},
+    {re:/water|\bice\b|steam|boil|freeze|condensation|ocean|tide/i, e:"💧"},
+    {re:/circuit|electric|conduct|energy source|renewable/i, e:"🔌"},
+    {re:/force|friction|gravity|\bpull\b/i, e:"🧲"},
+    {re:/earth's|which layer|day and night|earth's surface/i, e:"🌍"},
+    {re:/light|shadow/i, e:"💡"},
+    {re:/shape|triangle|square|\bcircle\b|hexagon/i, e:"📐"},
+    {re:/gas|\bair\b|oxygen|breathe/i, e:"🌬️"},
+    {re:/opposite|word that means/i, e:"📖"},
+    {re:/how many|days|week|wheel|wings|legs/i, e:"🔢"}
+  ];
+  function quizTopicIcon(q){
+    for(var i = 0; i < QUIZ_TOPIC_ICONS.length; i++){
+      if(QUIZ_TOPIC_ICONS[i].re.test(q)) return QUIZ_TOPIC_ICONS[i].e;
+    }
+    return "🔬";
+  }
+
   /* ---------- Quiz Lab ---------- */
   function startQuiz(world){
     var qs = dealBand(world.id, QUIZ, 6);
@@ -3317,6 +3347,9 @@
       var q = qs[i];
       shell.stage.textContent = "";
       shell.stage.appendChild(el("div",{"class":"prompt", text:"Question " + (i+1) + " of " + qs.length}));
+      var qscene = el("div",{"class":"quiz-scene", style:"width:120px; height:120px"});
+      qscene.appendChild(el("div",{"class":"pic", style:"font-size:64px", text:quizTopicIcon(q.q)}));
+      shell.stage.appendChild(qscene);
       shell.stage.appendChild(el("div",{
         style:"font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(22px,5.2vw,34px); line-height:1.25; max-width:640px",
         text:q.q
@@ -3333,11 +3366,12 @@
           if(!ok) Array.prototype.forEach.call(grid.children, function(c){
             if(c !== b && c.textContent === q.a) c.classList.add("right");
           });
-          if(ok){ correct++; rightAnswer(); flash("⭐"); } else { wrongAnswer(); }
+          if(ok){ correct++; rightAnswer(); flash("⭐"); speak(q.a); }
+          else { wrongAnswer(); speak(q.a + ". " + q.f); }
           markDot(shell.dots, i, ok);
           shell.stage.appendChild(el("div",{"class":"fact", text:"💡 " + q.f}));
           i++;
-          setTimeout(next, 2400);
+          afterSpeech(next, 2400);
         });
         grid.appendChild(b);
       });
