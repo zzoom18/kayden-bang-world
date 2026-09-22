@@ -81,9 +81,16 @@
   /* ---------- top bar ---------- */
   .topbar{display:flex; align-items:center; gap:12px; padding:14px 18px; flex-wrap:wrap}
   .avatar{
-    width:52px; height:52px; border-radius:18px; flex:none; display:grid; place-items:center; font-size:28px;
-    background:linear-gradient(145deg,var(--sun),var(--coral)); box-shadow:0 4px 0 rgba(0,0,0,.25);
+    width:52px; height:52px; border-radius:18px; flex:none;
+    box-shadow:0 4px 0 rgba(0,0,0,.25); padding:0; overflow:visible;
   }
+  /* The composited character itself — base animal, unlockable background,
+     unlockable hat — sized by whoever asks for it (a small topbar button,
+     a big My Progress preview) via avatarNode(size). */
+  .avatarc{border-radius:18px; display:grid; place-items:center; position:relative; line-height:1}
+  .avatarc-base{line-height:1}
+  .avatarc-hat{position:absolute; left:50%; transform:translateX(-50%) rotate(-8deg); line-height:1;
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
   .who{margin-right:auto; min-width:0}
   .who .hi{font-size:12px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:var(--ink-soft)}
   .who .nm{font-size:19px; line-height:1.1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
@@ -579,6 +586,18 @@
   .gatepill{margin-top:auto; align-self:flex-start; display:inline-flex; align-items:center; gap:7px;
     background:rgba(0,0,0,.34); color:#FFD98A; border-radius:999px; padding:7px 14px;
     font-size:13px; font-weight:800}
+
+  /* ---- avatar hats & backgrounds (My Progress) ---- */
+  .eqgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .eqitem{display:flex; flex-direction:column; align-items:center; gap:5px;
+    background:rgba(255,255,255,.08); border-radius:16px; padding:12px 6px 10px;
+    border:3px solid transparent}
+  .eqitem.equipped{border-color:var(--sun); background:rgba(255,255,255,.16)}
+  .eqitem.locked{filter:saturate(.4) brightness(.75)}
+  .eqitem-pic{width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
+    font-size:24px; background:rgba(0,0,0,.2)}
+  .eqitem-nm{font-size:12.5px; font-weight:800; color:#E8E4FF; text-align:center; line-height:1.2}
+  .eqitem-on{font-size:11.5px; font-weight:800; color:#8FE3C4}
   /* ---- install prompt ---- */
   .installbar{position:fixed; left:12px; right:12px; z-index:38; display:flex; align-items:center; gap:12px;
     bottom:calc(12px + env(safe-area-inset-bottom,0px));
@@ -1935,6 +1954,49 @@
                     1040, 1100, 1160, 1220];
   var starGateCache = null, starGateLevel = null;
 
+  /* ---------- avatar customization ----------
+     Cheap on purpose: these do not gate any learning content, just a bit of
+     personal flair to grow into alongside the star total a child already
+     sees everywhere else in the app. */
+  var AVATAR_HATS = [
+    {id:"none",   e:"",   nm:"No hat",       cost:0},
+    {id:"cap",    e:"🧢", nm:"Cap",           cost:10},
+    {id:"sun",    e:"👒", nm:"Sun Hat",       cost:20},
+    {id:"helmet", e:"⛑️", nm:"Helmet",        cost:40},
+    {id:"grad",   e:"🎓", nm:"Grad Cap",      cost:70},
+    {id:"top",    e:"🎩", nm:"Top Hat",       cost:110},
+    {id:"crown",  e:"👑", nm:"Crown",         cost:160}
+  ];
+  var AVATAR_BGS = [
+    {id:"none",   nm:"Plain",   cost:0,   css:"linear-gradient(145deg,var(--sun),var(--coral))"},
+    {id:"sunny",  nm:"Sunny",   cost:15,  css:"linear-gradient(145deg,#FFD98A,#FF9E3D)"},
+    {id:"ocean",  nm:"Ocean",   cost:35,  css:"linear-gradient(145deg,#7FD8FF,#2F7FD6)"},
+    {id:"forest", nm:"Forest",  cost:55,  css:"linear-gradient(145deg,#A8E6C9,#2E8B4F)"},
+    {id:"galaxy", nm:"Galaxy",  cost:90,  css:"linear-gradient(145deg,#C3B4FF,#6A2FC9)"},
+    {id:"sunset", nm:"Sunset",  cost:140, css:"linear-gradient(145deg,#FF9AA2,#C2185B)"},
+    {id:"gold",   nm:"Gold",    cost:200, css:"linear-gradient(145deg,#FFE9A0,#D9A21B)"}
+  ];
+  function avatarHatItem(id){
+    return AVATAR_HATS.filter(function(h){ return h.id === id; })[0] || AVATAR_HATS[0];
+  }
+  function avatarBgItem(id){
+    return AVATAR_BGS.filter(function(b){ return b.id === id; })[0] || AVATAR_BGS[0];
+  }
+  /* The same composite — base animal, background, hat — wherever an avatar
+     shows: the topbar button and the My Progress preview alike. */
+  function avatarNode(size){
+    var wrap = el("div",{"class":"avatarc",
+      style:"width:" + size + "px; height:" + size + "px; font-size:" + Math.round(size * 0.55) + "px; " +
+        "background:" + avatarBgItem(state.avatarBg).css});
+    wrap.appendChild(el("div",{"class":"avatarc-base", text: state.avatar}));
+    var hat = avatarHatItem(state.avatarHat);
+    if(hat.e){
+      wrap.appendChild(el("div",{"class":"avatarc-hat", text: hat.e,
+        style:"font-size:" + Math.round(size * 0.42) + "px; top:" + Math.round(size * -0.22) + "px"}));
+    }
+    return wrap;
+  }
+
   /* Counted over the games this child can actually see, not the whole path.
      Ten Frame and Number Bonds sit before Number Quest on the maths journey,
      but a P3 child is never shown them — so counting the whole path put the
@@ -2298,14 +2360,17 @@
 
   function topbar(){
     var bar = el("div",{"class":"topbar"});
-    var av = el("button",{"class":"avatar","aria-label":"Change name or character"}, state.avatar);
+    var av = el("button",{"class":"avatar","aria-label":"Change name or character"});
+    av.appendChild(avatarNode(52));
     av.addEventListener("click", function(){ sfx.tap(); openProfile(); });
     bar.appendChild(av);
     bar.appendChild(el("div",{"class":"who"},
       el("div",{"class":"hi", text:"Playing"}),
       el("div",{"class":"nm display", text: state.name || "Friend"})
     ));
-    bar.appendChild(el("div",{"class":"tally"}, "⭐", el("b",{text:String(state.stars)})));
+    var starTally = el("button",{"class":"tally", "aria-label":"My progress and avatar"}, "⭐", el("b",{text:String(state.stars)}));
+    starTally.addEventListener("click", function(){ sfx.tap(); openMyProgress(); });
+    bar.appendChild(starTally);
     if(state.streak > 0) bar.appendChild(el("div",{"class":"tally"}, "🔥", el("b",{text:String(state.streak)})));
     return bar;
   }
@@ -8796,6 +8861,69 @@
     var m = modal(box);
     var close = el("button",{"class":"btn btn-lg btn-ghost", style:"width:100%; margin-top:16px", text:"Close"});
     close.addEventListener("click", m.close);
+    box.appendChild(close);
+  }
+
+  /* The stars a child already sees everywhere else in the app also buy hats
+     and backgrounds for their avatar — nothing that gates a game, just
+     something worth growing into. Tapping the star tally in the topbar
+     opens this. */
+  function openMyProgress(){
+    var box = el("div");
+    box.appendChild(el("h2",{"class":"display", text:"My Progress"}));
+
+    var preview = el("div",{style:"display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:6px"});
+    var avatarWrap = el("div");
+    avatarWrap.appendChild(avatarNode(96));
+    preview.appendChild(avatarWrap);
+    preview.appendChild(el("div",{style:"font-weight:800; color:#C9C4EE; font-size:15px",
+      text: state.stars + " star" + (state.stars === 1 ? "" : "s") +
+        (state.streak ? "   ·   " + state.streak + " day streak" : "")}));
+    box.appendChild(preview);
+
+    function redrawAvatar(){ avatarWrap.textContent = ""; avatarWrap.appendChild(avatarNode(96)); }
+
+    function itemRow(item, current, onPick){
+      var locked = (state.stars || 0) < item.cost && item.cost > 0;
+      var equipped = item.id === current;
+      var row = el("button",{"class":"eqitem" + (locked ? " locked" : "") + (equipped ? " equipped" : "")});
+      row.appendChild(el("div",{"class":"eqitem-pic", text: item.e != null ? (item.e || "🚫") : "🎨",
+        style: item.css ? "background:" + item.css : ""}));
+      row.appendChild(el("div",{"class":"eqitem-nm", text:item.nm}));
+      if(locked){
+        row.appendChild(el("div",{"class":"gatepill", style:"margin:4px auto 0"},
+          el("span",{text:"⭐"}), el("span",{text:(item.cost - (state.stars || 0)) + " more"})));
+      } else if(equipped){
+        row.appendChild(el("div",{"class":"eqitem-on", text:"✓ Wearing"}));
+      }
+      row.addEventListener("click", function(){
+        if(locked){ sfx.tap(); banner("⭐ " + (item.cost - (state.stars || 0)) + " more to unlock this"); foxReact("oops"); return; }
+        sfx.tap(); onPick(item.id); redrawAvatar(); save();
+        Array.prototype.forEach.call(row.parentNode.children, function(c){ c.classList.remove("equipped"); });
+        row.classList.add("equipped");
+        Array.prototype.forEach.call(row.parentNode.querySelectorAll(".eqitem-on"), function(c){ c.remove(); });
+        row.appendChild(el("div",{"class":"eqitem-on", text:"✓ Wearing"}));
+      });
+      return row;
+    }
+
+    box.appendChild(el("h3",{"class":"subject", style:"margin-top:6px", text:"🎩 Hats"}));
+    var hatGrid = el("div",{"class":"eqgrid"});
+    AVATAR_HATS.forEach(function(h){
+      hatGrid.appendChild(itemRow(h, state.avatarHat || "none", function(id){ state.avatarHat = id; }));
+    });
+    box.appendChild(hatGrid);
+
+    box.appendChild(el("h3",{"class":"subject", style:"margin-top:14px", text:"🎨 Backgrounds"}));
+    var bgGrid = el("div",{"class":"eqgrid"});
+    AVATAR_BGS.forEach(function(b){
+      bgGrid.appendChild(itemRow(b, state.avatarBg || "none", function(id){ state.avatarBg = id; }));
+    });
+    box.appendChild(bgGrid);
+
+    var m = modal(box);
+    var close = el("button",{"class":"btn btn-lg btn-go", style:"width:100%; margin-top:18px", text:"Done"});
+    close.addEventListener("click", function(){ sfx.tap(); m.close(); renderHome(); });
     box.appendChild(close);
   }
 
