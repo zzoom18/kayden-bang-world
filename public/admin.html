@@ -79,6 +79,11 @@
   .tag.full{background:rgba(53,196,143,.18); color:#7DE9BE}
   .tag.trial{background:rgba(255,196,61,.18); color:#FFD98A}
   .tag.stop{background:rgba(255,93,143,.18); color:#FF8FAE}
+  .tag.online{background:rgba(53,196,143,.18); color:#7DE9BE}
+  .tag.offline{background:var(--panel-2); color:var(--soft)}
+  .dot{display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:5px; background:currentColor}
+  .dot.online{animation:dotpulse 1.6s ease-in-out infinite}
+  @keyframes dotpulse{0%,100%{opacity:1} 50%{opacity:.35}}
 
   .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-bottom:18px}
   .stat{background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:15px}
@@ -196,6 +201,7 @@
   var $ = function(id){ return document.getElementById(id); };
   var token = "";
   try { token = sessionStorage.getItem("pc.admin") || ""; } catch(e){}
+  var regsRefreshTimer = null;
 
   function api(path, opts){
     opts = opts || {};
@@ -226,6 +232,9 @@
         paint(res.body);
         loadRegs();
         loadWritings();
+        /* Online/offline is a moving target, so the table refreshes itself
+           rather than only ever showing the moment the admin page loaded. */
+        if(!regsRefreshTimer) regsRefreshTimer = setInterval(loadRegs, 30000);
         return true;
       }
       token = "";
@@ -532,8 +541,22 @@
         var tr = document.createElement("tr");
 
         var who = document.createElement("td");
-        who.appendChild(Object.assign(document.createElement("div"),
+        var whoLine = document.createElement("div");
+        whoLine.style.display = "flex"; whoLine.style.alignItems = "center"; whoLine.style.gap = "8px";
+        whoLine.appendChild(Object.assign(document.createElement("span"),
           {className:"mono", textContent: esc(r.email)}));
+        /* A device still counts as online for a little while after its last
+           push, not just the instant it fires — schedulePush() on the child's
+           side debounces to 1.8s after any change, so a couple of minutes of
+           silence is a real gap, not just a pause between questions. */
+        var online = !!(r.playedAt && (Date.now() - new Date(r.playedAt).getTime()) < 3 * 60 * 1000);
+        var dotTag = document.createElement("span");
+        dotTag.className = "tag " + (online ? "online" : "offline");
+        dotTag.appendChild(Object.assign(document.createElement("span"),
+          {className:"dot " + (online ? "online" : "offline")}));
+        dotTag.appendChild(document.createTextNode(online ? "Online" : "Offline"));
+        whoLine.appendChild(dotTag);
+        who.appendChild(whoLine);
         who.appendChild(Object.assign(document.createElement("div"),
           {className:"sub", textContent: esc(r.name || "—") +
             (r.via === "google" ? "  ·  Google" : "")}));
