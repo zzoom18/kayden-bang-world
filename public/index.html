@@ -5795,8 +5795,15 @@
   function startTower(world){
     var b = band();
     var need = b <= 2 ? 8 : 10;
-    /* The tables a child at this level is actually being tested on. */
+    /* The tables a child at this level is actually being tested on. Band 3
+       covers P3 through P6, and every one of those had been getting the
+       same 3-to-12-times-table facts a P3 child gets: a real complaint,
+       since a P6 child answering "7 x 8" all day is not being tested on
+       anything they have not known for three years. rankTier splits that
+       one band by school level instead. */
     var tables = b <= 2 ? [2,3,4,5,10] : [3,4,6,7,8,9,11,12];
+    var r = b === 3 ? rank() : -1;
+    var rankTier = r >= 8 ? 3 : r === 7 ? 2 : r === 6 ? 1 : 0;   // P6 / P5 / P4 / P3-or-younger
 
     var shell = gameShell(world, need);
     var blocks = 0, asked = 0, correct = 0, over = false, missStreak = 0;
@@ -5837,17 +5844,51 @@
       if(over) return;
       qbox.textContent = "";
       var t = pick(tables);
-      var other = ri(2, b <= 2 ? 10 : 12);
-      /* Division shows up once a child is past the early tables, because the
-         table is only half learnt until it can be read backwards. */
-      var divide = b >= 3 && Math.random() < 0.4;
-      var ans, text;
-      if(divide){ ans = other; text = (t * other) + " ÷ " + t + " = ?"; }
-      else { ans = t * other; text = t + " × " + other + " = ?"; }
+      var other, ans, text;
+
+      if(rankTier === 0){
+        /* P3 and younger: the tables themselves, both ways round — a table
+           is only half learnt until it can be read backwards. */
+        other = ri(2, b <= 2 ? 10 : 12);
+        var divide = b >= 3 && Math.random() < 0.4;
+        if(divide){ ans = other; text = (t * other) + " ÷ " + t + " = ?"; }
+        else { ans = t * other; text = t + " × " + other + " = ?"; }
+      } else if(rankTier === 1){
+        /* P4: the tables scaled to two digits, and by ten and a hundred —
+           multiplying by a power of ten is that year's own new skill. */
+        var byPower = Math.random() < 0.35;
+        if(byPower){
+          var pw = pick([10, 100]);
+          ans = t * pw; text = t + " × " + pw + " = ?";
+        } else {
+          other = ri(11, 20);
+          ans = t * other; text = t + " × " + other + " = ?";
+        }
+      } else if(rankTier === 2){
+        /* P5: a two-digit number times a single digit, phrased the other
+           way round from P4's, plus the odd two-digit-by-two-digit fact
+           built from a table the child already has. */
+        if(Math.random() < 0.5){
+          other = ri(11, 25);
+          ans = other * t; text = other + " × " + t + " = ?";
+        } else {
+          var tens = pick([10, 20, 30]) + t;      // e.g. 12, 23 — still one known table away
+          other = ri(2, 9);
+          ans = tens * other; text = tens + " × " + other + " = ?";
+        }
+      } else {
+        /* P6: the missing factor, not the product — algebra dressed as a
+           times table, and the genuine step up from every band below it. */
+        var known = pick(tables);
+        ans = ri(3, 15);
+        var product = known * ans;
+        text = "? × " + known + " = " + product;
+      }
       asked++;
 
       qbox.appendChild(el("div",{"class":"bigq", text:text}));
-      speak(text.replace("×"," times ").replace("÷"," divided by ").replace("= ?"," equals what"));
+      speak(text.replace("×"," times ").replace("÷"," divided by ").replace("= ?"," equals what")
+        .replace("? ×", "blank times").replace(/= (\d+)$/, "equals $1"));
       qbox.appendChild(choiceGrid(numberOptions(ans, Math.max(2, Math.round(ans * 0.25)), 4), ans,
         function(ok){
           if(over) return;
