@@ -6233,9 +6233,22 @@
 
       var rec = new SpeechRec();
       rec.lang = opts.lang;
+      /* continuous:false is supposed to stop on its own once the browser
+         detects silence, but that detection is unreliable — some browsers
+         wait much longer than a child actually pauses, or never fire it at
+         all with background noise. So the mic doubles as a stop button: a
+         second tap while listening calls stop(), which still hands back
+         whatever was heard so far, rather than waiting on the browser. */
       rec.continuous = false;
-      rec.interimResults = false;
+      rec.interimResults = true;
       var done = false, listening = false;
+
+      function setListening(on){
+        listening = on;
+        mic.classList.toggle("listening", on);
+        mic.textContent = on ? "⏹️" : "🎙️";
+        mic.setAttribute("aria-label", on ? "Tap to stop" : "Tap to read");
+      }
 
       function finishRound(score){
         if(done) return;
@@ -6251,23 +6264,23 @@
       }
 
       mic.addEventListener("click", function(){
-        if(mic.disabled || listening) return;
+        if(mic.disabled) return;
         sfx.tap();
-        listening = true;
-        mic.classList.add("listening");
-        status.textContent = "Listening…";
+        if(listening){ try{ rec.stop(); }catch(e){} return; }
+        setListening(true);
+        status.textContent = "Listening… tap again when you're done";
         try{ rec.start(); }
-        catch(e){ listening = false; mic.classList.remove("listening"); status.textContent = "Couldn't start listening — tap the mic to try again."; }
+        catch(e){ setListening(false); status.textContent = "Couldn't start listening — tap the mic to try again."; }
       });
       rec.addEventListener("result", function(e){
-        listening = false;
-        mic.classList.remove("listening");
-        var heard = e.results[0][0].transcript;
+        var last = e.results[e.results.length - 1];
+        var heard = last[0].transcript;
+        if(!last.isFinal){ status.textContent = "Hearing: " + heard; return; }
+        setListening(false);
         finishRound(scoreReading(target, heard, opts.lang === "zh-CN"));
       });
       rec.addEventListener("error", function(e){
-        listening = false;
-        mic.classList.remove("listening");
+        setListening(false);
         if(done) return;
         status.textContent = e.error === "not-allowed" || e.error === "service-not-allowed"
           ? "Microphone access is blocked — allow it in the browser to play this game."
@@ -6275,8 +6288,7 @@
           : "Something went wrong listening — tap the mic to try again.";
       });
       rec.addEventListener("end", function(){
-        listening = false;
-        mic.classList.remove("listening");
+        setListening(false);
       });
       skip.addEventListener("click", function(){ sfx.tap(); try{ rec.abort(); }catch(e){} finishRound(0); });
     }
