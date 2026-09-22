@@ -484,10 +484,16 @@
   .sentword.good{color:#8FE3C4}
   .wordtray{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; max-width:640px}
   .wordchip{padding:14px 18px; min-height:56px; border-radius:16px; background:rgba(255,255,255,.26);
-    color:#fff; font-family:inherit; font-size:clamp(16px,3.8vw,21px); font-weight:800}
+    color:#fff; font-family:inherit; font-size:clamp(16px,3.8vw,21px); font-weight:800; touch-action:none}
   .wordchip:active{transform:scale(.94)}
   .wordchip.used{opacity:.28}
   .wordchip.bad{background:var(--bad)}
+  .wordchip.good{background:#8FE3C4; color:#1A3A2E}
+  /* Picked up mid-drag: follows the finger, floats above everything, and
+     stops being a click/drop target itself while it's the thing moving. */
+  .wordchip.dragging{position:fixed; z-index:60; pointer-events:none;
+    box-shadow:0 16px 34px rgba(0,0,0,.45); transform:scale(1.1); transition:none}
+  .dropzone.dragover{background:rgba(255,255,255,.2); border-color:rgba(255,255,255,.4)}
   .sentchoices{display:flex; flex-direction:column; gap:12px; width:100%; max-width:620px}
   .sentchoice{padding:16px 18px; min-height:62px; border-radius:18px; background:rgba(255,255,255,.22);
     color:#fff; font-family:inherit; font-size:clamp(15px,3.6vw,19px); font-weight:800; text-align:left;
@@ -7795,6 +7801,130 @@
     next();
   }
 
+  /* A drag-to-reorder word tray shared by Sentence Builder and the "hear a
+     kid's own sentence as a game" screen: chips start jumbled in a tray and
+     get dragged into a line to build the sentence, reordered within the
+     line, or dragged back out to the tray — rather than only being
+     tappable in one fixed correct order that fails the round on the first
+     slip. Touch and mouse both work through Pointer Events, since native
+     HTML5 drag-and-drop does not work reliably on touch devices. Calls
+     onSubmit(builtWords) once a child taps Submit with every word placed,
+     and returns {lock} to disable further dragging once that happens. */
+  function buildWordOrderer(stage, words, onSubmit){
+    var line = el("div",{"class":"sentline dropzone"});
+    var tray = el("div",{"class":"wordtray dropzone"});
+    stage.appendChild(line);
+    stage.appendChild(tray);
+    var submitBtn = el("button",{"class":"btn btn-lg btn-pink", style:"margin-top:4px; visibility:hidden", text:"Submit"});
+    stage.appendChild(submitBtn);
+
+    function refreshGhost(){
+      var hasChip = !!line.querySelector(".wordchip");
+      var ghost = line.querySelector(".sentghost");
+      if(hasChip){ if(ghost) ghost.remove(); }
+      else if(!ghost){ line.appendChild(el("span",{"class":"sentghost", text:"Drag words here"})); }
+    }
+    function refreshSubmit(){
+      submitBtn.style.visibility = line.querySelectorAll(".wordchip").length === words.length ? "visible" : "hidden";
+    }
+
+    /* Which existing chip in a row-wrapping flex container a dropped chip
+       should land before: above a later row, or before the first sibling
+       on the same row that sits to the right of the pointer. */
+    function insertAtPoint(container, chip, x, y){
+      var siblings = Array.prototype.filter.call(container.children, function(c){
+        return c !== chip && c.classList.contains("wordchip");
+      });
+      var before = null;
+      for(var k = 0; k < siblings.length; k++){
+        var r = siblings[k].getBoundingClientRect();
+        if(y < r.top - 4){ before = siblings[k]; break; }
+        if(y <= r.bottom + 4 && x < r.left + r.width / 2){ before = siblings[k]; break; }
+      }
+      container.insertBefore(chip, before);
+    }
+
+    var drag = null;
+    /* Moving the dragged chip to a new parent mid-drag (insertAtPoint, for
+       the live reordering below) can silently release its pointer capture
+       in some browsers — Chromium in this app's own test harness among
+       them — so the final pointerup can land on whatever is now
+       underneath instead of on the chip that captured it. A document-level
+       listener is the fallback that always sees it regardless of which
+       element the browser decided was the target; drag is nulled the
+       first time either this or the chip's own handler runs, so having
+       both wired is harmless on a browser where capture behaves normally. */
+    function endDrag(e){
+      if(!drag) return;
+      var chip = drag.chip;
+      var over = document.elementFromPoint(e.clientX, e.clientY);
+      var zone = (over && over.closest(".dropzone")) || tray;
+      chip.classList.remove("dragging");
+      chip.style.left = ""; chip.style.top = ""; chip.style.width = "";
+      line.classList.remove("dragover"); tray.classList.remove("dragover");
+      if(zone === line) insertAtPoint(line, chip, e.clientX, e.clientY);
+      else tray.appendChild(chip);
+      drag = null;
+      refreshGhost(); refreshSubmit();
+    }
+    document.addEventListener("pointerup", endDrag);
+    document.addEventListener("pointercancel", endDrag);
+
+    function wire(chip){
+      chip.addEventListener("pointerdown", function(e){
+        if(submitBtn.disabled) return;
+        e.preventDefault();
+        try{ chip.setPointerCapture(e.pointerId); }catch(err){}
+        var r = chip.getBoundingClientRect();
+        drag = {chip:chip, offX:e.clientX - r.left, offY:e.clientY - r.top};
+        chip.style.width = r.width + "px";
+        chip.style.left = r.left + "px";
+        chip.style.top = r.top + "px";
+        chip.classList.add("dragging");
+        sfx.tap();
+      });
+      chip.addEventListener("pointermove", function(e){
+        if(!drag || drag.chip !== chip) return;
+        chip.style.left = (e.clientX - drag.offX) + "px";
+        chip.style.top = (e.clientY - drag.offY) + "px";
+        var over = document.elementFromPoint(e.clientX, e.clientY);
+        var zone = over && over.closest(".dropzone");
+        line.classList.toggle("dragover", zone === line);
+        tray.classList.toggle("dragover", zone === tray);
+        if(zone === line) insertAtPoint(line, chip, e.clientX, e.clientY);
+      });
+      /* Not also wired here: with capture unreliable across reparenting,
+         a pointerup landing on both this chip and the document listener
+         for the same event risks endDrag reparenting the node mid-bubble.
+         The document-level listener alone is sufficient — it reads
+         clientX/clientY directly rather than relying on e.target. */
+    }
+
+    var jumbled = shuffle(words.slice());
+    if(jumbled.length > 2 && jumbled.join(" ") === words.join(" ")) jumbled = shuffle(jumbled);
+    jumbled.forEach(function(w){
+      var chip = el("button",{"class":"wordchip", text:w});
+      wire(chip);
+      tray.appendChild(chip);
+    });
+    refreshGhost(); refreshSubmit();
+
+    submitBtn.addEventListener("click", function(){
+      sfx.tap();
+      var built = Array.prototype.map.call(line.querySelectorAll(".wordchip"), function(c){ return c.textContent; });
+      onSubmit(built);
+    });
+
+    return {
+      lock: function(){
+        submitBtn.disabled = true;
+        submitBtn.style.display = "none";
+        document.removeEventListener("pointerup", endDrag);
+        document.removeEventListener("pointercancel", endDrag);
+      }
+    };
+  }
+
   /* ---------- Sentence Builder ---------- */
   function startSentence(world){
     var pool = forBand(SENTENCES, band()), rounds = 5;
@@ -7804,52 +7934,19 @@
     function next(){
       if(i >= rounds){ finish(world, correct, rounds); return; }
       var words = order[i].s.split(" ");
-      var built = [], wrong = false;
-
       shell.stage.textContent = "";
-      shell.stage.appendChild(el("div",{"class":"prompt", text:"Tap the words in the right order"}));
-      var line = el("div",{"class":"sentline"});
-      shell.stage.appendChild(line);
-      var tray = el("div",{"class":"wordtray"});
-      shell.stage.appendChild(tray);
-
-      function redraw(){
-        line.textContent = "";
-        if(!built.length) line.appendChild(el("span",{"class":"sentghost", text:"…"}));
-        built.forEach(function(w){ line.appendChild(el("span",{"class":"sentword", text:w})); });
-      }
-      redraw();
-
-      /* Shuffled hard enough that the first word is rarely already first. */
-      var jumbled = shuffle(words.slice());
-      if(jumbled[0] === words[0] && words.length > 2) jumbled = shuffle(jumbled);
-
-      jumbled.forEach(function(w){
-        var chip = el("button",{"class":"wordchip", text:w});
-        chip.addEventListener("click", function(){
-          if(chip.disabled || wrong) return;
-          if(w === words[built.length]){
-            chip.disabled = true; chip.classList.add("used");
-            built.push(w); redraw(); sfx.tap();
-            if(built.length === words.length){
-              correct++; sfx.good(); flash("⭐");
-              speak(words.join(" "));
-              markDot(shell.dots, i, true);
-              i++;
-              afterSpeech(next, 1500);
-            }
-          } else {
-            /* One wrong tap ends the round — order is the whole skill. */
-            wrong = true;
-            chip.classList.add("bad"); sfx.bad();
-            line.textContent = "";
-            line.appendChild(el("span",{"class":"sentword good", text: words.join(" ")}));
-            markDot(shell.dots, i, false);
-            i++;
-            setTimeout(next, 1900);
-          }
-        });
-        tray.appendChild(chip);
+      shell.stage.appendChild(el("div",{"class":"prompt", text:"Drag the words into the right order"}));
+      var orderer = buildWordOrderer(shell.stage, words, function(built){
+        orderer.lock();
+        var ok = built.join(" ") === words.join(" ");
+        if(ok){ correct++; sfx.good(); flash("⭐"); speak(words.join(" ")); }
+        else {
+          sfx.bad();
+          shell.stage.appendChild(el("div",{"class":"why", text:"The right order was: " + words.join(" ")}));
+        }
+        markDot(shell.dots, i, ok);
+        i++;
+        afterSpeech(next, ok ? 1500 : 2200);
       });
     }
     next();
@@ -9118,22 +9215,7 @@
     wrap.appendChild(stage);
     show(wrap);
 
-    var built = [], wrong = false;
-    stage.appendChild(el("div",{"class":"prompt", text:"Tap the words in the right order"}));
-    var line = el("div",{"class":"sentline"});
-    stage.appendChild(line);
-    var tray = el("div",{"class":"wordtray"});
-    stage.appendChild(tray);
-
-    function redraw(){
-      line.textContent = "";
-      if(!built.length) line.appendChild(el("span",{"class":"sentghost", text:"…"}));
-      built.forEach(function(t){ line.appendChild(el("span",{"class":"sentword", text:t})); });
-    }
-    redraw();
-
-    var jumbled = shuffle(words.slice());
-    if(jumbled[0] === words[0] && words.length > 2) jumbled = shuffle(jumbled);
+    stage.appendChild(el("div",{"class":"prompt", text:"Drag the words into the right order"}));
 
     function finishRound(won){
       music.stop();
@@ -9150,26 +9232,11 @@
       show(box);
     }
 
-    jumbled.forEach(function(t){
-      var chip = el("button",{"class":"wordchip", text:t});
-      chip.addEventListener("click", function(){
-        if(chip.disabled || wrong) return;
-        if(t === words[built.length]){
-          chip.disabled = true; chip.classList.add("used");
-          built.push(t); redraw(); sfx.tap();
-          if(built.length === words.length){
-            sfx.good(); confettiBurst(60); speak(words.join(" "));
-            setTimeout(function(){ finishRound(true); }, 1200);
-          }
-        } else {
-          wrong = true;
-          chip.classList.add("bad"); sfx.bad();
-          line.textContent = "";
-          line.appendChild(el("span",{"class":"sentword good", text: words.join(" ")}));
-          setTimeout(function(){ finishRound(false); }, 1600);
-        }
-      });
-      tray.appendChild(chip);
+    var orderer = buildWordOrderer(stage, words, function(built){
+      orderer.lock();
+      var ok = built.join(" ") === words.join(" ");
+      if(ok){ sfx.good(); confettiBurst(60); speak(words.join(" ")); } else { sfx.bad(); }
+      setTimeout(function(){ finishRound(ok); }, ok ? 1200 : 1600);
     });
   }
 
