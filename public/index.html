@@ -360,21 +360,6 @@
   .tower-scene.wobble{animation:towerwobble .5s ease}
   @keyframes towerwobble{0%,100%{transform:none} 25%{transform:rotate(-1.6deg)} 70%{transform:rotate(1.2deg)}}
 
-  /* ---- Toy Stick Showdown ---- */
-  .toystick-scene{display:flex; align-items:center; justify-content:center; gap:22px;
-    width:100%; max-width:460px; margin:8px 0}
-  .toystick-fighter{display:flex; flex-direction:column; align-items:center; gap:6px; width:120px}
-  .toystick-face{font-size:52px; filter:drop-shadow(0 4px 8px rgba(0,0,0,.3)); transition:transform .2s var(--ease)}
-  .toystick-fighter.hit .toystick-face{animation:toystickhit .4s var(--ease)}
-  @keyframes toystickhit{0%,100%{transform:none} 40%{transform:scale(.82) rotate(-6deg)}}
-  .toystick-name{font-weight:800; font-size:14px; color:var(--ink-soft)}
-  .toystick-weapon{font-size:40px; animation:toystickswing 1.6s ease-in-out infinite}
-  @keyframes toystickswing{0%,100%{transform:rotate(-14deg)} 50%{transform:rotate(14deg)}}
-  .hpbar{width:100%; height:12px; border-radius:8px; background:rgba(255,255,255,.15); overflow:hidden}
-  .hpbar-fill{height:100%; border-radius:8px; transition:width .3s var(--ease)}
-  .hpbar-fill.dal{background:linear-gradient(90deg,#FF5D8F,#C2185B)}
-  .hpbar-fill.you{background:linear-gradient(90deg,#35C48F,#1E9E80)}
-
   /* ---- Measure Up, Word Problems ---- */
   .boardwrap{display:flex; justify-content:center; width:100%; margin:4px 0 2px}
   .wordprob{max-width:520px; font-weight:800; font-size:clamp(17px,3.8vw,22px); line-height:1.45;
@@ -1915,7 +1900,7 @@
     /* Number Quest is the backbone of the subject and stays open from day one
        at every age; the two showy games are worth earning. Adding them ahead
        of it quietly pushed the flagship game behind a 35-star gate. */
-    maths:   ["tenframe","numbers","cannon","quest","race","patterns","bonds","numline","shapes","measure","wordprob","tower","toystick","sgmoney","money","picgraph","barmodel","fraction","decimal","areaperim","ratio","balance"],
+    maths:   ["tenframe","numbers","cannon","quest","race","patterns","bonds","numline","shapes","measure","wordprob","tower","sgmoney","money","picgraph","barmodel","fraction","decimal","areaperim","ratio","balance"],
     english: ["sounds","spell","rhyme","plural","opposites","synonym","grammar","tenses","homophone","sentence","punct","meaning","affix","idiom","reading"],
     think:   ["odd","sort","code"],
     /* Five Senses and Animal Homes suit the very youngest and open the
@@ -2295,7 +2280,6 @@
     {id:"zhmeasure",nm:"\u91cf\u8bcd Measure Words", sub:"\u4e00\u53ea\u732b, \u4e00\u672c\u4e66, \u4e00\u6735\u82b1", emo:"\u91cf", bg:"linear-gradient(150deg,#FFB9B9,#C2334E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"chinese", topic:"\u6570\u5b57\u4e0e\u91cf\u8bcd Numbers & Measure Words"},
     {id:"zhstroke",nm:"\u7b14\u753b Stroke Count", sub:"\u8fd9\u4e2a\u5b57\u6709\u51e0\u753b\uff1f", emo:"\u7b14", bg:"linear-gradient(150deg,#FFD9A0,#C4781B)", ages:"3\u201312", levels:["K1","K2","P1","P2","P3","P4"], sg:"K1 \u2013 P4", free:true, cat:"chinese", topic:"\u8ba4\u5b57\u4e0e\u8bcd\u8bed Characters & Words"},
     {id:"tower",   nm:"Table Tower",    sub:"Stack a block for every table you know", emo:"\ud83c\udfd7\ufe0f", bg:"linear-gradient(150deg,#FFD97D,#E8862F)", ages:"7\u201312", levels:["P2","P3","P4","P5","P6"], sg:"P2 \u2013 P6", free:true, cat:"maths", topic:"Multiplication & Division"},
-    {id:"toystick",nm:"Toy Stick Showdown", sub:"Answer sums to fight Dal \u2014 by Kayden Bang, Mee Toh Primary School", emo:"\ud83e\ude93", bg:"linear-gradient(150deg,#B9A2FF,#6A2FC9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Numbers & Counting"},
     {id:"measure", nm:"Measure Up",     sub:"Read the ruler, the jug and the scale", emo:"\ud83d\udccf", bg:"linear-gradient(150deg,#A7E8C4,#22996B)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5"], sg:"K2 \u2013 P5", free:true, cat:"maths", topic:"Measurement & Data"},
     {id:"wordprob",nm:"Word Problems",  sub:"The sum is hidden in the story", emo:"\ud83d\udcdd", bg:"linear-gradient(150deg,#B8B5FF,#5A51C9)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"maths", topic:"Fractions & Problem Solving"},
     {id:"synonym", nm:"Same Meaning",   sub:"A better word than the one you used", emo:"\ud83d\udd01", bg:"linear-gradient(150deg,#FFC4E1,#C2478E)", ages:"5\u201312", levels:["K2","P1","P2","P3","P4","P5","P6"], sg:"K2 \u2013 P6", free:true, cat:"english", topic:"Reading & Vocabulary"},
@@ -5512,7 +5496,6 @@
     if(world.id === "zhmeasure")return startZhMeasure(world);
     if(world.id === "zhstroke") return startZhStrokes(world);
     if(world.id === "tower")    return startTower(world);
-    if(world.id === "toystick") return startToyStick(world);
     if(world.id === "measure")  return startMeasure(world);
     if(world.id === "wordprob") return startWordProblems(world);
     if(world.id === "synonym")  return startSynonyms(world);
@@ -6744,112 +6727,6 @@
       show(box);
     }
 
-    nextQuestion();
-  }
-
-  /* ==========================================================================
-     Toy Stick Showdown
-     --------------------------------------------------------------------------
-     Designed by Kayden Bang (Mee Toh Primary School): answer an addition to
-     swing the toy stick at Dal. Ten swings land him — get three wrong along
-     the way, though, and Dal gets you first.
-     ========================================================================== */
-  function toyStickSum(b, level){
-    var spread = b === 0 ? 5 : b === 1 ? 10 : b === 2 ? (20 + level * 5) : (30 + level * 8);
-    var a = ri(1, spread), c = ri(1, spread);
-    return {a: a, c: c, ans: a + c};
-  }
-
-  function startToyStick(world){
-    var b = band(), level = Math.max(1, levelOf(world.id));
-    var dalHp = 100, dalMax = 100, dmg = 10;
-    var playerHp = 15, playerMax = 15;
-    var attempts = 0, correct = 0, over = false;
-
-    var shell = gameShell(world, 10);
-    shell.stage.appendChild(el("div",{"class":"byline",
-      text:"🎮 Created by Kayden Bang, Mee Toh Primary School"}));
-    shell.stage.appendChild(el("div",{"class":"prompt",
-      text:"Answer the sum to swing your toy stick at Dal!"}));
-
-    var scene = el("div",{"class":"toystick-scene"});
-    var dalSide = el("div",{"class":"toystick-fighter"});
-    dalSide.appendChild(el("div",{"class":"toystick-face", text:"😠"}));
-    dalSide.appendChild(el("div",{"class":"toystick-name", text:"Dal"}));
-    var dalBar = el("div",{"class":"hpbar"});
-    var dalFill = el("div",{"class":"hpbar-fill dal"});
-    dalBar.appendChild(dalFill);
-    dalSide.appendChild(dalBar);
-    scene.appendChild(dalSide);
-
-    var vs = el("div",{"class":"toystick-weapon", text:"🪓"});
-    scene.appendChild(vs);
-
-    var youSide = el("div",{"class":"toystick-fighter"});
-    youSide.appendChild(el("div",{"class":"toystick-face", text:"🙂"}));
-    youSide.appendChild(el("div",{"class":"toystick-name", text: state.name || "You"}));
-    var youBar = el("div",{"class":"hpbar"});
-    var youFill = el("div",{"class":"hpbar-fill you"});
-    youBar.appendChild(youFill);
-    youSide.appendChild(youBar);
-    scene.appendChild(youSide);
-    shell.stage.appendChild(scene);
-
-    function paintBars(){
-      dalFill.style.width = Math.max(0, (dalHp / dalMax) * 100) + "%";
-      youFill.style.width = Math.max(0, (playerHp / playerMax) * 100) + "%";
-    }
-    paintBars();
-
-    var qbox = el("div",{"class":"qbox"});
-    shell.stage.appendChild(qbox);
-
-    function endBattle(won){
-      over = true;
-      var beforeLevel = levelOf(world.id);
-      award(world.id, won ? 3 : 0, won);
-      music.stop();
-      if(won){ sfx.win(); confettiBurst(120, window.innerHeight * 0.3); }
-      var box = el("div",{"class":"result"});
-      box.appendChild(el("div",{"class":"stars-big", text: won ? "⭐⭐⭐" : "💪"}));
-      box.appendChild(el("div",{"class":"score display", text: won ? "You defeated Dal!" : "Dal got you this time!"}));
-      if(won && levelOf(world.id) > beforeLevel) box.appendChild(el("div",{style:"font-weight:800; color:#8FE3C4; font-size:16px", text:"Level " + levelOf(world.id) + " unlocked!"}));
-      box.appendChild(el("div",{style:"font-weight:800; color:#C9C4EE; font-size:15px",
-        text:"🎮 A game by Kayden Bang, Mee Toh Primary School"}));
-      var again = el("button",{"class":"btn btn-lg btn-go", style:"min-width:240px", text:"Play again"});
-      again.addEventListener("click", function(){ sfx.tap(); startToyStick(world); });
-      var home = el("button",{"class":"btn btn-lg btn-ghost", style:"min-width:240px", text:"Choose another game"});
-      home.addEventListener("click", function(){ sfx.tap(); renderHome(); });
-      box.appendChild(again); box.appendChild(home);
-      show(box);
-    }
-
-    function nextQuestion(){
-      if(over) return;
-      qbox.textContent = "";
-      var q = toyStickSum(b, level);
-      qbox.appendChild(el("div",{"class":"bigq", text: q.a + " + " + q.c + " = ?"}));
-      speak(q.a + " plus " + q.c);
-      qbox.appendChild(choiceGrid(numberOptions(q.ans, Math.max(4, Math.round(q.ans * 0.3))), q.ans, function(ok){
-        attempts++;
-        if(ok){
-          correct++;
-          dalHp = Math.max(0, dalHp - dmg);
-          sfx.pop(); rightAnswer(); confettiBurst(20);
-          dalSide.classList.add("hit");
-          setTimeout(function(){ dalSide.classList.remove("hit"); }, 400);
-        } else {
-          playerHp = Math.max(0, playerHp - 3);
-          sfx.bad(); wrongAnswer();
-          youSide.classList.add("hit");
-          setTimeout(function(){ youSide.classList.remove("hit"); }, 400);
-        }
-        paintBars();
-        if(dalHp <= 0){ setTimeout(function(){ endBattle(true); }, 700); return; }
-        if(playerHp <= 0){ setTimeout(function(){ endBattle(false); }, 700); return; }
-        setTimeout(nextQuestion, ok ? 700 : 1100);
-      }, false));
-    }
     nextQuestion();
   }
 
