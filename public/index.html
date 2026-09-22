@@ -1091,7 +1091,12 @@
     /* root is a frequency; scale and chords are semitone offsets. */
     calm:    {root:196.00, scale:[0,2,4,7,9],      chords:[[0,4,7],[5,9,12],[3,7,10],[7,11,14]], bpm:62, wave:"sine",     pad:0.030, lead:0.045},
     bright:  {root:261.63, scale:[0,2,4,6,7,9,11], chords:[[0,4,7],[7,11,14],[5,9,12],[2,5,9]],  bpm:76, wave:"triangle", pad:0.026, lead:0.042},
-    eastern: {root:220.00, scale:[0,2,5,7,9],      chords:[[0,5,9],[2,7,11],[0,4,9],[5,9,14]],   bpm:58, wave:"sine",     pad:0.032, lead:0.048},
+    /* The classic Chinese pentatonic (gong mode: do-re-mi-sol-la, no fa or
+       ti) is what actually reads as "Chinese" to most ears — Mo Li Hua and
+       most folk melodies are built on it. leadDur is much shorter than the
+       other moods' so the same oscillator envelope plucks rather than
+       sustains, closer to a guzheng than a held pad. */
+    eastern: {root:220.00, scale:[0,2,4,7,9],      chords:[[0,4,7],[2,7,11],[0,4,9],[5,9,14]],   bpm:58, wave:"triangle",  pad:0.030, lead:0.052, leadDur:0.55},
     curious: {root:233.08, scale:[0,2,5,7,10],     chords:[[0,5,10],[3,7,12],[5,10,15],[0,7,12]],bpm:68, wave:"triangle", pad:0.028, lead:0.040},
     mystery: {root:174.61, scale:[0,3,5,7,10],     chords:[[0,3,7],[5,8,12],[3,7,10],[7,10,14]], bpm:54, wave:"sine",     pad:0.034, lead:0.038},
     sea:     {root:196.00, scale:[0,2,4,7,9,11],   chords:[[0,4,7],[2,7,11],[5,9,12],[4,7,11]],  bpm:70, wave:"sine",     pad:0.030, lead:0.044},
@@ -1158,7 +1163,7 @@
           if(Math.random() < 0.72) semi = chord[Math.floor(Math.random() * chord.length)];
           else semi = mood.scale[Math.floor(Math.random() * mood.scale.length)];
           if(Math.random() < 0.3) semi += 12;
-          voice(freq(mood.root, semi), nextTime, beat * 1.7, mood.wave, mood.lead);
+          voice(freq(mood.root, semi), nextTime, beat * (mood.leadDur || 1.7), mood.wave, mood.lead);
         }
         nextTime += beat;
         step++;
@@ -2173,6 +2178,13 @@
 
   function renderHome(){
     refreshWritings();
+    /* The game screens have had their own mood music for a while; the game
+       picker itself stayed silent, which made arriving here after a round
+       feel like the sound had cut out rather than like a menu. music.start
+       is a no-op if it is already playing this same mood, and startGame()
+       switches to the game's own mood the moment one is picked, so this
+       only ever plays while a child is actually choosing. */
+    music.start("calm");
     var wrap = el("div");
     wrap.appendChild(topbar());
     var pad = el("div",{"class":"pad"});
