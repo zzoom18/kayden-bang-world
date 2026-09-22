@@ -588,6 +588,17 @@
           td6.appendChild(g);
         }
 
+        var ul = document.createElement("button");
+        ul.className = "btn btn-sm";
+        ul.style.marginLeft = "6px";
+        ul.textContent = r.allUnlocked ? "Lock games" : "Unlock all games";
+        ul.addEventListener("click", function(){
+          var action = r.allUnlocked ? "lockAll" : "unlockAll";
+          if(action === "lockAll" && !confirm("Put the star gates back for " + r.email + "?\n\nGames they haven't yet earned enough stars for will lock again.")) return;
+          account(r.email, action);
+        });
+        td6.appendChild(ul);
+
         var rs = document.createElement("button");
         rs.className = "btn btn-sm";
         rs.style.marginLeft = "6px";
@@ -624,8 +635,9 @@
     api("/api/admin/account", {method:"POST", body:{email:email, action:action}})
       .then(function(res){
         if(res.status === 200 && res.body.ok){
-          say($("grantMsg"), action === "delete"
-            ? "Deleted " + email + "."
+          say($("grantMsg"), action === "delete" ? "Deleted " + email + "."
+            : action === "unlockAll" ? "Every game unlocked for " + email + "."
+            : action === "lockAll" ? "Star gates restored for " + email + "."
             : "Progress reset for " + email + ".", true);
           loadRegs();
           return api("/api/admin/settings").then(function(r2){ if(r2.body.ok) paint(r2.body); });

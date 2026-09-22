@@ -1732,7 +1732,8 @@
   /* motion and sound default to on; a parent can turn either off in the player
      settings, and the app also honours the system "reduce motion" setting
      without being asked. */
-  var DEFAULT = { name:"", age:5, avatar:"🦊", setup:false, stars:0, streak:0, perfects:0,
+  var DEFAULT = { name:"", age:5, avatar:"🦊", avatarHat:null, avatarBg:null, setup:false,
+    stars:0, streak:0, perfects:0, allUnlocked:false,
     lastPlayed:"", motion:true, sound:true, music:true, readAloud:true,
     quest:null, progress:{}, bags:{} };
   var state = JSON.parse(JSON.stringify(DEFAULT));
@@ -1959,6 +1960,7 @@
   }
   function starCost(id){ return starGates()[id] || 0; }
   function starLocked(w){
+    if(state.allUnlocked) return false;       // an admin cleared every star gate for this child
     if(played(w.id)) return false;            // never take back a game already met
     return (state.stars || 0) < starCost(w.id);
   }

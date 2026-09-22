@@ -376,7 +376,15 @@ function cleanProgress(raw) {
     name: String(raw.name || '').slice(0, 14),
     age: Math.min(12, Math.max(3, Number(raw.age) || 5)),
     avatar: String(raw.avatar || '🦊').slice(0, 8),
+    avatarHat: raw.avatarHat ? String(raw.avatarHat).slice(0, 8) : null,
+    avatarBg: raw.avatarBg ? String(raw.avatarBg).slice(0, 24) : null,
     setup: !!raw.setup,
+    /* allUnlocked is deliberately not read from raw here: it is an
+       admin-only field, set by POST /api/admin/account (action
+       unlockAll/lockAll) directly on the stored record, never derived
+       from whatever a client happens to post. mergeProgress carries it
+       forward from the existing stored copy only, so a device that synced
+       before an admin's change can't echo a stale value back over it. */
     stars: Math.min(999999, Math.max(0, Math.floor(Number(raw.stars) || 0))),
     streak: Math.min(3650, Math.max(0, Math.floor(Number(raw.streak) || 0))),
     perfects: Math.min(999999, Math.max(0, Math.floor(Number(raw.perfects) || 0))),
@@ -416,6 +424,12 @@ function mergeProgress(mine, theirs) {
     perfects: Math.max(Number(mine.perfects) || 0, Number(theirs.perfects) || 0),
     streak: Math.max(Number(mine.streak) || 0, Number(theirs.streak) || 0),
     setup: !!(mine.setup || theirs.setup),
+    /* Always the existing stored copy's value, never theirs (the incoming
+       client post) — cleanProgress never derives this field from client
+       input, so theirs.allUnlocked is always undefined here anyway. This
+       is what stops a device that synced before an admin's change from
+       echoing a stale value back over it once the admin flips it. */
+    allUnlocked: !!mine.allUnlocked,
     progress: {}
   };
   const a = mine.quest, b = theirs.quest;
@@ -812,7 +826,8 @@ function accountRows() {
       stars: prog ? (Number(prog.stars) || 0) : 0,
       games,
       childAge: prog ? (Number(prog.age) || null) : null,
-      playedAt: prog && prog.updatedAt ? new Date(prog.updatedAt * 1000).toISOString() : null
+      playedAt: prog && prog.updatedAt ? new Date(prog.updatedAt * 1000).toISOString() : null,
+      allUnlocked: prog ? !!prog.allUnlocked : false
     };
   }).sort((x, y) => String(y.last || '').localeCompare(String(x.last || '')));
 }
@@ -871,6 +886,16 @@ async function handleAccount(req, res) {
     try { fs.unlinkSync(progressFile(email)); done = true; } catch {}
     console.log(`[admin] reset progress for ${email} (had progress: ${done})`);
     return sendJson(req, res, 200, { ok: true, reset: done });
+  }
+  if (body.action === 'unlockAll' || body.action === 'lockAll') {
+    // A shell record if the child has never actually played anything yet —
+    // unlocking should work before their first star, not only after.
+    const current = readProgress(email) || cleanProgress({});
+    current.allUnlocked = body.action === 'unlockAll';
+    current.updatedAt = Math.floor(Date.now() / 1000);
+    const saved = writeProgress(email, current);
+    console.log(`[admin] ${body.action} for ${email}`);
+    return sendJson(req, res, 200, { ok: true, saved, allUnlocked: current.allUnlocked });
   }
   return sendJson(req, res, 400, { ok: false, error: 'unknown_action' });
 }
