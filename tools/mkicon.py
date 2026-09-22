@@ -31,6 +31,27 @@ def tri_dist(px, py, a, b, c):
     pos = (d1 > 0) or (d2 > 0) or (d3 > 0)
     return not (neg and pos)
 
+def star_points(cx, cy, outer, inner_r, n=5, rot=-90):
+    """Vertices of an n-point star, alternating outer and inner radius."""
+    pts = []
+    for i in range(n * 2):
+        ang = math.radians(rot + i * (360 / (n * 2)))
+        rad = outer if i % 2 == 0 else inner_r
+        pts.append((cx + rad * math.cos(ang), cy + rad * math.sin(ang)))
+    return pts
+
+def point_in_poly(x, y, poly):
+    """Even-odd point-in-polygon test."""
+    inside = False
+    n = len(poly)
+    j = n - 1
+    for k in range(n):
+        xi, yi = poly[k]; xj, yj = poly[j]
+        if ((yi > y) != (yj > y)) and (x < (xj - xi) * (y - yi) / (yj - yi + 1e-9) + xi):
+            inside = not inside
+        j = k
+    return inside
+
 def build(size, pad_frac):
     """pad_frac leaves a safe margin so a maskable icon survives being cropped
        to a circle by the launcher."""
@@ -58,46 +79,28 @@ def build(size, pad_frac):
             i = (y*W + x) * 4
             px[i] = int(col[0]); px[i+1] = int(col[1]); px[i+2] = int(col[2]); px[i+3] = 255
 
-    # fox, drawn in the middle of the safe area
+    # Fun Game's mark: a five-point star, the same shape as the reward the
+    # whole app runs on, centred in the safe area. White on the gradient,
+    # matching the small inline version used inside the app itself.
     S = inner
     cx0 = ox + S/2
-    cy0 = ox + S/2 + S*0.03
-    FUR   = (0xFF, 0x8A, 0x3D)
-    LIGHT = (0xFF, 0xE3, 0xB0)
-    DARK  = (0x2A, 0x1F, 0x12)
+    cy0 = ox + S/2
+    WHITE = (0xFF, 0xFF, 0xFF)
+    star = star_points(cx0, cy0, S*0.40, S*0.155)
 
-    ear_w = S*0.20
-    # ears
-    ears = [
-        ((cx0 - S*0.30, cy0 - S*0.10), (cx0 - S*0.27, cy0 - S*0.40), (cx0 - S*0.07, cy0 - S*0.19)),
-        ((cx0 + S*0.30, cy0 - S*0.10), (cx0 + S*0.27, cy0 - S*0.40), (cx0 + S*0.07, cy0 - S*0.19)),
-    ]
-    head_r = S*0.27
-    # snout triangle
-    snout = ((cx0 - S*0.20, cy0 + S*0.02), (cx0 + S*0.20, cy0 + S*0.02), (cx0, cy0 + S*0.33))
+    # A tight bounding box around the star, expanded a touch for anti-alias
+    # coverage at the tips, so the per-pixel polygon test only runs where the
+    # star could plausibly be rather than over the whole canvas.
+    xs = [p[0] for p in star]; ys = [p[1] for p in star]
+    bx0, bx1 = max(0, int(min(xs)) - 2), min(W, int(max(xs)) + 3)
+    by0, by1 = max(0, int(min(ys)) - 2), min(W, int(max(ys)) + 3)
 
-    for y in range(W):
-        for x in range(W):
+    for y in range(by0, by1):
+        for x in range(bx0, bx1):
             i = (y*W + x) * 4
             if px[i+3] == 0: continue
-            p = (x, y)
-            drew = False
-            for e in ears:
-                if tri_dist(x, y, *e):
-                    over(px, i, FUR, 1); drew = True; break
-            if not drew:
-                d = math.hypot(x - cx0, y - cy0)
-                if d <= head_r:
-                    over(px, i, FUR, 1); drew = True
-            if tri_dist(x, y, *snout):
-                over(px, i, LIGHT, 1); drew = True
-            # eyes
-            for sx in (-1, 1):
-                if math.hypot(x - (cx0 + sx*S*0.115), y - (cy0 - S*0.045)) <= S*0.035:
-                    over(px, i, DARK, 1)
-            # nose
-            if math.hypot(x - cx0, (y - (cy0 + S*0.135))*1.25) <= S*0.033:
-                over(px, i, DARK, 1)
+            if point_in_poly(x, y, star):
+                over(px, i, WHITE, 1)
 
     # downsample
     out = bytearray(size * size * 4)
