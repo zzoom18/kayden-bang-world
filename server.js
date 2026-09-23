@@ -1069,11 +1069,13 @@ async function handleVerify(req, res) {
     return sendJson(req, res, 403, { ok: false, error: 'banned', message: 'This account has been suspended.' });
   }
 
-  // Someone holding a trial from before open access was switched on gets
-  // upgraded here rather than having to sign up again.
-  if (result.licence.trial && settings.openAccess) {
+  // Someone holding a trial from before open access was switched on — or who
+  // has just paid, or been given a personal grant — gets upgraded here rather
+  // than having to sign up again.
+  const grantedNow = result.email ? grants[String(result.email).toLowerCase()] : null;
+  if (result.licence.trial && (settings.openAccess || grantedNow)) {
     let tier;
-    try { tier = tierByName(settings.defaultTier); } catch { tier = 3; }
+    try { tier = tierByName(grantedNow || settings.defaultTier); } catch { tier = 3; }
     const up = TIERS[tier];
     const token = issueToken(KEY_SECRET, { tier, serial: result.serial || 0, days: TOKEN_DAYS, email: result.email });
     return sendJson(req, res, 200, {
@@ -1091,6 +1093,138 @@ async function handleVerify(req, res) {
     expiresAt: result.expiresAt,
     ads: adsConfig()
   });
+}
+
+/* ---------- payments (Stripe Checkout) ----------
+   A parent pays once and is unlocked without anyone touching the admin page:
+   the webhook writes the very same grants[email] = 'full' the "Give full"
+   button writes, so everything downstream (entitlementFor, verify upgrade,
+   the admin table) already understands it. Stripe is spoken to over plain
+   fetch — no SDK, so the app stays dependency-free. Nothing here runs unless
+   STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET and STRIPE_PRICE_ID are set. */
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
+const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID || '';
+const PUBLIC_URL = (process.env.PUBLIC_URL || '').replace(/\/+$/, '');
+const PAID_TIER = 'full';
+function paymentsEnabled() { return !!(STRIPE_SECRET_KEY && STRIPE_WEBHOOK_SECRET && STRIPE_PRICE_ID); }
+
+function readRawBody(req, limit = 256 * 1024) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    req.on('data', (c) => {
+      size += c.length;
+      if (size > limit) { reject(new Error('body too large')); req.destroy(); return; }
+      chunks.push(c);
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+function siteOrigin(req) {
+  if (PUBLIC_URL) return PUBLIC_URL;
+  const proto = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
+  return `${proto}://${req.headers.host || 'localhost'}`;
+}
+
+async function handlePayConfig(req, res) {
+  return sendJson(req, res, 200, { ok: true, enabled: paymentsEnabled() });
+}
+
+async function handlePayCheckout(req, res) {
+  if (!paymentsEnabled()) {
+    return sendJson(req, res, 503, { ok: false, error: 'payments_not_configured',
+      message: 'Payments are not set up yet — ask whoever runs the app to unlock you.' });
+  }
+  let body;
+  try { body = await readBody(req); }
+  catch { return sendJson(req, res, 400, { ok: false, error: 'bad_request' }); }
+
+  // Only a signed-in parent can start a checkout, and it is tied to their
+  // own address so the webhook knows exactly which account to unlock.
+  const tok = readToken(KEY_SECRET, body.token);
+  const email = tok.ok && tok.email ? String(tok.email).toLowerCase() : String(body.email || '').trim().toLowerCase();
+  if (!looksLikeEmail(email)) return sendJson(req, res, 401, { ok: false, error: 'sign_in_first' });
+  if (grants[email]) return sendJson(req, res, 200, { ok: true, already: true });
+
+  const origin = siteOrigin(req);
+  const form = new URLSearchParams();
+  form.set('mode', 'payment');
+  form.set('line_items[0][price]', STRIPE_PRICE_ID);
+  form.set('line_items[0][quantity]', '1');
+  form.set('customer_email', email);
+  form.set('client_reference_id', email);
+  form.set('metadata[email]', email);
+  form.set('success_url', `${origin}/?paid=1`);
+  form.set('cancel_url', `${origin}/?paid=0`);
+
+  try {
+    const r = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${STRIPE_SECRET_KEY}`, 'content-type': 'application/x-www-form-urlencoded' },
+      body: form.toString()
+    });
+    const j = await r.json();
+    if (!r.ok || !j.url) {
+      console.error('[pay] checkout session failed:', j && j.error ? j.error.message : r.status);
+      return sendJson(req, res, 502, { ok: false, error: 'checkout_failed' });
+    }
+    console.log(`[pay] checkout started for ${email}`);
+    return sendJson(req, res, 200, { ok: true, url: j.url });
+  } catch (err) {
+    console.error('[pay] stripe unreachable:', err.message);
+    return sendJson(req, res, 502, { ok: false, error: 'checkout_failed' });
+  }
+}
+
+/* Stripe signs every webhook: Stripe-Signature: t=<unix>,v1=<hmac>. The
+   HMAC-SHA256 is over "<t>.<raw body>" with the endpoint secret, so the body
+   must be verified as the exact bytes received, before any JSON parsing. */
+function stripeSignatureOk(rawBody, header) {
+  const parts = {};
+  String(header || '').split(',').forEach((kv) => {
+    const i = kv.indexOf('=');
+    if (i > 0) parts[kv.slice(0, i).trim()] = kv.slice(i + 1).trim();
+  });
+  const t = Number(parts.t), v1 = parts.v1;
+  if (!t || !v1) return false;
+  if (Math.abs(Date.now() / 1000 - t) > 300) return false;   // replay guard
+  const expected = crypto.createHmac('sha256', STRIPE_WEBHOOK_SECRET)
+    .update(`${t}.`).update(rawBody).digest('hex');
+  const a = Buffer.from(expected), b = Buffer.from(v1);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+async function handlePayWebhook(req, res) {
+  if (!paymentsEnabled()) return sendJson(req, res, 503, { ok: false, error: 'payments_not_configured' });
+  let raw;
+  try { raw = await readRawBody(req); }
+  catch { return sendJson(req, res, 400, { ok: false, error: 'bad_request' }); }
+  if (!stripeSignatureOk(raw, req.headers['stripe-signature'])) {
+    console.warn('[pay] webhook with a bad signature rejected');
+    return sendJson(req, res, 400, { ok: false, error: 'bad_signature' });
+  }
+  let event;
+  try { event = JSON.parse(raw.toString('utf8')); }
+  catch { return sendJson(req, res, 400, { ok: false, error: 'bad_json' }); }
+
+  if (event.type === 'checkout.session.completed') {
+    const s = event.data && event.data.object ? event.data.object : {};
+    const paid = s.payment_status === 'paid' || s.status === 'complete';
+    const email = String((s.metadata && s.metadata.email) || s.client_reference_id ||
+      (s.customer_details && s.customer_details.email) || s.customer_email || '').toLowerCase();
+    if (paid && looksLikeEmail(email)) {
+      grants[email] = PAID_TIER;
+      persist(GRANTS_FILE, grants);
+      console.log(`[pay] ${email} paid — full access granted`);
+    } else {
+      console.warn(`[pay] completed session without a usable email or not paid (status=${s.payment_status})`);
+    }
+  }
+  // Every other event type is acknowledged so Stripe stops retrying it.
+  return sendJson(req, res, 200, { ok: true, received: true });
 }
 
 /* Who may open /admin. Signing in with one of these Google accounts is the
@@ -1231,6 +1365,9 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/admin/login' && req.method === 'POST') return await handleAdminLogin(req, res);
     if (url.pathname === '/api/activate' && req.method === 'POST') return await handleActivate(req, res);
     if (url.pathname === '/api/verify' && req.method === 'POST') return await handleVerify(req, res);
+    if (url.pathname === '/api/pay/config' && req.method === 'GET') return await handlePayConfig(req, res);
+    if (url.pathname === '/api/pay/checkout' && req.method === 'POST') return await handlePayCheckout(req, res);
+    if (url.pathname === '/api/pay/webhook' && req.method === 'POST') return await handlePayWebhook(req, res);
     if (url.pathname === '/api/progress' && req.method === 'POST') return await handleProgress(req, res);
     if (url.pathname === '/api/admin/mint' && req.method === 'POST') return await handleMint(req, res);
     if (url.pathname === '/api/admin/registrations' && req.method === 'GET') return await handleRegistrations(req, res);
@@ -1259,6 +1396,7 @@ server.listen(PORT, () => {
   console.log(`  sample access: ${TRIAL_DAYS} days, registrations saved to ${REGISTRATIONS}`);
   console.log(`  access: ${settings.openAccess ? 'OPEN — everyone gets ' + settings.defaultTier : 'trial then licence key'}`);
   console.log(`  Google sign-in: ${GOOGLE_CLIENT_ID ? 'enabled' : 'off (set GOOGLE_CLIENT_ID)'}`);
+  console.log(`  payments: ${paymentsEnabled() ? 'Stripe Checkout enabled' : 'off (set STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_ID)'}`);
   console.log(`  admin page: /admin (sign in as ${ADMIN_EMAILS.join(', ')})`);
 
   /* Redeploying almost always means replacing ROOT with a fresh copy of the

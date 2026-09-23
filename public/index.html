@@ -9802,10 +9802,24 @@
 
   function openWelcome(ended){
     var box = el("div");
-    box.appendChild(el("h2",{"class":"display", text: ended ? "Time to unlock the rest" : "Learning games, at your child's level"}));
+    box.appendChild(el("h2",{"class":"display", text: ended ? "Your free trial has ended" : "Learning games, at your child's level"}));
     box.appendChild(el("p",{text: ended
-      ? "Enter the key from your order to unlock every game again."
+      ? "Unlock every game with a one-time payment. Already paid? Just sign in below with the same email."
       : "Maths, English, Science and thinking games that follow the Singapore syllabus — plus worksheets you can print."}));
+
+    if(ended){
+      /* No token any more (it expired), so checkout is tied to the email
+         typed into the form below. */
+      var endedPay = payButton(function(){
+        var e = document.getElementById("pc_reg_email");
+        var v = e ? String(e.value || "").trim() : "";
+        if(!v){ banner("Type your email below first, so we know which account to unlock."); if(e) e.focus(); }
+        return v;
+      });
+      endedPay.style.marginBottom = "12px";
+      box.appendChild(endedPay);
+      loadPayConfig().then(function(on){ if(!on) endedPay.hidden = true; });
+    }
 
     if(!ended){
       box.appendChild(el("div",{"class":"moetag", text:"📘  Follows the Singapore MOE syllabus, Nursery to Primary 6"}));
@@ -10249,14 +10263,84 @@
     confettiBurst(30);
   }
 
+  /* ---------- paying for full access ----------
+     Whether a pay button is shown at all is the server's to say: it depends
+     on Stripe being configured there. Asked for once, remembered after. */
+  var payEnabled = null;
+  function loadPayConfig(){
+    if(payEnabled !== null) return Promise.resolve(payEnabled);
+    return api("/api/pay/config", null, "GET").then(function(res){
+      payEnabled = !!(res.status === 200 && res.body.ok && res.body.enabled);
+      return payEnabled;
+    })["catch"](function(){ payEnabled = false; return false; });
+  }
+  /* Starts a Stripe Checkout for this parent and sends the browser there.
+     Stripe brings them back to /?paid=1, where handlePaidReturn picks up. */
+  function startCheckout(btn, email){
+    var was = btn.textContent;
+    btn.disabled = true; btn.textContent = "Opening secure checkout…";
+    var body = {token: getToken()};
+    if(email) body.email = email;
+    return api("/api/pay/checkout", body).then(function(res){
+      if(res.status === 200 && res.body.ok && res.body.url){ window.location.href = res.body.url; return; }
+      btn.disabled = false; btn.textContent = was;
+      if(res.body && res.body.already){ banner("✅ This account already has full access — sign in to use it."); return; }
+      if(res.body && res.body.error === "sign_in_first"){ banner("Sign in with your email first, then unlock."); return; }
+      banner((res.body && res.body.message) || "Couldn't open checkout just now — please try again.");
+    })["catch"](function(){
+      btn.disabled = false; btn.textContent = was;
+      banner("Couldn't reach the server. Check your connection.");
+    });
+  }
+  function payButton(email){
+    var b = el("button",{"class":"btn btn-lg btn-go", style:"width:100%", text:"🔓 Unlock full access"});
+    b.addEventListener("click", function(){
+      sfx.tap();
+      var e = typeof email === "function" ? email() : email;
+      if(typeof email === "function" && !e) return;   /* the picker already said what is missing */
+      startCheckout(b, e);
+    });
+    return b;
+  }
+  /* Back from Stripe. The stored token is verified by the normal boot below,
+     and the server upgrades it on the spot now that the grant exists, so all
+     this has to do is say so and tidy the address bar. */
+  var paidReturn = null;
+  try{
+    var qs = new URLSearchParams(window.location.search);
+    if(qs.has("paid")){
+      paidReturn = qs.get("paid") === "1" ? "yes" : "no";
+      history.replaceState(null, "", window.location.pathname);
+    }
+  }catch(e){}
+  function handlePaidReturn(){
+    if(!paidReturn) return;
+    var which = paidReturn; paidReturn = null;
+    if(which === "yes"){
+      confettiBurst(80);
+      banner(getToken() ? "🎉 Payment received — every game is now unlocked!" : "🎉 Payment received! Sign in with the same email to unlock every game.");
+    } else {
+      banner("No payment was made — you can unlock any time.");
+    }
+  }
+
   function openKey(){
     var box = el("div");
-    box.appendChild(el("h2",{"class":"display", text:"Full access"}));
-    box.appendChild(el("p",{text:"There's no key to enter. Full access is switched on for your account by whoever set it up — ask them, and it will be there next time you open the app."}));
-    var ok = el("button",{"class":"btn btn-lg btn-pink", style:"width:100%", text:"Got it"});
+    box.appendChild(el("h2",{"class":"display", text:"Unlock every game"}));
+    var copy = el("p",{text:"Your free trial covers the games marked free. Unlock the whole app with a one-time payment — it's applied to your account straight away."});
+    box.appendChild(copy);
+    var pay = payButton(null);
+    box.appendChild(pay);
+    var ok = el("button",{"class":"btn btn-lg btn-ghost", style:"width:100%; margin-top:10px", text:"Not now"});
     box.appendChild(ok);
 
     var m = modal(box);
+    loadPayConfig().then(function(on){
+      if(on) return;
+      pay.hidden = true;
+      copy.textContent = "Full access is switched on for your account by whoever set it up — ask them, and it will be there next time you open the app.";
+      ok.textContent = "Got it";
+    });
     ok.addEventListener("click", function(){ m.close(); if(!licence) openWelcome(false); });
   }
 
@@ -10264,6 +10348,7 @@
   load();
   refreshWritings();
   renderHome();
+  setTimeout(handlePaidReturn, 400);
 
   /* Edge-swipe back: the gesture fires a popstate. We keep one spare entry
      below this page, so the swipe lands on it instead of leaving the site, and
