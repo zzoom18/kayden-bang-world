@@ -6721,7 +6721,7 @@
     if(!CAN_LISTEN){
       shell.stage.appendChild(el("div",{"class":"prompt", text:"This game needs a browser that can listen"}));
       shell.stage.appendChild(el("div",{"class":"bigq", style:"font-size:19px; max-width:420px; line-height:1.5",
-        text:"Reading practice works best in Chrome or Edge. Try opening kayden.sg there to play this one."}));
+        text:"Reading practice works best in Chrome or Edge. Try opening " + (location.hostname || "kayden.sg") + " there to play this one."}));
       var back = el("button",{"class":"btn btn-lg btn-go", text:"Choose another game"});
       back.addEventListener("click", function(){ sfx.tap(); renderHome(); });
       shell.stage.appendChild(back);
@@ -9683,7 +9683,7 @@
     box.appendChild(kids);
 
     box.appendChild(el("p",{text:"Over time, we thought that if these resources could help Kayden, perhaps they could also be useful to other children."}));
-    box.appendChild(el("p",{text:"So we decided to open kayden.sg to everyone."}));
+    box.appendChild(el("p",{text:"So we decided to open " + (location.hostname || "kayden.sg") + " to everyone."}));
     box.appendChild(el("p",{text:"There is no big mission behind it \u2014 just a hope that children can enjoy learning, practise at their own pace, and discover new things along the way."}));
     box.appendChild(el("p",{text:"The website will continue to grow as we add more activities and ideas that we feel may be useful for children in Singapore. New content is added and updated every week."}));
     box.appendChild(el("p",{text:"We hope Fun Game can be a small and helpful part of a child\u2019s learning journey."}));
