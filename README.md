@@ -251,7 +251,7 @@ the healthcheck at `/api/health`.
 | `KEY_SECRET` | **Must be carried over unchanged.** Every licence key ever issued is signed with it; a new value invalidates all of them. |
 | `DATA_DIR` | `/data`, matching the volume mount. |
 | `ADMIN_TOKEN` | Fallback way into `/admin` if Google sign-in is misconfigured. |
-| `ADMIN_EMAILS` | Comma-separated. Defaults to `zzoom18@gmail.com`. |
+| `ADMIN_EMAILS` | Comma-separated. Defaults to `zzoom18@gmail.com,zzoom18@yahoo.com`. |
 | `GOOGLE_CLIENT_ID` | From Google Cloud → Google Auth Platform → Clients. Without it the Google buttons stay hidden and the typed form is used. |
 | `TRIAL_DAYS`, `TOKEN_DAYS` | Optional; sensible defaults apply. |
 | `NODE_ENV` | `production`. |

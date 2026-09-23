@@ -1231,7 +1231,7 @@ async function handlePayWebhook(req, res) {
    normal way in; the long ADMIN_TOKEN still works as a way back in if Google
    is ever misconfigured, which would otherwise lock the owner out of his own
    site. */
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'zzoom18@gmail.com')
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'zzoom18@gmail.com,zzoom18@yahoo.com')
   .split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
 const ADMIN_SESSION_HOURS = 12;
 
