@@ -231,6 +231,36 @@
     font-family:"Baloo 2",sans-serif; font-weight:800; font-size:clamp(26px,6vw,38px);
     display:grid; place-items:center; padding:14px; transition:transform .14s var(--ease), background .16s ease;
   }
+  /* ---- entrances ----
+     Everything that appears mid-game used to just be there. A short rise-in
+     on the question and a staggered one on the answers gives each round a
+     beat of its own; the same rise greets the home cards and a fresh clue.
+     All of it is a plain CSS animation so the reduced-motion rule and the
+     app's own Movement switch (body.nomotion) turn it off in one place. */
+  @keyframes rise{from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none}}
+  @keyframes fadein{from{opacity:0} to{opacity:1}}
+  @keyframes popglow{0%{transform:scale(1); box-shadow:0 0 0 0 rgba(255,255,255,.55)}
+    45%{transform:scale(1.12); box-shadow:0 0 0 6px rgba(255,255,255,.35), 0 0 26px rgba(53,196,143,.9)}
+    100%{transform:scale(1); box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+  @keyframes trophy{0%{opacity:0; transform:scale(.3) rotate(-12deg)} 60%{opacity:1; transform:scale(1.18) rotate(6deg)}
+    80%{transform:scale(.96) rotate(-2deg)} 100%{transform:scale(1) rotate(0)}}
+  .prompt{animation:fadein .3s ease both}
+  .bigq{animation:rise .36s var(--ease) both}
+  .choices .choice{animation:rise .32s var(--ease) both}
+  .choices .choice:nth-child(2){animation-delay:.06s}
+  .choices .choice:nth-child(3){animation-delay:.12s}
+  .choices .choice:nth-child(4){animation-delay:.18s}
+  .worlds .world{animation:rise .38s var(--ease) both}
+  .worlds .world:nth-child(2){animation-delay:.05s}
+  .worlds .world:nth-child(3){animation-delay:.10s}
+  .worlds .world:nth-child(4){animation-delay:.15s}
+  .worlds .world:nth-child(5){animation-delay:.20s}
+  .worlds .world:nth-child(n+6){animation-delay:.25s}
+  @media (hover:hover){ .world:hover{transform:translateY(-3px); box-shadow:0 11px 0 rgba(0,0,0,.22)} }
+  .stars-big{animation:trophy .7s var(--ease) both}
+  .result .score{animation:rise .4s .12s var(--ease) both}
+  .clue:last-child{animation:rise .3s var(--ease) both}
+  body.nomotion *{animation:none!important; transition:none!important}
   /* ---- Number Rally ---- */
   .track-r{position:relative; width:100%; max-width:700px; border-radius:22px; padding:12px 12px 12px 0;
     background:linear-gradient(180deg,#3B3480,#2A2560); border:3px solid rgba(255,255,255,.12);
@@ -709,7 +739,7 @@
     border-radius:18px; background:rgba(255,255,255,.22)}
   .zh-slot.blank{background:rgba(255,255,255,.06); color:var(--ink-soft); border:3px dashed rgba(255,255,255,.22)}
   .choice:active{transform:scale(.95)}
-  .choice.right{background:var(--good); color:#04382A; animation:pop .32s var(--ease)}
+  .choice.right{background:var(--good); color:#04382A; animation:popglow .5s var(--ease)}
   .choice.wrong{background:var(--bad); color:#fff; animation:shake .34s ease}
   .choice.dim{opacity:.35}
   @keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.12)}100%{transform:scale(1)}}
@@ -743,8 +773,9 @@
     font-size:clamp(30px,8vw,46px); display:grid; place-items:center; transition:transform .2s var(--ease), background .2s ease;
   }
   .card:active{transform:scale(.94)}
-  .card.up{background:rgba(255,255,255,.18)}
-  .card.done{background:var(--good); opacity:.5}
+  .card.up{background:rgba(255,255,255,.18); animation:cardflip .38s var(--ease)}
+  .card.done{background:var(--good); opacity:.5; animation:pop .4s var(--ease)}
+  @keyframes cardflip{from{transform:rotateY(90deg)} to{transform:rotateY(0)}}
 
   /* ---------- code path ---------- */
   .maze{display:grid; gap:5px; background:rgba(255,255,255,.08); padding:9px; border-radius:20px}
@@ -9572,7 +9603,7 @@
         state[key] = on;
         save();
         if(key === "sound" && on) sfx.pop();
-        if(key === "motion" && on) confettiBurst(18);
+        if(key === "motion"){ applyMotionClass(); if(on) confettiBurst(18); }
         if(key === "music"){ if(on) music.start("calm"); else music.stop(); }
         if(key === "readAloud" && on) speak("Reading is on");
       });
@@ -10344,8 +10375,15 @@
     ok.addEventListener("click", function(){ m.close(); if(!licence) openWelcome(false); });
   }
 
+  /* The Movement switch already silences confetti and the fox in JS; this
+     lets it silence every CSS entrance and press animation too. */
+  function applyMotionClass(){
+    document.body.classList.toggle("nomotion", state.motion === false);
+  }
+
   /* ---------- boot ---------- */
   load();
+  applyMotionClass();
   refreshWritings();
   renderHome();
   setTimeout(handlePaidReturn, 400);
