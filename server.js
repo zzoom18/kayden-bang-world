@@ -6,6 +6,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { verify, issueToken, readToken, mint, tierByName, TIERS, SELLABLE_TIERS, TRIAL_TIER } from './lib/keys.js';
 import { verifyGoogleToken } from './lib/google.js';
+import { hashPassword, checkPassword, passwordProblem } from './lib/password.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(ROOT, 'public');
@@ -33,6 +34,7 @@ const REGISTRATIONS = path.join(DATA_DIR, 'registrations.jsonl');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const GRANTS_FILE = path.join(DATA_DIR, 'grants.json');
 const WRITINGS_FILE = path.join(DATA_DIR, 'writings.json');
+const PASSWORDS_FILE = path.join(DATA_DIR, 'passwords.json');
 
 /* One-time move for anyone upgrading from before this default changed: if a
  * host happens to keep the app folder across deploys (rather than the usual
@@ -85,8 +87,18 @@ function adsConfig() {
 // ever appear to anyone else. Nothing here is shown to another family until
 // its status is 'approved'.
 let writings = [];
+/* Account passwords, keyed by the same hash of the address the progress files
+   use, so this file does not read as a mailing list either. Values are scrypt
+   records from lib/password.js — never the password itself. An account with no
+   entry here signs in by email alone, as every account did before passwords
+   existed; the first password it sets closes that door. */
+let passwords = {};
 
 function loadStore(){
+  try {
+    const raw = JSON.parse(fs.readFileSync(PASSWORDS_FILE, 'utf8'));
+    if (raw && typeof raw === 'object') passwords = raw;
+  } catch { /* none yet */ }
   try {
     const raw = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
     if (raw && typeof raw === 'object') settings = { ...settings, ...raw };
@@ -331,6 +343,38 @@ async function handleRegister(req, res) {
     return sendJson(req, res, 403, { ok: false, error: 'banned', message: 'This account has been suspended.' });
   }
 
+  /* The password, if the account has one, is the only thing that proves this
+     is the same family and not just someone who knows the address. Accounts
+     from before passwords existed have none, and still sign in by email
+     alone until they set one (the profile sheet asks them to). A brand-new
+     sign-up chooses one on the spot. */
+  const password = typeof body.password === 'string' ? body.password : '';
+  const stored = passwordOf(email);
+  let passwordSet = false;
+  if (stored) {
+    if (rateLimited(ip)) {
+      return sendJson(req, res, 429, { ok: false, error: 'too_many_attempts',
+        message: 'Too many tries. Please wait ten minutes and try again.' });
+    }
+    if (!password) {
+      return sendJson(req, res, 401, { ok: false, error: 'password_required',
+        message: 'This account has a password. Please type it to sign in.' });
+    }
+    if (!checkPassword(password, stored)) {
+      recordAttempt(ip);
+      return sendJson(req, res, 401, { ok: false, error: 'wrong_password',
+        message: 'That password does not match. Please try again.' });
+    }
+  } else if (password || body.mode === 'new') {
+    const problem = passwordProblem(password);
+    if (problem) return sendJson(req, res, 400, { ok: false, error: 'password_invalid', message: problem });
+    if (!setPassword(email, password)) {
+      return sendJson(req, res, 500, { ok: false, error: 'password_not_saved',
+        message: 'We could not save that password. Please try again in a moment.' });
+    }
+    passwordSet = true;
+  }
+
   signups.set(ip, [...(signups.get(ip) || []), Date.now()]);
 
   const ent = entitlementFor(email);
@@ -345,10 +389,11 @@ async function handleRegister(req, res) {
   });
 
   const licence = TIERS[ent.tier];
-  console.log(`[register] ${email.toLowerCase()} access=${ent.reason} tier=${licence.id} ip=${ip}`);
+  console.log(`[register] ${email.toLowerCase()} access=${ent.reason} tier=${licence.id} password=${stored ? 'checked' : passwordSet ? 'set' : 'none'} ip=${ip}`);
   return sendJson(req, res, 200, {
     ok: true,
     token,
+    hasPassword: !!(stored || passwordSet),
     trialDays: ent.days,
     licence: { id: licence.id, name: licence.name, maxPages: licence.maxPages, commercial: licence.commercial, trial: !!licence.trial },
     ads: adsConfig()
@@ -395,6 +440,27 @@ function writeProgress(email, state) {
     console.error('[progress] could not save:', err.message);
     return false;
   }
+}
+
+/* ---------- passwords ---------- */
+function accountKey(email) {
+  return crypto.createHash('sha256').update(`papercub-progress:${String(email || '').toLowerCase()}`).digest('hex').slice(0, 32);
+}
+function passwordOf(email) {
+  const rec = passwords[accountKey(email)];
+  return rec && typeof rec.hash === 'string' ? rec.hash : null;
+}
+function hasPassword(email) { return !!passwordOf(email); }
+function setPassword(email, password) {
+  passwords[accountKey(email)] = { hash: hashPassword(password), updatedAt: Math.floor(Date.now() / 1000) };
+  return persist(PASSWORDS_FILE, passwords);
+}
+function clearPassword(email) {
+  const key = accountKey(email);
+  if (!passwords[key]) return false;
+  delete passwords[key];
+  persist(PASSWORDS_FILE, passwords);
+  return true;
 }
 
 /* Only the fields the app actually keeps, with sane bounds. Whatever a browser
@@ -518,7 +584,7 @@ async function handleProgress(req, res) {
   const stored = readProgress(result.email);
 
   if (req.method === 'GET' || !body.state) {
-    return sendJson(req, res, 200, { ok: true, state: stored, email: result.email });
+    return sendJson(req, res, 200, { ok: true, state: stored, email: result.email, hasPassword: hasPassword(result.email) });
   }
 
   const incoming = cleanProgress(body.state);
@@ -528,7 +594,7 @@ async function handleProgress(req, res) {
   const saved = writeProgress(result.email, merged);
   // The page shows "signed in as", so it needs the address back on every
   // reply, not only on the read-only branch.
-  return sendJson(req, res, 200, { ok: true, saved, state: merged, email: result.email });
+  return sendJson(req, res, 200, { ok: true, saved, state: merged, email: result.email, hasPassword: hasPassword(result.email) });
 }
 
 /* ---------- Sign in with Google ----------
@@ -620,6 +686,7 @@ async function handleGoogle(req, res) {
     token,
     name,
     email,
+    hasPassword: hasPassword(email),
     trialDays: ent.days,
     licence: { id: licence.id, name: licence.name, maxPages: licence.maxPages, commercial: licence.commercial, trial: !!licence.trial },
     ads: adsConfig()
@@ -938,9 +1005,10 @@ function deleteAccount(email) {
 
   let removedGrant = false;
   if (grants[target]) { delete grants[target]; removedGrant = true; persist(GRANTS_FILE, grants); }
+  const removedPassword = clearPassword(target);
 
-  console.log(`[admin] deleted ${target} (${removedRows} sign-ups, progress=${removedProgress}, grant=${removedGrant})`);
-  return { ok: true, removedRows, removedProgress, removedGrant };
+  console.log(`[admin] deleted ${target} (${removedRows} sign-ups, progress=${removedProgress}, grant=${removedGrant}, password=${removedPassword})`);
+  return { ok: true, removedRows, removedProgress, removedGrant, removedPassword };
 }
 
 async function handleAccount(req, res) {
@@ -981,6 +1049,13 @@ async function handleAccount(req, res) {
     const saved = writeProgress(email, current);
     console.log(`[admin] ${body.action} for ${email}`);
     return sendJson(req, res, 200, { ok: true, saved, adsDisabled: current.adsDisabled });
+  }
+  if (body.action === 'clearPassword') {
+    // The way back in for a parent who has forgotten: the account goes back
+    // to signing in by email alone until they set a new password.
+    const cleared = clearPassword(email);
+    console.log(`[admin] clearPassword for ${email} (had one: ${cleared})`);
+    return sendJson(req, res, 200, { ok: true, cleared });
   }
   if (body.action === 'ban' || body.action === 'unban') {
     // Reversible, unlike the old delete: a banned account keeps its stars
@@ -1082,6 +1157,7 @@ async function handleVerify(req, res) {
       ok: true,
       token,
       upgraded: true,
+      hasPassword: !!result.email && hasPassword(result.email),
       licence: { id: up.id, name: up.name, maxPages: up.maxPages, commercial: up.commercial, trial: false },
       ads: adsConfig()
     });
@@ -1089,10 +1165,54 @@ async function handleVerify(req, res) {
 
   return sendJson(req, res, 200, {
     ok: true,
+    hasPassword: !!result.email && hasPassword(result.email),
     licence: { id: result.licence.id, name: result.licence.name, maxPages: result.licence.maxPages, commercial: result.licence.commercial, trial: !!result.licence.trial },
     expiresAt: result.expiresAt,
     ads: adsConfig()
   });
+}
+
+/* ---------- set or change a password ----------
+   Signed-in only (the token names the account). An account that already has
+   a password must give the current one; one that never had a password is
+   simply setting its first. There is no email-based reset here: a parent who
+   forgets asks, and the admin page clears it so they can set a new one. */
+async function handlePassword(req, res) {
+  let body;
+  try { body = await readBody(req); }
+  catch { return sendJson(req, res, 400, { ok: false, error: 'bad_request' }); }
+
+  const result = readToken(KEY_SECRET, body.token);
+  if (!result.ok) return sendJson(req, res, 401, { ok: false, error: result.reason });
+  if (!result.email) return sendJson(req, res, 200, { ok: false, error: 'no_account', message: 'Sign in with your email first.' });
+  const email = String(result.email).toLowerCase();
+  if (readProgress(email)?.banned) {
+    return sendJson(req, res, 403, { ok: false, error: 'banned', message: 'This account has been suspended.' });
+  }
+
+  const ip = clientIp(req);
+  const stored = passwordOf(email);
+  if (stored) {
+    if (rateLimited(ip)) {
+      return sendJson(req, res, 429, { ok: false, error: 'too_many_attempts',
+        message: 'Too many tries. Please wait ten minutes and try again.' });
+    }
+    if (!checkPassword(typeof body.current === 'string' ? body.current : '', stored)) {
+      recordAttempt(ip);
+      return sendJson(req, res, 401, { ok: false, error: 'wrong_password',
+        message: 'Your current password does not match.' });
+    }
+  }
+
+  const next = typeof body.next === 'string' ? body.next : '';
+  const problem = passwordProblem(next);
+  if (problem) return sendJson(req, res, 400, { ok: false, error: 'password_invalid', message: problem });
+  if (!setPassword(email, next)) {
+    return sendJson(req, res, 500, { ok: false, error: 'password_not_saved',
+      message: 'We could not save that password. Please try again in a moment.' });
+  }
+  console.log(`[password] ${stored ? 'changed' : 'set'} for ${email} ip=${ip}`);
+  return sendJson(req, res, 200, { ok: true, hasPassword: true });
 }
 
 /* ---------- payments (Stripe Checkout) ----------
@@ -1365,6 +1485,7 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/admin/login' && req.method === 'POST') return await handleAdminLogin(req, res);
     if (url.pathname === '/api/activate' && req.method === 'POST') return await handleActivate(req, res);
     if (url.pathname === '/api/verify' && req.method === 'POST') return await handleVerify(req, res);
+    if (url.pathname === '/api/password' && req.method === 'POST') return await handlePassword(req, res);
     if (url.pathname === '/api/pay/config' && req.method === 'GET') return await handlePayConfig(req, res);
     if (url.pathname === '/api/pay/checkout' && req.method === 'POST') return await handlePayCheckout(req, res);
     if (url.pathname === '/api/pay/webhook' && req.method === 'POST') return await handlePayWebhook(req, res);

@@ -154,9 +154,10 @@ check both fail.
 | Endpoint | Purpose |
 | --- | --- |
 | `GET /api/health` | Liveness check (used by the Railway healthcheck). |
-| `POST /api/register` | `{ name, email, child? }` → `{ token, licence, trialDays }`. Starts a free trial. Rate limited to 5/IP/day. |
+| `POST /api/register` | `{ name, email, password?, child?, mode? }` → `{ token, licence, trialDays, hasPassword }`. Sign up or sign in. A new sign-up (`mode: "new"`) chooses a password; an account that has one must give it. Rate limited to 5/IP/day, wrong passwords to 12/IP/10min. |
+| `POST /api/password` | `{ token, current?, next }` → `{ hasPassword: true }`. Set a first password or change the existing one (`current` required when there is one). |
 | `POST /api/activate` | `{ key }` → `{ token, licence }`. Rate limited to 12/IP/10min. |
-| `POST /api/verify` | `{ token }` → `{ licence, expiresAt }`. |
+| `POST /api/verify` | `{ token }` → `{ licence, expiresAt, hasPassword }`. |
 | `POST /api/admin/mint` | `{ count, tier, from }` → keys. Requires `ADMIN_TOKEN`. |
 | `GET /api/admin/registrations` | Signup list. `?format=json` for the admin page, otherwise CSV. |
 | `GET/POST /api/admin/settings` | Read or change open access and the default tier. |
@@ -180,6 +181,13 @@ friend, and it is undone with one button.
 
 Settings and grants live in `settings.json` and `grants.json` under `DATA_DIR`, so they
 survive restarts and redeploys. The page also mints keys and lists sign-ups.
+
+**Passwords.** Every new sign-up chooses a password, and "I've played before" asks for
+it. Accounts from before passwords existed have none and still sign in by email alone
+until they set one from the profile sheet (which nudges them to). Hashes live in
+`passwords.json` under `DATA_DIR`, keyed by a hash of the address, never the password
+itself. There is no email-based reset: a parent who forgets asks you, and the
+**Clear password** button on the admin page lets them sign in by email and set a new one.
 
 Precedence, highest first: **personal grant → open access → trial**.
 

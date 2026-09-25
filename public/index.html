@@ -1017,6 +1017,13 @@
   .av{width:58px; height:58px; border-radius:18px; background:rgba(255,255,255,.12); font-size:30px; display:grid; place-items:center; transition:transform .14s var(--ease)}
   .av[aria-pressed="true"]{background:var(--sun); transform:scale(1.06)}
   .err{color:#FF9DBB; font-weight:800; font-size:14px; min-height:20px; margin-top:6px}
+  .pwrow{display:flex; gap:8px; align-items:stretch}
+  .pwrow input{flex:1; min-width:0}
+  .pwrow .pweye{
+    flex:0 0 auto; min-height:0; padding:0 14px; border-radius:var(--r-md); border:3px solid rgba(255,255,255,.16);
+    background:rgba(0,0,0,.24); color:#C4B3FF; font-weight:800; font-size:14px;
+  }
+  .pwrow .pweye[aria-pressed="true"]{border-color:var(--grape); color:#fff}
 
   /* ---- write or draw ---- */
   .writebox textarea{
@@ -1860,6 +1867,9 @@
      writes locally at once and pushes to the account a moment later, batched
      so a run of right answers is one request rather than ten. */
   var pushTimer = null, accountEmail = null;
+  /* Whether the signed-in account has a password yet. Accounts from before
+     passwords existed have none; the profile sheet nudges them to set one. */
+  var accountHasPassword = false;
   /* Sentences other players' children have written and had approved,
      fetched once at boot and refreshed quietly each time the home screen is
      shown, so a newly-approved one appears without anyone reloading the
@@ -1907,7 +1917,7 @@
     clearToken();
     try{ localStorage.removeItem("papercub.player"); }catch(e){}
     try{ localStorage.removeItem("papercub.noinstall"); }catch(e){}
-    accountEmail = null;
+    accountEmail = null; accountHasPassword = false;
     licence = null; licenceExp = null;
     state = JSON.parse(JSON.stringify(DEFAULT));
     location.reload();
@@ -1945,6 +1955,7 @@
     api("/api/progress", {token:token, state:state}).then(function(res){
       if(res.status === 200 && res.body.ok){
         accountEmail = res.body.email || null;
+        accountHasPassword = !!res.body.hasPassword;
       }
       if(res.status === 200 && res.body.ok && res.body.state){
         var incoming = res.body.state;
@@ -9545,6 +9556,84 @@
     return {close:function(){ if(scrim.parentNode) scrim.parentNode.removeChild(scrim); }};
   }
 
+  /* A password box with a "show" button beside it. Typing a password on a
+     phone keyboard is where most sign-in mistakes come from, and letting
+     people see what they typed fixes more of them than any error message. */
+  function passwordInput(id, autocomplete){
+    var row = el("div",{"class":"pwrow"});
+    var input = el("input",{type:"password", id:id, maxlength:"128", autocomplete:autocomplete || "current-password", spellcheck:"false"});
+    var eye = el("button",{"class":"pweye", type:"button", "aria-pressed":"false", "aria-label":"Show password", text:"Show"});
+    eye.addEventListener("click", function(){
+      var show = input.type === "password";
+      input.type = show ? "text" : "password";
+      eye.textContent = show ? "Hide" : "Show";
+      eye.setAttribute("aria-pressed", show ? "true" : "false");
+      eye.setAttribute("aria-label", show ? "Hide password" : "Show password");
+      input.focus();
+    });
+    row.appendChild(input); row.appendChild(eye);
+    return {row:row, input:input};
+  }
+
+  /* Set a first password, or change the one the account has. Signed-in
+     only: the token says which account, and the current password (when
+     there is one) says it is really them. */
+  function openPassword(){
+    var token = getToken();
+    if(!token || !accountEmail){ banner("Sign in with your email first."); return; }
+    var box = el("div");
+    box.appendChild(el("h2",{"class":"display", text: accountHasPassword ? "Change password" : "Set a password"}));
+    box.appendChild(el("p",{text: accountHasPassword
+      ? "Type your current password, then the new one twice."
+      : "With a password, only you can sign in as " + accountEmail + " on another device."}));
+
+    var curI = null;
+    if(accountHasPassword){
+      var fcur = el("div",{"class":"field"});
+      fcur.appendChild(el("label",{text:"Current password", "for":"pc_pw_cur"}));
+      var cur = passwordInput("pc_pw_cur", "current-password");
+      curI = cur.input;
+      fcur.appendChild(cur.row); box.appendChild(fcur);
+    }
+
+    var fnew = el("div",{"class":"field"});
+    fnew.appendChild(el("label",{text:"New password", "for":"pc_pw_new"}));
+    fnew.appendChild(el("div",{"class":"fieldnote", text:"At least 6 characters."}));
+    var nw = passwordInput("pc_pw_new", "new-password");
+    fnew.appendChild(nw.row); box.appendChild(fnew);
+
+    var fagain = el("div",{"class":"field"});
+    fagain.appendChild(el("label",{text:"New password again", "for":"pc_pw_again"}));
+    var again = passwordInput("pc_pw_again", "new-password");
+    fagain.appendChild(again.row); box.appendChild(fagain);
+
+    var err = el("div",{"class":"err"}); box.appendChild(err);
+    var m = modal(box);
+    var go = el("button",{"class":"btn btn-lg btn-go", style:"width:100%; margin-top:8px", text:"Save password"});
+    var back = el("button",{"class":"btn btn-lg btn-ghost", style:"width:100%; margin-top:10px", text:"Cancel"});
+    back.addEventListener("click", function(){ m.close(); });
+    go.addEventListener("click", function(){
+      var next = nw.input.value || "", rep = again.input.value || "";
+      if(curI && !curI.value){ err.textContent = "Please type your current password."; curI.focus(); return; }
+      if(next.length < 6){ err.textContent = "Please use at least 6 characters."; nw.input.focus(); return; }
+      if(next !== rep){ err.textContent = "Those two passwords are not the same."; again.input.focus(); return; }
+      go.disabled = true; go.textContent = "Saving…"; err.textContent = "";
+      api("/api/password", {token:token, current: curI ? curI.value : "", next:next}).then(function(res){
+        if(res.status === 200 && res.body.ok){
+          accountHasPassword = true;
+          m.close();
+          banner("🔒 Password saved");
+          return;
+        }
+        err.textContent = res.body.message || "Something went wrong. Please try again.";
+      })["catch"](function(){
+        err.textContent = "Couldn't reach the server. Check your connection.";
+      }).then(function(){ go.disabled = false; go.textContent = "Save password"; });
+    });
+    box.appendChild(go); box.appendChild(back);
+    setTimeout(function(){ (curI || nw.input).focus(); }, 80);
+  }
+
   function openProfile(){
     var box = el("div");
     box.appendChild(el("h2",{"class":"display", text: state.setup ? "Change your player" : "Hello! Who's playing?"}));
@@ -9624,6 +9713,14 @@
         text: accountEmail || "Not signed in — this device only"}));
       af.appendChild(arow);
       if(accountEmail){
+        var pw = el("button",{"class":"btn btn-ghost", style:"width:100%; margin-top:9px; min-height:50px",
+          text: accountHasPassword ? "🔒  Change password" : "🔒  Set a password"});
+        pw.addEventListener("click", function(){ sfx.tap(); openPassword(); });
+        af.appendChild(pw);
+        if(!accountHasPassword){
+          af.appendChild(el("div",{"class":"fieldnote", style:"margin-top:7px",
+            text:"No password yet — anyone who knows this email could sign in as you. Set one to keep the account yours."}));
+        }
         var so = el("button",{"class":"btn btn-ghost", style:"width:100%; margin-top:9px; min-height:50px", text:"Sign out"});
         so.addEventListener("click", function(){
           sfx.tap();
@@ -9893,6 +9990,19 @@
     var mailI = el("input",{type:"email", id:"pc_reg_email", maxlength:"254", autocomplete:"email", spellcheck:"false"});
     fe.appendChild(mailI); box.appendChild(fe);
 
+    /* The password is what makes "I've played before" mean this family and
+       not just anyone who knows the address. New sign-ups choose one here;
+       accounts from before passwords existed can leave it blank once and
+       set one from the profile sheet. */
+    var fp = el("div",{"class":"field"});
+    var pwLabel = el("label",{text:"Choose a password", "for":"pc_reg_pw"});
+    fp.appendChild(pwLabel);
+    var pwNote = el("div",{"class":"fieldnote", text:"At least 6 characters. You'll use it to sign in on other devices."});
+    fp.appendChild(pwNote);
+    var pwBox = passwordInput("pc_reg_pw", "new-password");
+    var pwI = pwBox.input;
+    fp.appendChild(pwBox.row); box.appendChild(fp);
+
     var fc = el("div",{"class":"field"});
     fc.appendChild(el("label",{text:"Child's name", "for":"pc_reg_child"}));
     var kidI = el("input",{type:"text", id:"pc_reg_child", maxlength:"40"});
@@ -9928,6 +10038,11 @@
       mailNote.textContent = m === "back"
         ? "The address you used before. Everything you earned comes back."
         : "We use this to save your stars so they follow you to any device.";
+      pwLabel.textContent = m === "back" ? "Password" : "Choose a password";
+      pwNote.textContent = m === "back"
+        ? "Leave this blank if you never set one — you can add it in your profile."
+        : "At least 6 characters. You'll use it to sign in on other devices.";
+      pwI.setAttribute("autocomplete", m === "back" ? "current-password" : "new-password");
       err.textContent = "";
       setTimeout(function(){ (m === "back" ? mailI : nameI).focus(); }, 40);
     }
@@ -9955,6 +10070,7 @@
     function signedIn(res, who){
       if(res.status === 200 && res.body.ok){
         setToken(res.body.token, rememberMe);
+        accountHasPassword = !!res.body.hasPassword;
         applyLicence(res.body.licence, Math.floor(Date.now()/1000) + (res.body.trialDays || 7) * 86400, res.body.ads);
         var kid = (kidI.value||"").trim();
         m.close();
@@ -10008,11 +10124,18 @@
          address twice keeps the request valid without asking for it again. */
       if(mode === "back" && !name) name = email.split("@")[0];
       if(!name){ err.textContent = "Please tell us your name."; nameI.focus(); return; }
+      var password = pwI.value || "";
+      if(mode === "new" && password.length < 6){
+        err.textContent = "Please choose a password of at least 6 characters.";
+        pwI.focus(); return;
+      }
       go.disabled = true;
       go.textContent = mode === "back" ? "Signing in…" : "Setting up…";
       err.textContent = "";
-      api("/api/register", {name:name, email:email, child:kid}).then(function(res){
-        signedIn(res, "form");
+      api("/api/register", {name:name, email:email, child:kid, password:password, mode:mode}).then(function(res){
+        if(!signedIn(res, "form") && res.body && (res.body.error === "wrong_password" || res.body.error === "password_required")){
+          pwI.focus();
+        }
       })["catch"](function(){
         err.textContent = "Couldn't reach the server. Check your connection.";
       }).then(function(){
@@ -10539,6 +10662,7 @@
           /* The server hands back a new token when access has been widened
              since this browser last checked. */
           if(res.body.token){ setToken(res.body.token, rememberedHere()); }
+          accountHasPassword = !!res.body.hasPassword;
           applyLicence(res.body.licence, res.body.expiresAt, res.body.ads);
           /* Draw only once the account's stars are in, or the home screen
              would show this device's total and then quietly change. */

@@ -661,6 +661,15 @@
         });
         actions.appendChild(adBtn);
 
+        var cp = document.createElement("button");
+        cp.className = "btn btn-sm";
+        cp.textContent = "Clear password";
+        cp.addEventListener("click", function(){
+          if(!confirm("Clear the password for " + r.email + "?\n\nThey'll be able to sign in with just their email until they set a new one from their profile.")) return;
+          account(r.email, "clearPassword");
+        });
+        actions.appendChild(cp);
+
         var rs = document.createElement("button");
         rs.className = "btn btn-sm";
         rs.textContent = "Reset stars";
@@ -697,6 +706,7 @@
             : action === "enableAds" ? "Ad breaks turned back on for " + email + "."
             : action === "ban" ? "Banned " + email + "."
             : action === "unban" ? "Unbanned " + email + "."
+            : action === "clearPassword" ? "Password cleared for " + email + " — they can sign in by email and set a new one."
             : "Progress reset for " + email + ".", true);
           loadRegs();
           return api("/api/admin/settings").then(function(r2){ if(r2.body.ok) paint(r2.body); });
