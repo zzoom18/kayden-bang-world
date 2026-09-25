@@ -61,20 +61,6 @@
   }
 
   .app{position:relative; z-index:1; height:100%; display:flex; flex-direction:column}
-  .moebar{
-    flex:none; display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap;
-    padding:9px 16px; background:linear-gradient(90deg, rgba(255,196,61,.20), rgba(53,196,143,.20));
-    border-bottom:2px solid rgba(255,255,255,.10);
-    font-size:13px; font-weight:700; color:#E7E3FF; text-align:center; line-height:1.35;
-  }
-  .moebar strong{font-weight:800; color:#FFD98A}
-  .moe-dot{font-size:15px}
-  .moe-sep, .moe-sep2, .moe-range{color:var(--ink-soft)}
-  .moe-new{font-weight:800; color:#9BE8C6}
-  /* The syllabus/age-range segment is the credibility line; the weekly-new
-     one is the reason to come back, so it survives on a narrow phone even
-     when the middle segment (and its own separator) is dropped. */
-  @media (max-width:430px){ .moe-sep, .moe-range{display:none} }
   .screen{flex:1; min-height:0; display:flex; flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch}
   .pad{padding:18px; max-width:1100px; width:100%; margin:0 auto}
 
@@ -471,21 +457,35 @@
     box-shadow:0 6px 18px rgba(0,0,0,.35); border:2px solid rgba(255,255,255,.18)}
   .flagpic svg{display:block; width:100%; height:auto}
 
-  /* ---- Snake and Ladders ---- */
-  .snl-path{position:relative; display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
-    gap:10px 10px; width:100%; max-width:560px; margin:44px 0 18px; padding:0 6px}
-  .snl-stone{flex:none; width:34px; height:34px; border-radius:10px;
-    background:rgba(255,255,255,.14); border:2px solid rgba(255,255,255,.22);
+  /* ---- Snake and Ladders ----
+     A proper board: six across, five up, numbered the way the real game is
+     (1 starts bottom-left and each row runs back the other way), so a child
+     who has played the cardboard version knows where to look. Squares are
+     as big as the phone allows, checkered so the eye can follow the path,
+     and the snakes, ladders, start and finish live on the squares themselves. */
+  .snl-path{position:relative; display:grid; grid-template-columns:repeat(6,1fr); gap:6px;
+    width:100%; max-width:450px; margin:6px 0 4px; padding:10px; border-radius:22px;
+    background:linear-gradient(160deg,#2FA36F,#1D7550);
+    border:4px solid #FFD98A; box-shadow:0 12px 28px rgba(0,0,0,.35), inset 0 0 0 3px rgba(255,255,255,.16)}
+  .snl-stone{position:relative; aspect-ratio:1; border-radius:12px;
     display:flex; align-items:center; justify-content:center;
-    font-weight:800; font-size:13px; color:#fff; position:relative}
-  .snl-stone.snake{background:rgba(255,93,143,.35); border-color:#FF5D8F}
-  .snl-stone.ladder{background:rgba(53,196,143,.35); border-color:#35C48F}
-  .snl-stone .snl-icon{position:absolute; top:-16px; font-size:16px}
-  .snl-token{position:absolute; top:-34px; font-size:24px; line-height:1;
-    transform:translate(-50%,0); transition:left .5s var(--ease), top .5s var(--ease);
-    filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}
+    background:#FFF3C4; color:#3A2B5C; font-weight:800; font-size:clamp(15px,4.2vw,21px);
+    box-shadow:inset 0 -3px 0 rgba(0,0,0,.12), 0 2px 0 rgba(0,0,0,.18)}
+  .snl-stone.alt{background:#CDEFDD}
+  .snl-stone .snl-num{position:absolute; top:3px; left:6px; font-size:clamp(10px,2.7vw,12.5px); line-height:1; opacity:.85}
+  .snl-stone .snl-icon{font-size:clamp(22px,6vw,30px); line-height:1; margin-top:4px}
+  .snl-stone.snake{background:linear-gradient(145deg,#FFB8CC,#FF7FA5); color:#5B1E36}
+  .snl-stone.ladder{background:linear-gradient(145deg,#DDF7A8,#9FD95A); color:#2B4A12}
+  .snl-stone.start{background:linear-gradient(145deg,#BFE3FF,#7CC1FF); color:#123A5C}
+  .snl-stone.goal{background:linear-gradient(145deg,#FFE28A,#FFB84D); color:#5B3A00;
+    box-shadow:inset 0 -3px 0 rgba(0,0,0,.12), 0 0 0 3px rgba(255,255,255,.45), 0 0 18px rgba(255,216,106,.7)}
+  .snl-token{position:absolute; left:0; top:0; font-size:clamp(24px,6.4vw,32px); line-height:1; z-index:2;
+    transform:translate(-50%,-50%); transition:left .5s var(--ease), top .5s var(--ease);
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,.45))}
   .snl-slide{animation:snlslide .6s ease}
-  @keyframes snlslide{0%{transform:translate(-50%,0) scale(1)} 50%{transform:translate(-50%,10px) scale(.85)} 100%{transform:translate(-50%,0) scale(1)}}
+  @keyframes snlslide{0%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-40%) scale(.85)} 100%{transform:translate(-50%,-50%) scale(1)}}
+  .snl-legend{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;
+    font-size:13.5px; font-weight:800; color:var(--ink-soft); margin-bottom:6px}
 
   /* ---- Number Quest: the winding path ---- */
   .nq-path{position:relative; display:flex; align-items:center; justify-content:center;
@@ -1127,14 +1127,6 @@
 <body>
 <div class="sky-bg"></div>
 <div class="app">
-  <div class="moebar">
-    <span class="moe-dot">📘</span>
-    <span>Follows the <strong>Singapore MOE syllabus</strong></span>
-    <span class="moe-sep">·</span>
-    <span class="moe-range">Nursery to Primary 6</span>
-    <span class="moe-sep2">·</span>
-    <span class="moe-new">🎉 New games every week, and fresh content added weekly</span>
-  </div>
   <div class="screen" id="screen"></div>
 </div>
 <div class="flash" id="flash" aria-hidden="true"></div>
@@ -7436,20 +7428,39 @@
     shell.stage.appendChild(el("div",{"class":"byline", text:"🐍 Created by Ellyia, K2"}));
     shell.stage.appendChild(el("div",{"class":"prompt", text:"Answer to roll — race Bunny to square 30!"}));
 
+    /* The grid is laid out top row first, but the numbers start bottom-left
+       and snake back and forth, so each cell works out which square it is
+       from where it sits. */
+    var SNL_COLS = 6, SNL_ROWS = SNL_SIZE / SNL_COLS;
     var path = el("div",{"class":"snl-path"});
     var stones = [];
-    for(var s = 1; s <= SNL_SIZE; s++){
-      var stone = el("div",{"class":"snl-stone" + (SNL_SNAKES[s] ? " snake" : SNL_LADDERS[s] ? " ladder" : ""),
-        text:String(s)});
-      if(SNL_SNAKES[s]) stone.appendChild(el("span",{"class":"snl-icon", text:"🐍"}));
-      if(SNL_LADDERS[s]) stone.appendChild(el("span",{"class":"snl-icon", text:"🪜"}));
-      stones.push(stone);
-      path.appendChild(stone);
+    for(var r = 0; r < SNL_ROWS; r++){
+      for(var c = 0; c < SNL_COLS; c++){
+        var fromBottom = SNL_ROWS - 1 - r;
+        var s = fromBottom * SNL_COLS + (fromBottom % 2 === 0 ? c + 1 : SNL_COLS - c);
+        var kind = SNL_SNAKES[s] ? "snake" : SNL_LADDERS[s] ? "ladder" : s === 1 ? "start" : s === SNL_SIZE ? "goal" : "";
+        var stone = el("div",{"class":"snl-stone" + (kind ? " " + kind : "") + (s % 2 === 0 ? " alt" : "")});
+        var icon = kind === "snake" ? "🐍" : kind === "ladder" ? "🪜" : kind === "start" ? "🚩" : kind === "goal" ? "🏆" : "";
+        if(icon){
+          stone.appendChild(el("span",{"class":"snl-num", text:String(s)}));
+          stone.appendChild(el("span",{"class":"snl-icon", text:icon}));
+        } else {
+          stone.appendChild(el("span",{text:String(s)}));
+        }
+        stones[s - 1] = stone;
+        path.appendChild(stone);
+      }
     }
     var meToken = el("div",{"class":"snl-token", text: state.avatar || "🦊"});
     var rivalToken = el("div",{"class":"snl-token", text:"🐰"});
     path.appendChild(meToken); path.appendChild(rivalToken);
     shell.stage.appendChild(path);
+    var legend = el("div",{"class":"snl-legend"});
+    legend.appendChild(el("span",{text:(state.avatar || "🦊") + " you"}));
+    legend.appendChild(el("span",{text:"🐰 Bunny"}));
+    legend.appendChild(el("span",{text:"🐍 slide down"}));
+    legend.appendChild(el("span",{text:"🪜 climb up"}));
+    shell.stage.appendChild(legend);
 
     var status = el("div",{"class":"hintline", text:"Your turn — answer the sum to roll!"});
     shell.stage.appendChild(status);
@@ -7464,8 +7475,9 @@
       var pathRect = path.getBoundingClientRect();
       var tRect = target.getBoundingClientRect();
       if(!pathRect.width || !tRect.width) return;
-      tokenEl.style.left = (tRect.left - pathRect.left + tRect.width / 2 + (offsetX || 0)) + "px";
-      tokenEl.style.top = (tRect.top - pathRect.top - 34) + "px";
+      /* Absolute positions count from inside the board's border. */
+      tokenEl.style.left = (tRect.left - pathRect.left - path.clientLeft + tRect.width / 2 + (offsetX || 0)) + "px";
+      tokenEl.style.top = (tRect.top - pathRect.top - path.clientTop + tRect.height / 2 - 3) + "px";
     }
     function placeBoth(){ placeToken(meToken, mePos || 1, -10); placeToken(rivalToken, rivalPos || 1, 10); }
     setTimeout(placeBoth, 0);
